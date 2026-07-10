@@ -1,18 +1,42 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class CarController : MonoBehaviour
 {
-    public float speed = 10f;
+    public float acceleration = 5000f;
+    public float maxSpeed = 20f;
     public float turnSpeed = 100f;
+
+    private Rigidbody rb;
+
+    private float move;
+    private float turn;
+
+
+    void Start()
+    {
+        rb = GetComponent<Rigidbody>();
+    }
+
 
     void Update()
     {
-        float move = Input.GetAxis("Vertical");
-        float turn = Input.GetAxis("Horizontal");
+        move = Input.GetAxis("Vertical");
+        turn = Input.GetAxis("Horizontal");
+    }
 
-        transform.Translate(Vector3.forward * move * speed * Time.deltaTime);
-        transform.Rotate(Vector3.up * turn * turnSpeed * Time.deltaTime);
+
+    void FixedUpdate()
+    {
+        rb.AddForce(transform.forward * move * acceleration);
+
+        if (rb.velocity.magnitude > 0.5f)
+        {
+            rb.MoveRotation(rb.rotation * Quaternion.Euler(0, turn * turnSpeed * Time.fixedDeltaTime, 0));
+        }
+
+        if (rb.velocity.magnitude > maxSpeed)
+        {
+            rb.velocity = rb.velocity.normalized * maxSpeed;
+        }
     }
 }
