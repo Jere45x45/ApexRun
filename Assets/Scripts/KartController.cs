@@ -17,12 +17,16 @@ public class KartController : MonoBehaviour
     [Header("Vehicle Settings")]
     [SerializeField] private float motorTorque = 3000f;
     [SerializeField] private float maxSteeringAngle = 30f;
+    [SerializeField] private float minSteeringAngle = 10f;
+    [SerializeField] private float steeringReductionSpeed = 20f;
     [SerializeField] private float brakeTorque = 3000f;
 
     private float throttle;
     private float steering;
 
     private Rigidbody rb;
+
+    private bool braking;
 
     private void Start()
     {
@@ -34,31 +38,20 @@ public class KartController : MonoBehaviour
     {
         throttle = Input.GetAxis("Vertical");
         steering = Input.GetAxis("Horizontal");
+
+        braking = Input.GetKey(KeyCode.Space);
     }
 
     private void FixedUpdate()
     {
-        // Motor
-        rearLeftWheel.motorTorque = throttle * motorTorque;
-        rearRightWheel.motorTorque = throttle * motorTorque;
+        HandleMotor();
+        HandleSteering();
+        HandleBraking();
+        UpdateWheels();
+    }
 
-        // Dirección
-        frontLeftWheel.steerAngle = steering * maxSteeringAngle;
-        frontRightWheel.steerAngle = steering * maxSteeringAngle;
-
-        // Freno
-        if (Mathf.Abs(throttle) < 0.1f)
-        {
-            rearLeftWheel.brakeTorque = brakeTorque;
-            rearRightWheel.brakeTorque = brakeTorque;
-        }
-        else
-        {
-            rearLeftWheel.brakeTorque = 0f;
-            rearRightWheel.brakeTorque = 0f;
-        }
-
-        // Actualizar ruedas visuales
+    private void UpdateWheels()
+    {
         UpdateWheel(frontLeftWheel, frontLeftMesh);
         UpdateWheel(frontRightWheel, frontRightMesh);
         UpdateWheel(rearLeftWheel, rearLeftMesh);
@@ -72,4 +65,36 @@ public class KartController : MonoBehaviour
         wheelMesh.position = position;
         wheelMesh.rotation = rotation;
     }
+    
+    private void HandleMotor()
+    {
+        rearLeftWheel.motorTorque = throttle * motorTorque;
+        rearRightWheel.motorTorque = throttle * motorTorque;
+    }
+
+    private void HandleSteering()
+    {
+        float speed = rb.velocity.magnitude;
+    
+        float currentSteeringAngle = Mathf.Lerp(
+            maxSteeringAngle,
+            minSteeringAngle,
+            Mathf.Clamp01(speed / steeringReductionSpeed)
+        );
+    
+        frontLeftWheel.steerAngle = steering * currentSteeringAngle;
+        frontRightWheel.steerAngle = steering * currentSteeringAngle;
+    }
+
+    private void HandleBraking()
+    {
+        float brake = braking ? brakeTorque : 0f;
+
+        frontLeftWheel.brakeTorque = brake;
+        frontRightWheel.brakeTorque = brake;
+        rearLeftWheel.brakeTorque = brake;
+        rearRightWheel.brakeTorque = brake;
+    }
+
+
 }

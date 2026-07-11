@@ -404,7 +404,7 @@ MonoBehaviour:
   rearRightMesh: {fileID: 543660565}
   motorTorque: 4000
   maxSteeringAngle: 30
-  brakeTorque: 3000
+  brakeTorque: 10000
 --- !u!54 &453361199
 Rigidbody:
   m_ObjectHideFlags: 0
