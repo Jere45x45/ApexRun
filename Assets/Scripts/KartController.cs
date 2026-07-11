@@ -2,42 +2,36 @@
 
 public class KartController : MonoBehaviour
 {
-    public float acceleration = 5000f;
-    public float maxSpeed = 20f;
+    [SerializeField] private WheelCollider frontLeftWheel;
+    [SerializeField] private WheelCollider frontRightWheel;
+    [SerializeField] private WheelCollider rearLeftWheel;
+    [SerializeField] private WheelCollider rearRightWheel;
 
-    public float steeringForce = 1000f;
+    [SerializeField] private Transform frontLeftMesh;
+    [SerializeField] private Transform frontRightMesh;
+    [SerializeField] private Transform rearLeftMesh;
+    [SerializeField] private Transform rearRightMesh;
 
-    private Rigidbody rb;
+    [SerializeField] private float motorTorque = 1000f;
+    [SerializeField] private float maxSteeringAngle = 30f;
+    [SerializeField] private float brakeTorque = 3000f;
 
-    private float move;
-    private float turn;
-
-    private float speed;
-
-
-    void Start()
-    {
-        rb = GetComponent<Rigidbody>();
-    }
-
+    private float throttle;
+    private float steering;
 
     void Update()
     {
-        move = Input.GetAxis("Vertical");
-        turn = Input.GetAxis("Horizontal");
+        throttle = Input.GetAxis("Vertical");
+        steering = Input.GetAxis("Horizontal");
     }
 
     void FixedUpdate()
     {
-        speed = rb.velocity.magnitude;
-
-        rb.AddForce(transform.forward * move * acceleration);
-
-        rb.AddTorque(Vector3.up * turn * steeringForce * speed * Time.fixedDeltaTime);
-
-        if (rb.velocity.magnitude > maxSpeed)
-        {
-            rb.velocity = rb.velocity.normalized * maxSpeed;
-        }
+        rearLeftWheel.motorTorque = throttle * motorTorque;
+        rearRightWheel.motorTorque = throttle * motorTorque;
+    
+        frontLeftWheel.steerAngle = steering * maxSteeringAngle;
+        frontRightWheel.steerAngle = steering * maxSteeringAngle;
     }
+
 }

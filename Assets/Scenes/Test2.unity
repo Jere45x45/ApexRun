@@ -300,7 +300,7 @@ GameObject:
   - component: {fileID: 401726618}
   - component: {fileID: 401726619}
   m_Layer: 0
-  m_Name: WheelCollider_FR
+  m_Name: WheelCollider_RR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -313,12 +313,12 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 401726617}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 1, y: -0.6, z: -1.75}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 453361200}
-  m_RootOrder: 2
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!146 &401726619
 WheelCollider:
@@ -380,8 +380,8 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 2.5, y: 1.2, z: 5}
-  m_Center: {x: -5.5, y: 1.3016279, z: -1.15}
+  m_Size: {x: 2.5, y: 1.5, z: 5}
+  m_Center: {x: 0, y: -0.5, z: 0}
 --- !u!114 &453361198
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -394,9 +394,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91442d5d5ea5dc24f981127120db1fd8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  acceleration: 5000
-  maxSpeed: 20
-  steeringForce: 1000
+  frontLeftWheel: {fileID: 525725020}
+  frontRightWheel: {fileID: 2081266275}
+  rearLeftWheel: {fileID: 812277014}
+  rearRightWheel: {fileID: 401726619}
+  frontLeftMesh: {fileID: 1777743058}
+  frontRightMesh: {fileID: 1253153372}
+  rearLeftMesh: {fileID: 842966623}
+  rearRightMesh: {fileID: 963654534}
+  motorTorque: 1000
+  maxSteeringAngle: 30
+  brakeTorque: 3000
 --- !u!54 &453361199
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -421,18 +429,18 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 453361196}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5.495227, y: -0.6119246, z: 1.1836063}
+  m_LocalPosition: {x: 0, y: 1.25, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 861646637}
-  - {fileID: 812277013}
-  - {fileID: 401726618}
   - {fileID: 525725019}
   - {fileID: 2081266274}
-  - {fileID: 963654534}
-  - {fileID: 842966623}
-  - {fileID: 1253153372}
+  - {fileID: 812277013}
+  - {fileID: 401726618}
   - {fileID: 1777743058}
+  - {fileID: 1253153372}
+  - {fileID: 842966623}
+  - {fileID: 963654534}
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -447,7 +455,7 @@ GameObject:
   - component: {fileID: 525725019}
   - component: {fileID: 525725020}
   m_Layer: 0
-  m_Name: WheelCollider_RL
+  m_Name: WheelCollider_FL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -460,12 +468,12 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 525725018}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -1, y: -0.6, z: 1.75}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 453361200}
-  m_RootOrder: 3
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!146 &525725020
 WheelCollider:
@@ -681,7 +689,7 @@ GameObject:
   - component: {fileID: 812277013}
   - component: {fileID: 812277014}
   m_Layer: 0
-  m_Name: WheelCollider_FL
+  m_Name: WheelCollider_RL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -694,12 +702,12 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 812277012}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -1, y: -0.6, z: -1.75}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 453361200}
-  m_RootOrder: 1
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!146 &812277014
 WheelCollider:
@@ -743,7 +751,7 @@ GameObject:
   - component: {fileID: 842966626}
   - component: {fileID: 842966625}
   m_Layer: 0
-  m_Name: Rueda_Del_Izq
+  m_Name: Rueda_Tras_Izq
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -757,11 +765,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 842966622}
   m_LocalRotation: {x: -0, y: -0, z: 0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: -4.495227, y: 1.2119247, z: -2.9336061}
+  m_LocalPosition: {x: -1, y: -0.75, z: -1.75}
   m_LocalScale: {x: 1, y: 0.25, z: 1}
   m_Children: []
   m_Father: {fileID: 453361200}
-  m_RootOrder: 6
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
 --- !u!23 &842966625
 MeshRenderer:
@@ -819,8 +827,6 @@ GameObject:
   - component: {fileID: 861646637}
   - component: {fileID: 861646636}
   - component: {fileID: 861646635}
-  - component: {fileID: 861646634}
-  - component: {fileID: 861646632}
   m_Layer: 0
   m_Name: Chasis
   m_TagString: Untagged
@@ -828,35 +834,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!54 &861646632
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 861646631}
-  serializedVersion: 2
-  m_Mass: 200
-  m_Drag: 1
-  m_AngularDrag: 5
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 1
-  m_Constraints: 0
-  m_CollisionDetection: 3
---- !u!65 &861646634
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 861646631}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &861646635
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -910,7 +887,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 861646631}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -5.495227, y: 1.6419246, z: -1.1836063}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 2.5, y: 0.5, z: 5}
   m_Children: []
   m_Father: {fileID: 453361200}
@@ -928,7 +905,7 @@ GameObject:
   - component: {fileID: 963654537}
   - component: {fileID: 963654536}
   m_Layer: 0
-  m_Name: Rueda_Del_Der
+  m_Name: Rueda_Tras_Der
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -942,11 +919,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963654533}
   m_LocalRotation: {x: -0, y: -0, z: 0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: -6.495227, y: 1.2119247, z: -2.9336061}
+  m_LocalPosition: {x: 1, y: -0.75, z: -1.75}
   m_LocalScale: {x: 1, y: 0.25, z: 1}
   m_Children: []
   m_Father: {fileID: 453361200}
-  m_RootOrder: 5
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
 --- !u!23 &963654536
 MeshRenderer:
@@ -1005,7 +982,7 @@ GameObject:
   - component: {fileID: 1253153375}
   - component: {fileID: 1253153374}
   m_Layer: 0
-  m_Name: Rueda_Tras_Der
+  m_Name: Rueda_Del_Der
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1019,11 +996,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1253153371}
   m_LocalRotation: {x: -0, y: -0, z: 0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: -6.495227, y: 1.2119247, z: 0.56639373}
+  m_LocalPosition: {x: 1, y: -0.75, z: 1.75}
   m_LocalScale: {x: 1, y: 0.25, z: 1}
   m_Children: []
   m_Father: {fileID: 453361200}
-  m_RootOrder: 7
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
 --- !u!23 &1253153374
 MeshRenderer:
@@ -1035,7 +1012,7 @@ MeshRenderer:
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
+  m_DynamicOccludee: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -1082,7 +1059,7 @@ GameObject:
   - component: {fileID: 1777743061}
   - component: {fileID: 1777743060}
   m_Layer: 0
-  m_Name: Rueda_Tras_Izq
+  m_Name: Rueda_Del_Izq
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1096,11 +1073,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1777743057}
   m_LocalRotation: {x: -0, y: -0, z: 0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: -4.495227, y: 1.2119247, z: 0.56639373}
+  m_LocalPosition: {x: -1, y: -0.75, z: 1.75}
   m_LocalScale: {x: 1, y: 0.25, z: 1}
   m_Children: []
   m_Father: {fileID: 453361200}
-  m_RootOrder: 8
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
 --- !u!23 &1777743060
 MeshRenderer:
@@ -1158,7 +1135,7 @@ GameObject:
   - component: {fileID: 2081266274}
   - component: {fileID: 2081266275}
   m_Layer: 0
-  m_Name: WheelCollider_RR
+  m_Name: WheelCollider_FR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1171,12 +1148,12 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2081266273}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 1, y: -0.6, z: 1.75}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 453361200}
-  m_RootOrder: 4
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!146 &2081266275
 WheelCollider:
