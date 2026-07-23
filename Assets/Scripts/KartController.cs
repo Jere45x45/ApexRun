@@ -15,23 +15,50 @@ public class KartController : MonoBehaviour
     [SerializeField] private Transform rearRightMesh;
 
     [Header("Vehicle Settings")]
-    [SerializeField] private float motorTorque = 3000f;
-    [SerializeField] private float maxSteeringAngle = 30f;
-    [SerializeField] private float minSteeringAngle = 10f;
-    [SerializeField] private float steeringReductionSpeed = 20f;
-    [SerializeField] private float brakeTorque = 3000f;
-
+    private Kart kart;
+    [SerializeField] private KartConfiguration configuration;
+    
     private float throttle;
     private float steering;
 
     private Rigidbody rb;
 
     private bool braking;
+    
+    private EngineController engineController;
+    private SteeringController steeringController;
+    private BrakeController brakeController;
+    private WheelVisualController wheelVisualController;
+
+    private KartPhysics kartPhysics;
 
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
-        rb.centerOfMass = new Vector3(0f, -0.5f, 0f);
+
+        kart = new Kart(configuration);
+
+        KartPhysics kartPhysics = new KartPhysics(
+            rb,
+            frontLeftWheel,
+            frontRightWheel,
+            rearLeftWheel,
+            rearRightWheel,
+            frontLeftMesh,
+            frontRightMesh,
+            rearLeftMesh,
+            rearRightMesh
+        );
+
+        engineController = new EngineController(kartPhysics);
+
+        steeringController = new SteeringController(kartPhysics);
+
+        brakeController = new BrakeController(kartPhysics);
+        
+        wheelVisualController = new WheelVisualController(kartPhysics);
+
+        PhysicsConfigurator.Configure(kartPhysics, kart.Stats);
     }
 
     private void Update()
@@ -44,57 +71,22 @@ public class KartController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        HandleMotor();
-        HandleSteering();
-        HandleBraking();
-        UpdateWheels();
-    }
-
-    private void UpdateWheels()
-    {
-        UpdateWheel(frontLeftWheel, frontLeftMesh);
-        UpdateWheel(frontRightWheel, frontRightMesh);
-        UpdateWheel(rearLeftWheel, rearLeftMesh);
-        UpdateWheel(rearRightWheel, rearRightMesh);
-    }
-
-    private void UpdateWheel(WheelCollider wheelCollider, Transform wheelMesh)
-    {
-        wheelCollider.GetWorldPose(out Vector3 position, out Quaternion rotation);
-
-        wheelMesh.position = position;
-        wheelMesh.rotation = rotation;
-    }
-    
-    private void HandleMotor()
-    {
-        rearLeftWheel.motorTorque = throttle * motorTorque;
-        rearRightWheel.motorTorque = throttle * motorTorque;
-    }
-
-    private void HandleSteering()
-    {
-        float speed = rb.velocity.magnitude;
-    
-        float currentSteeringAngle = Mathf.Lerp(
-            maxSteeringAngle,
-            minSteeringAngle,
-            Mathf.Clamp01(speed / steeringReductionSpeed)
+        engineController.UpdateMotor(
+            throttle,
+            kart.Stats
         );
-    
-        frontLeftWheel.steerAngle = steering * currentSteeringAngle;
-        frontRightWheel.steerAngle = steering * currentSteeringAngle;
+
+        steeringController.UpdateSteering(
+            steering,
+            rb.velocity.magnitude,
+            kart.Stats
+        );
+
+        brakeController.UpdateBrakes(
+            braking,
+            kart.Stats
+        );
+
+        wheelVisualController.UpdateVisuals();
     }
-
-    private void HandleBraking()
-    {
-        float brake = braking ? brakeTorque : 0f;
-
-        frontLeftWheel.brakeTorque = brake;
-        frontRightWheel.brakeTorque = brake;
-        rearLeftWheel.brakeTorque = brake;
-        rearRightWheel.brakeTorque = brake;
-    }
-
-
 }
