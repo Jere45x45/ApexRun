@@ -1,14 +1,17 @@
-﻿using UnityEngine;
-
-public class Kart
+﻿public class Kart
 {
-    public KartConfiguration Configuration { get; private set; }
+    public RuntimeKartConfiguration Configuration { get; }
 
     public KartStats Stats { get; private set; }
 
-    public Kart(KartConfiguration configuration)
+    public Kart(RuntimeKartConfiguration configuration)
     {
         Configuration = configuration;
-        Stats = KartBuilder.Build(configuration);
+        Rebuild();
+    }
+
+    public void Rebuild()
+    {
+        Stats = KartBuilder.Build(Configuration);
     }
 }

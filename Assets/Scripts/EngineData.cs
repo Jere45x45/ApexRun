@@ -13,4 +13,9 @@ public class EngineData : KartPart
     {
         stats.motorTorque = motorTorque;
     }
+
+    public override void Install(RuntimeKartConfiguration configuration)
+    {
+        configuration.InstallEngine(this);
+    }
 }

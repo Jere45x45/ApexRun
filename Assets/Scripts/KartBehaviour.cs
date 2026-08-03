@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class KartController : MonoBehaviour
+public class KartBehaviour : MonoBehaviour, IKartPresenter
 {
     [Header("Wheel Colliders")]
     [SerializeField] private WheelCollider frontLeftWheel;
@@ -13,6 +13,8 @@ public class KartController : MonoBehaviour
     [SerializeField] private Transform frontRightMesh;
     [SerializeField] private Transform rearLeftMesh;
     [SerializeField] private Transform rearRightMesh;
+
+    [SerializeField] private KartModelController modelController;
 
     [Header("Vehicle Settings")]
     private Kart kart;
@@ -32,13 +34,15 @@ public class KartController : MonoBehaviour
 
     private KartPhysics kartPhysics;
 
+    public Kart Kart => kart;
+
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
 
-        kart = new Kart(configuration);
+        kart = new Kart(new RuntimeKartConfiguration(configuration));
 
-        KartPhysics kartPhysics = new KartPhysics(
+        kartPhysics = new KartPhysics(
             rb,
             frontLeftWheel,
             frontRightWheel,
@@ -48,17 +52,17 @@ public class KartController : MonoBehaviour
             frontRightMesh,
             rearLeftMesh,
             rearRightMesh
-        );
+        );  
 
         engineController = new EngineController(kartPhysics);
 
         steeringController = new SteeringController(kartPhysics);
 
         brakeController = new BrakeController(kartPhysics);
-        
+
         wheelVisualController = new WheelVisualController(kartPhysics);
 
-        PhysicsConfigurator.Configure(kartPhysics, kart.Stats);
+        RefreshKart();
     }
 
     private void Update()
@@ -88,5 +92,29 @@ public class KartController : MonoBehaviour
         );
 
         wheelVisualController.UpdateVisuals();
+    }
+
+    public void RefreshKart()
+    {
+        kart.Rebuild();
+
+        PhysicsConfigurator.Configure(
+            kartPhysics,
+            kart.Stats
+        );
+
+        UpdateVisualModel();
+    }
+
+    public void Refresh(Kart kart)
+    {
+        this.kart = kart;
+
+        RefreshKart();
+    }
+
+    private void UpdateVisualModel()
+    {
+        modelController.Refresh(kart.Configuration);
     }
 }

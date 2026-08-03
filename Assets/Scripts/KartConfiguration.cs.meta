@@ -3,7 +3,10 @@ guid: d8f2887a06f85f5438e5ce20dcb17556
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - engine: {fileID: 11400000, guid: a84de6df49d6fc645b9130eb1f126181, type: 2}
+  - chassis: {fileID: 11400000, guid: 3e1b32fbd3739bd4ea3354eca24986c6, type: 2}
+  - wheels: {fileID: 11400000, guid: 7df2982a279607b41bad6c0188efbde9, type: 2}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

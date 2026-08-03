@@ -31,4 +31,9 @@ public class WheelData : KartPart
         stats.wheelRadius = radius;
         stats.suspensionDistance = suspensionDistance;
     }
+
+    public override void Install(RuntimeKartConfiguration configuration)
+    {
+        configuration.InstallWheels(this);
+    }
 }

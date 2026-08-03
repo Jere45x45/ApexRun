@@ -21,4 +21,9 @@ public class ChassisData : KartPart
         stats.drag = drag;
         stats.angularDrag = angularDrag;
     }
+
+    public override void Install(RuntimeKartConfiguration configuration)
+    {
+        configuration.InstallChassis(this);
+    }
 }

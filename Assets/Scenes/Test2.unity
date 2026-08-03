@@ -360,8 +360,8 @@ GameObject:
   m_Component:
   - component: {fileID: 453361200}
   - component: {fileID: 453361199}
-  - component: {fileID: 453361198}
   - component: {fileID: 453361197}
+  - component: {fileID: 453361198}
   m_Layer: 0
   m_Name: Kart
   m_TagString: Untagged
@@ -402,6 +402,7 @@ MonoBehaviour:
   frontRightMesh: {fileID: 1338942160}
   rearLeftMesh: {fileID: 551229642}
   rearRightMesh: {fileID: 543660565}
+  modelController: {fileID: 0}
   configuration: {fileID: 11400000, guid: 791c1c500d6707f49be20556c2d8b7ca, type: 2}
 --- !u!54 &453361199
 Rigidbody:

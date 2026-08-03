@@ -2,13 +2,13 @@
 
 public static class KartBuilder
 {
-    public static KartStats Build(KartConfiguration configuration)
+    public static KartStats Build(RuntimeKartConfiguration configuration)
     {
         KartStats stats = new KartStats();
 
-        configuration.engine.Apply(stats);
-        configuration.chassis.Apply(stats);
-        configuration.wheels.Apply(stats);
+        configuration.Engine.Apply(stats);
+        configuration.Chassis.Apply(stats);
+        configuration.Wheels.Apply(stats);
 
         return stats;
     }
