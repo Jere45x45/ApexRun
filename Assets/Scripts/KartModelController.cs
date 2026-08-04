@@ -8,16 +8,13 @@ public class KartModelController : MonoBehaviour
     [SerializeField] private Transform chassisMount;
     [SerializeField] private Transform wheelsMount;
 
-    private GameObject currentEngine;
-    private GameObject currentChassis;
-    private GameObject currentWheels;
-
     public void Refresh(RuntimeKartConfiguration configuration)
     {
-        UpdateEngine(configuration.Engine);
-        UpdateChassis(configuration.Chassis);
-        UpdateWheels(configuration.Wheels);
+        engineSlot.SetModel(configuration.Engine.modelPrefab);
+        chassisSlot.SetModel(configuration.Chassis.modelPrefab);
+        wheelsSlot.SetModel(configuration.Wheels.modelPrefab);
     }
+    
 
     private void UpdateEngine(EngineData engine)
     {
