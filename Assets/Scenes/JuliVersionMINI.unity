@@ -657,7 +657,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 3ac25601878a5ae4eb14f3022e5e7aae, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.7
+      value: 0.6
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 3ac25601878a5ae4eb14f3022e5e7aae, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1016,7 +1016,7 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 846022252}
   m_PrefabAsset: {fileID: 0}
---- !u!64 &1512090894
+--- !u!64 &1512090893
 MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1041,8 +1041,8 @@ GameObject:
   - component: {fileID: 1764342987}
   - component: {fileID: 1764342986}
   - component: {fileID: 1764342985}
-  - component: {fileID: 1764342984}
   - component: {fileID: 1764342988}
+  - component: {fileID: 1764342984}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
@@ -1061,7 +1061,7 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
+  m_Size: {x: 1, y: 1, z: 0.99999994}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1764342985
 MeshRenderer:
