@@ -1,18 +1,26 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-public class ModelSlot : MonoBehaviour
+[System.Serializable]
+public class ModelSlot
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    [SerializeField] private Transform mountPoint;
 
-    // Update is called once per frame
-    void Update()
+    private GameObject currentInstance;
+
+    public void SetModel(GameObject prefab)
     {
-        
+        if (currentInstance != null)
+            Object.Destroy(currentInstance);
+
+        if (prefab == null)
+        {
+            currentInstance = null;
+            return;
+        }
+
+        currentInstance = Object.Instantiate(prefab, mountPoint);
+        currentInstance.transform.localPosition = Vector3.zero;
+        currentInstance.transform.localRotation = Quaternion.identity;
+        currentInstance.transform.localScale = Vector3.one;
     }
-}
+}   
