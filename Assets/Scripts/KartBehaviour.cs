@@ -65,12 +65,11 @@ public class KartBehaviour : MonoBehaviour, IKartPresenter
         RefreshKart();
     }
 
-    private void Update()
+    public void SetInputs(float throttle, float steering, bool brake)
     {
-        throttle = Input.GetAxis("Vertical");
-        steering = Input.GetAxis("Horizontal");
-
-        braking = Input.GetKey(KeyCode.Space);
+    this.throttle = throttle;
+    this.steering = steering;
+    this.braking = brake;
     }
 
     private void FixedUpdate()
