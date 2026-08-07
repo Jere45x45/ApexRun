@@ -4,10 +4,16 @@ using UnityEngine;
 
 public class BotController : MonoBehaviour
 {
-     public KartBehaviour kart;
+    public KartBehaviour kart;
 
     void Update()
     {
-        kart.SetInputs(1f, 0f, false);
+        float steering = Mathf.Sin(Time.time);
+
+        kart.SetInputs(
+            1f,
+            steering,
+            false
+        );
     }
 }
