@@ -6,8 +6,8 @@ public static class PhysicsConfigurator
     {
         // Rigidbody
         physics.Rigidbody.mass = stats.mass;
-        physics.Rigidbody.drag = stats.drag;
-        physics.Rigidbody.angularDrag = stats.angularDrag;
+        physics.Rigidbody.linearDamping = stats.drag;
+        physics.Rigidbody.angularDamping = stats.angularDrag;
         physics.Rigidbody.centerOfMass = stats.centerOfMass;
 
         // WheelColliders

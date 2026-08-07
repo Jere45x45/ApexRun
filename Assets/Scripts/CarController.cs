@@ -29,14 +29,14 @@ public class CarController : MonoBehaviour
     {
         rb.AddForce(transform.forward * move * acceleration);
 
-        if (rb.velocity.magnitude > 0.5f)
+        if (rb.linearVelocity.magnitude > 0.5f)
         {
             rb.MoveRotation(rb.rotation * Quaternion.Euler(0, turn * turnSpeed * Time.fixedDeltaTime, 0));
         }
 
-        if (rb.velocity.magnitude > maxSpeed)
+        if (rb.linearVelocity.magnitude > maxSpeed)
         {
-            rb.velocity = rb.velocity.normalized * maxSpeed;
+            rb.linearVelocity = rb.linearVelocity.normalized * maxSpeed;
         }
     }
 }

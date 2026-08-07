@@ -81,7 +81,7 @@ public class KartBehaviour : MonoBehaviour, IKartPresenter
 
         steeringController.UpdateSteering(
             steering,
-            rb.velocity.magnitude,
+            rb.linearVelocity.magnitude,
             kart.Stats
         );
 
