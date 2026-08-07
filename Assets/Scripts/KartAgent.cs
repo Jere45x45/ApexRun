@@ -5,10 +5,13 @@ using Unity.MLAgents.Sensors;
 
 public class KartAgent : Agent
 {
-    [SerializeField] private KartBehaviour kart;
+     [SerializeField] private KartBehaviour kart;
+
+    private int nextCheckpoint = 0;
 
     public override void OnEpisodeBegin()
     {
+        nextCheckpoint = 0;
     }
 
     public override void CollectObservations(VectorSensor sensor)
@@ -21,5 +24,21 @@ public class KartAgent : Agent
         float throttle = actions.ContinuousActions[1];
 
         kart.SetInputs(throttle, steering, false);
+    }
+
+    public void ReachCheckpoint(int checkpointIndex)
+    {
+        if (checkpointIndex == nextCheckpoint)
+        {
+            AddReward(1f);
+
+            nextCheckpoint++;
+
+            if (nextCheckpoint >= 8)
+            {
+                AddReward(10f);
+                EndEpisode();
+            }
+        }
     }
 }
