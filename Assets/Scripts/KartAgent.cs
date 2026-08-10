@@ -5,25 +5,83 @@ using Unity.MLAgents.Sensors;
 
 public class KartAgent : Agent
 {
-     [SerializeField] private KartBehaviour kart;
+    [Header("Kart")]
+    [SerializeField] private KartBehaviour kart;
+
+    [Header("Checkpoints")]
+    [SerializeField] private Transform[] checkpoints;
+
+    [Header("Settings")]
+    [SerializeField] private float maxSpeed = 30f;
+
+    private Rigidbody rb;
 
     private int nextCheckpoint = 0;
+
+    private Vector3 startPosition;
+    private Quaternion startRotation;
+
+    private void Awake()
+    {
+        rb = GetComponent<Rigidbody>();
+
+        startPosition = transform.position;
+        startRotation = transform.rotation;
+    }
 
     public override void OnEpisodeBegin()
     {
         nextCheckpoint = 0;
+
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+
+        transform.position = startPosition;
+        transform.rotation = startRotation;
+
+        kart.SetInputs(0f, 0f, true);
     }
 
     public override void CollectObservations(VectorSensor sensor)
     {
+        if (checkpoints.Length == 0)
+        {
+            return;
+        }
+
+        Transform target = checkpoints[nextCheckpoint];
+
+        Vector3 directionToTarget = target.position - transform.position;
+
+        Vector3 localDirection = transform.InverseTransformDirection(
+            directionToTarget.normalized
+        );
+
+        sensor.AddObservation(localDirection.x);
+        sensor.AddObservation(localDirection.z);
+
+        float speed = rb.linearVelocity.magnitude / maxSpeed;
+        sensor.AddObservation(speed);
     }
 
     public override void OnActionReceived(ActionBuffers actions)
     {
-        float steering = actions.ContinuousActions[0];
-        float throttle = actions.ContinuousActions[1];
+        float steering = Mathf.Clamp(
+            actions.ContinuousActions[0],
+            -1f,
+            1f
+        );
+
+        float throttle = Mathf.Clamp(
+            actions.ContinuousActions[1],
+            -1f,
+            1f
+        );
 
         kart.SetInputs(throttle, steering, false);
+
+        // Pequeña penalización por tardar demasiado
+        AddReward(-0.001f);
     }
 
     public void ReachCheckpoint(int checkpointIndex)
@@ -34,11 +92,16 @@ public class KartAgent : Agent
 
             nextCheckpoint++;
 
-            if (nextCheckpoint >= 8)
+            if (nextCheckpoint >= checkpoints.Length)
             {
                 AddReward(10f);
                 EndEpisode();
             }
         }
+    }
+    public void FallOffTrack()
+    {
+    AddReward(-2f);
+    EndEpisode();
     }
 }
