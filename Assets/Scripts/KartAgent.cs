@@ -39,7 +39,7 @@ public class KartAgent : Agent
         transform.position = startPosition;
         transform.rotation = startRotation;
 
-        kart.SetInputs(0f, 0f, true);
+        kart.SetInputs(0f, 0f, false);
     }
 
     public override void CollectObservations(VectorSensor sensor)
@@ -80,7 +80,6 @@ public class KartAgent : Agent
 
         kart.SetInputs(throttle, steering, false);
 
-        // Pequeña penalización por tardar demasiado
         AddReward(-0.001f);
     }
 
