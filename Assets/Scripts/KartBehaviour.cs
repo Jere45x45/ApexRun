@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class KartBehaviour : MonoBehaviour, IKartPresenter
+public class KartBehaviour : MonoBehaviour
 {
     [Header("Wheel Colliders")]
     [SerializeField] private WheelCollider frontLeftWheel;

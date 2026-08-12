@@ -4,6 +4,7 @@
 public class KartStats
 {
     public float motorTorque;
+    public float maxSpeed;
 
     public float maxSteeringAngle;
     public float minSteeringAngle;
@@ -13,6 +14,7 @@ public class KartStats
 
     public float mass;
     public Vector3 centerOfMass;
+
     public float drag;
     public float angularDrag;
 
