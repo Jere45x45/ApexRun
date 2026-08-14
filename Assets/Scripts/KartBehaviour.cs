@@ -18,7 +18,7 @@ public class KartBehaviour : MonoBehaviour
 
     [Header("Vehicle Settings")]
     private Kart kart;
-    [SerializeField] private KartConfiguration configuration;
+    [SerializeField] private KartConfigurationController configurationController;
     
     private float throttle;
     private float steering;
@@ -39,9 +39,11 @@ public class KartBehaviour : MonoBehaviour
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
-
-        kart = new Kart(new RuntimeKartConfiguration(configuration));
-
+    
+        kart = new Kart(
+            configurationController.Configuration
+        );
+    
         kartPhysics = new KartPhysics(
             rb,
             frontLeftWheel,
@@ -52,16 +54,13 @@ public class KartBehaviour : MonoBehaviour
             frontRightMesh,
             rearLeftMesh,
             rearRightMesh
-        );  
-
+        );
+    
         engineController = new EngineController(kartPhysics);
-
         steeringController = new SteeringController(kartPhysics);
-
         brakeController = new BrakeController(kartPhysics);
-
         wheelVisualController = new WheelVisualController(kartPhysics);
-
+    
         RefreshKart();
     }
 

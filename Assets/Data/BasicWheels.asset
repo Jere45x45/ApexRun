@@ -12,7 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35f65545d30f41142bb52c6fecb50ca3, type: 3}
   m_Name: BasicWheels
   m_EditorClassIdentifier: 
-  wheelName: 
+  partID: wheels_basic
+  partName: Basic Wheels
+  description: "Ruedas b\xE1sicas del kart."
+  icon: {fileID: 0}
+  modelPrefab: {fileID: 0}
+  rarity: 0
   maxSteeringAngle: 30
   minSteeringAngle: 10
   steeringReductionSpeed: 20

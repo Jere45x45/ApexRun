@@ -22,4 +22,20 @@ public class PartCatalog : ScriptableObject
             }
         }
     }
+
+    public KartPart GetPartByID(string partID)
+    {
+        if (string.IsNullOrEmpty(partID))
+            return null;
+
+        foreach (KartPart part in parts)
+        {
+            if (part != null && part.partID == partID)
+            {
+                return part;
+            }
+        }
+
+        return null;
+    }
 }

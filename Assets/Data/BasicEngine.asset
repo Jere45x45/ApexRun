@@ -9,11 +9,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b19dae36cef3830469a55a058335c131, type: 3}
-  m_Name: BasicCh
+  m_Script: {fileID: 11500000, guid: bcb6c684bab5ce748aec75dd58f86a3e, type: 3}
+  m_Name: BasicEngine
   m_EditorClassIdentifier: 
-  chassisName: 
-  mass: 150
-  centerOfMass: {x: 0, y: -0.5, z: 0}
-  drag: 0.05
-  angularDrag: 0.5
+  partID: engine_basic
+  partName: Basic Engine
+  description: "Motor b\xE1sico del kart."
+  icon: {fileID: 0}
+  modelPrefab: {fileID: 0}
+  rarity: 0
+  motorTorque: 2000
+  maxSpeed: 20
