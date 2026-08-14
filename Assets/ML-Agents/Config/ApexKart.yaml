@@ -1,5 +1,5 @@
 behaviors:
-  ApexKart:
+  ApexBot:
     trainer_type: ppo
 
     hyperparameters:

@@ -74,13 +74,21 @@ public class KartAgent : Agent
 
         float throttle = Mathf.Clamp(
             actions.ContinuousActions[1],
-            -1f,
-            1f
+         -1f,
+         1f
         );
 
         kart.SetInputs(throttle, steering, false);
 
         AddReward(-0.001f);
+    }
+    
+    public override void Heuristic(in ActionBuffers actionsOut)
+    {
+    var actions = actionsOut.ContinuousActions;
+
+    actions[0] = Input.GetAxis("Horizontal");
+    actions[1] = Input.GetAxis("Vertical");
     }
 
     public void ReachCheckpoint(int checkpointIndex)
@@ -98,6 +106,14 @@ public class KartAgent : Agent
             }
         }
     }
+    private void OnTriggerEnter(Collider other)
+    {
+    if (other.CompareTag("FallZone"))
+    {
+        FallOffTrack();
+    }
+    }
+
     public void FallOffTrack()
     {
     AddReward(-2f);
