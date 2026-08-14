@@ -14,6 +14,9 @@ public class KartAgent : Agent
     [Header("Settings")]
     [SerializeField] private float maxSpeed = 30f;
 
+    [SerializeField] private float stuckTime = 3f;
+
+    private float stuckTimer = 0f;
     private Rigidbody rb;
 
     private int nextCheckpoint = 0;
@@ -40,6 +43,8 @@ public class KartAgent : Agent
         transform.rotation = startRotation;
 
         kart.SetInputs(0f, 0f, false);
+
+        stuckTimer = 0f;
     }
 
     public override void CollectObservations(VectorSensor sensor)
@@ -113,7 +118,22 @@ public class KartAgent : Agent
         FallOffTrack();
     }
     }
+    private void FixedUpdate()
+    {
+    if (Vector3.Dot(transform.up, Vector3.up) < 0.3f)
+    {
+        stuckTimer += Time.fixedDeltaTime;
+    }
+    else
+    {
+        stuckTimer = 0f;
+    }
 
+    if (stuckTimer >= stuckTime)
+    {
+        FallOffTrack();
+    }
+    }
     public void FallOffTrack()
     {
     AddReward(-2f);
