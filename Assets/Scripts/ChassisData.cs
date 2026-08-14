@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 
 [CreateAssetMenu(fileName = "New Chassis", menuName = "Kart/Chassis")]
-
 public class ChassisData : KartPart
 {
     [Header("Peso")]
@@ -11,8 +10,9 @@ public class ChassisData : KartPart
 
     [Header("Aerodinámica")]
     public float drag = 0.05f;
-
     public float angularDrag = 0.5f;
+
+    public override PartType PartType => PartType.Chassis;
 
     public override void Apply(KartStats stats)
     {

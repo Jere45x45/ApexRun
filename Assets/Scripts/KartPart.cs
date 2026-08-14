@@ -18,6 +18,8 @@ public abstract class KartPart : ScriptableObject
     [Header("Rareza")]
     public PartRarity rarity = PartRarity.Common;
 
+    public abstract PartType PartType { get; }
+
     public abstract void Install(RuntimeKartConfiguration configuration);
     public abstract void Apply(KartStats stats);
 }

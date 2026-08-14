@@ -1,14 +1,11 @@
 ﻿using UnityEngine;
 
 [CreateAssetMenu(fileName = "New Wheels", menuName = "Kart/Wheels")]
-
 public class WheelData : KartPart
 {
     [Header("Dirección")]
     public float maxSteeringAngle = 30f;
-
     public float minSteeringAngle = 10f;
-
     public float steeringReductionSpeed = 20f;
 
     [Header("Frenado")]
@@ -19,6 +16,8 @@ public class WheelData : KartPart
 
     [Header("Rueda")]
     public float radius = 0.25f;
+
+    public override PartType PartType => PartType.Wheels;
 
     public override void Apply(KartStats stats)
     {

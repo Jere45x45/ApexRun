@@ -2,13 +2,6 @@
 
 public class KartModelController : MonoBehaviour
 {
-    [Header("Puntos de montaje")]
-
-    [SerializeField] private Transform engineMount;
-    [SerializeField] private Transform chassisMount;
-    [SerializeField] private Transform wheelsMount;
-
-
     [Header("Model Slots")]
     [SerializeField] private ModelSlot engineSlot;
     [SerializeField] private ModelSlot chassisSlot;
