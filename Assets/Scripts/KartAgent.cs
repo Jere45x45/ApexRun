@@ -14,12 +14,23 @@ public class KartAgent : Agent
     [Header("Settings")]
     [SerializeField] private float maxSpeed = 30f;
 
-    private Rigidbody rb;
+    [Header("Rewards")]
+    [SerializeField] private float checkpointReward = 1f;
+    [SerializeField] private float finishReward = 10f;
+    [SerializeField] private float fallPenalty = -2f;
+    [SerializeField] private float timePenalty = -0.001f;
+
+    [SerializeField] private float stuckTime = 3f;
+    [SerializeField] private float minSpeedToConsiderMoving = 0.5f;
+
+    private float stuckTimer = 0f;
+    private Vector3 lastPosition;
 
     private int nextCheckpoint = 0;
 
     private Vector3 startPosition;
     private Quaternion startRotation;
+    private Rigidbody rb;
 
     private void Awake()
     {
@@ -27,6 +38,8 @@ public class KartAgent : Agent
 
         startPosition = transform.position;
         startRotation = transform.rotation;
+        
+        lastPosition = transform.position;
     }
 
     public override void OnEpisodeBegin()
@@ -40,6 +53,9 @@ public class KartAgent : Agent
         transform.rotation = startRotation;
 
         kart.SetInputs(0f, 0f, false);
+
+       stuckTimer = 0f;
+       lastPosition = transform.position;
     }
 
     public override void CollectObservations(VectorSensor sensor)
@@ -80,7 +96,7 @@ public class KartAgent : Agent
 
         kart.SetInputs(throttle, steering, false);
 
-        AddReward(-0.001f);
+        AddReward(timePenalty);
     }
     
     public override void Heuristic(in ActionBuffers actionsOut)
@@ -93,30 +109,56 @@ public class KartAgent : Agent
 
     public void ReachCheckpoint(int checkpointIndex)
     {
-        if (checkpointIndex == nextCheckpoint)
+        if (checkpointIndex != nextCheckpoint)
         {
-            AddReward(1f);
+            return;
+        }
 
-            nextCheckpoint++;
+     AddReward(checkpointReward);
 
-            if (nextCheckpoint >= checkpoints.Length)
-            {
-                AddReward(10f);
-                EndEpisode();
-            }
+        nextCheckpoint++;
+
+        if (nextCheckpoint >= checkpoints.Length)
+        {
+            AddReward(finishReward);
+            EndEpisode();
         }
     }
+
     private void OnTriggerEnter(Collider other)
     {
-    if (other.CompareTag("FallZone"))
-    {
-        FallOffTrack();
-    }
+        if (other.CompareTag("FallZone"))
+        {
+            FallOffTrack();
+        }
     }
 
+    private void FixedUpdate()
+    {
+        float movementSpeed =
+        Vector3.Distance(transform.position, lastPosition)
+        / Time.fixedDeltaTime;
+
+        if (movementSpeed < minSpeedToConsiderMoving)
+        {
+            stuckTimer += Time.fixedDeltaTime;
+        }
+        else
+        {
+            stuckTimer = 0f;
+        }
+
+     lastPosition = transform.position;
+
+        if (stuckTimer >= stuckTime)
+        {
+            FallOffTrack();
+        }
+    }
+  
     public void FallOffTrack()
     {
-    AddReward(-2f);
-    EndEpisode();
+        AddReward(fallPenalty);
+        EndEpisode();
     }
 }
