@@ -16,7 +16,8 @@ MonoBehaviour:
   partName: Basic Engine
   description: "Motor b\xE1sico del kart."
   icon: {fileID: 0}
-  modelPrefab: {fileID: 0}
+  modelPrefab: {fileID: 919132149155446097, guid: 5263e54d11d12844896e5886ca10f6fb,
+    type: 3}
   rarity: 0
   motorTorque: 2000
   maxSpeed: 20

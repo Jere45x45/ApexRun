@@ -349,8 +349,8 @@ MonoBehaviour:
   frontRightMesh: {fileID: 1338942160}
   rearLeftMesh: {fileID: 551229642}
   rearRightMesh: {fileID: 543660565}
-  modelController: {fileID: 0}
-  configuration: {fileID: 11400000, guid: 791c1c500d6707f49be20556c2d8b7ca, type: 2}
+  modelController: {fileID: 2070030939}
+  configurationController: {fileID: 1974165058}
 --- !u!54 &453361199
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1389,6 +1389,101 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1777743057}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1974165057
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1974165059}
+  - component: {fileID: 1974165058}
+  m_Layer: 0
+  m_Name: KartConfigurationController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1974165058
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1974165057}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fca6db0a9701d5b4dbc88e1e2b49c0e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KartConfigurationController
+  baseConfiguration: {fileID: 11400000, guid: 791c1c500d6707f49be20556c2d8b7ca, type: 2}
+--- !u!4 &1974165059
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1974165057}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.10619, y: -0, z: -0.25501}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2070030938
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2070030940}
+  - component: {fileID: 2070030939}
+  m_Layer: 0
+  m_Name: KartModelController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2070030939
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2070030938}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbf97153de269664bab93f2a14598389, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KartModelController
+  engineSlot:
+    mountPoint: {fileID: 0}
+  chassisSlot:
+    mountPoint: {fileID: 0}
+  wheelsSlot:
+    mountPoint: {fileID: 0}
+--- !u!4 &2070030940
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2070030938}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 25.50057, y: -0, z: 14.48588}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2081266273
 GameObject:
   m_ObjectHideFlags: 0
@@ -1467,3 +1562,5 @@ SceneRoots:
   - {fileID: 170076735}
   - {fileID: 453361200}
   - {fileID: 1086398074}
+  - {fileID: 1974165059}
+  - {fileID: 2070030940}

@@ -16,7 +16,8 @@ MonoBehaviour:
   partName: Sport Engine
   description: ' Motor de prueba con mejores prestaciones.'
   icon: {fileID: 0}
-  modelPrefab: {fileID: 0}
+  modelPrefab: {fileID: 919132149155446097, guid: 9160d2d3f03fa4a43b288846060bcea5,
+    type: 3}
   rarity: 1
   motorTorque: 4500
   maxSpeed: 30

@@ -16,7 +16,8 @@ MonoBehaviour:
   partName: Basic Wheels
   description: "Ruedas b\xE1sicas del kart."
   icon: {fileID: 0}
-  modelPrefab: {fileID: 0}
+  modelPrefab: {fileID: 919132149155446097, guid: 2aa647ab233c7f0419a9f8015ef29fa8,
+    type: 3}
   rarity: 0
   maxSteeringAngle: 30
   minSteeringAngle: 10
