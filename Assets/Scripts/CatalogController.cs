@@ -1,77 +1,76 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CatalogUIController : MonoBehaviour
+public class CatalogController : MonoBehaviour
 {
     [Header("Catalog")]
-    [SerializeField] private CatalogController catalogController;
+    [SerializeField]
+    private PartCatalog catalog;
 
-    [Header("UI")]
-    [SerializeField] private Transform content;
-    [SerializeField] private CatalogPartItem partItemPrefab;
+    [Header("Kart Configuration")]
+    [SerializeField]
+    private KartConfigurationController configurationController;
 
-    private readonly List<CatalogPartItem> activeItems =
-        new List<CatalogPartItem>();
+    public PartCatalog Catalog => catalog;
 
-    public void ShowCategory(PartType type)
+    public KartConfigurationController ConfigurationController =>
+        configurationController;
+
+    public IEnumerable<KartPart> GetParts(PartType type)
     {
-        ClearItems();
-
-        if (catalogController == null)
+        if (catalog == null)
         {
             Debug.LogError(
-                "CatalogUIController no tiene un CatalogController asignado.",
+                "CatalogController no tiene un PartCatalog asignado.",
                 this
             );
 
-            return;
+            yield break;
         }
 
-        if (content == null)
+        foreach (KartPart part in catalog.GetParts(type))
         {
-            Debug.LogError(
-                "CatalogUIController no tiene un Content asignado.",
-                this
-            );
-
-            return;
-        }
-
-        if (partItemPrefab == null)
-        {
-            Debug.LogError(
-                "CatalogUIController no tiene un Part Item Prefab asignado.",
-                this
-            );
-
-            return;
-        }
-
-        foreach (KartPart part in catalogController.GetParts(type))
-        {
-            CatalogPartItem item =
-                Instantiate(
-                    partItemPrefab,
-                    content
-                );
-
-            item.Setup(
-                part,
-                catalogController
-            );
-
-            activeItems.Add(item);
+            yield return part;
         }
     }
 
-    private void ClearItems()
+    public void SelectPart(KartPart part)
     {
-        foreach (CatalogPartItem item in activeItems)
+        if (configurationController == null)
         {
-            if (item != null)
-                Destroy(item.gameObject);
+            Debug.LogError(
+                "CatalogController no tiene un KartConfigurationController asignado.",
+                this
+            );
+
+            return;
         }
 
-        activeItems.Clear();
+        if (part == null)
+        {
+            Debug.LogWarning(
+                "Se intentó seleccionar una pieza nula.",
+                this
+            );
+
+            return;
+        }
+
+        configurationController.InstallPart(part);
+    }
+
+    public KartPart GetInstalledPart(PartType type)
+    {
+        if (configurationController == null)
+        {
+            Debug.LogError(
+                "CatalogController no tiene un KartConfigurationController asignado.",
+                this
+            );
+
+            return null;
+        }
+
+        return configurationController.GetInstalledPart(type);
     }
 }
