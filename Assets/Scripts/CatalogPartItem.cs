@@ -26,6 +26,9 @@ public class CatalogPartItem : MonoBehaviour
 
     private void UpdateVisuals()
     {
+        if (part == null)
+            return;
+
         if (partName != null)
             partName.text = part.partName;
 
@@ -42,10 +45,7 @@ public class CatalogPartItem : MonoBehaviour
             return;
 
         selectButton.onClick.RemoveAllListeners();
-
-        selectButton.onClick.AddListener(
-            SelectPart
-        );
+        selectButton.onClick.AddListener(SelectPart);
     }
 
     private void SelectPart()
