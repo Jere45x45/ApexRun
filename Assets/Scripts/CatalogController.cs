@@ -36,6 +36,16 @@ public class CatalogController : MonoBehaviour
 
     public void SelectPart(KartPart part)
     {
+        if (catalog == null)
+        {
+            Debug.LogError(
+                "CatalogController no tiene un PartCatalog asignado.",
+                this
+            );
+
+            return;
+        }
+
         if (configurationController == null)
         {
             Debug.LogError(
@@ -50,6 +60,16 @@ public class CatalogController : MonoBehaviour
         {
             Debug.LogWarning(
                 "Se intentó seleccionar una pieza nula.",
+                this
+            );
+
+            return;
+        }
+
+        if (!catalog.ContainsPart(part))
+        {
+            Debug.LogWarning(
+                $"La pieza '{part.partID}' no pertenece a este catálogo.",
                 this
             );
 

@@ -17,6 +17,8 @@ public class CatalogUIController : MonoBehaviour
     private readonly List<CatalogPartItem> activeItems =
         new List<CatalogPartItem>();
 
+    public PartType CurrentCategory { get; private set; }
+
     private void Start()
     {
         ShowCategory(PartType.Engine);
@@ -24,6 +26,8 @@ public class CatalogUIController : MonoBehaviour
 
     public void ShowCategory(PartType type)
     {
+        CurrentCategory = type;
+
         ClearItems();
 
         if (catalogController == null)
@@ -73,12 +77,29 @@ public class CatalogUIController : MonoBehaviour
         }
     }
 
+    public void ShowEngines()
+    {
+        ShowCategory(PartType.Engine);
+    }
+
+    public void ShowChassis()
+    {
+        ShowCategory(PartType.Chassis);
+    }
+
+    public void ShowWheels()
+    {
+        ShowCategory(PartType.Wheels);
+    }
+
     private void ClearItems()
     {
         foreach (CatalogPartItem item in activeItems)
         {
             if (item != null)
+            {
                 Destroy(item.gameObject);
+            }
         }
 
         activeItems.Clear();

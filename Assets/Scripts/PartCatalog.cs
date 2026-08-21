@@ -38,4 +38,12 @@ public class PartCatalog : ScriptableObject
 
         return null;
     }
+
+    public bool ContainsPart(KartPart part)
+    {
+        if (part == null)
+            return false;
+
+        return parts.Contains(part);
+    }
 }
