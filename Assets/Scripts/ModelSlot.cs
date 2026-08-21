@@ -18,7 +18,11 @@ public class ModelSlot
             return;
         }
 
-        currentInstance = Object.Instantiate(prefab, mountPoint);
+        currentInstance = Object.Instantiate(
+            prefab,
+            mountPoint
+        );
+
         currentInstance.transform.localPosition = Vector3.zero;
         currentInstance.transform.localRotation = Quaternion.identity;
         currentInstance.transform.localScale = Vector3.one;

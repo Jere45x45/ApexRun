@@ -12,7 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b19dae36cef3830469a55a058335c131, type: 3}
   m_Name: BasicCh
   m_EditorClassIdentifier: 
-  chassisName: 
+  partID: chassis_basic
+  partName: Basic Chassis
+  description: "Chasis b\xE1sico del kart."
+  icon: {fileID: 0}
+  modelPrefab: {fileID: 100004, guid: 6bdf620309293f945b6605a24de7d589, type: 3}
+  rarity: 0
   mass: 150
   centerOfMass: {x: 0, y: -0.5, z: 0}
   drag: 0.05

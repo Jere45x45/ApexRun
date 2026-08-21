@@ -12,6 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bcb6c684bab5ce748aec75dd58f86a3e, type: 3}
   m_Name: BasicEngine
   m_EditorClassIdentifier: 
-  engineName: 
-  motorTorque: 3000
+  partID: engine_basic
+  partName: Basic Engine
+  description: "Motor b\xE1sico del kart."
+  icon: {fileID: 0}
+  modelPrefab: {fileID: 919132149155446097, guid: 5263e54d11d12844896e5886ca10f6fb,
+    type: 3}
+  rarity: 0
+  motorTorque: 2000
   maxSpeed: 20
