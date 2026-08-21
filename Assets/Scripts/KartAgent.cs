@@ -6,7 +6,7 @@ using Unity.MLAgents.Sensors;
 public class KartAgent : Agent
 {
     [Header("Kart")]
-    [SerializeField] private KartBehaviour kart;
+    [SerializeField] private BotBehaviour bot;
 
     [Header("Checkpoints")]
     [SerializeField] private Transform[] checkpoints;
@@ -52,7 +52,7 @@ public class KartAgent : Agent
         transform.position = startPosition;
         transform.rotation = startRotation;
 
-        kart.SetInputs(0f, 0f, false);
+        bot.SetInputs(0f, 0f, false);
 
        stuckTimer = 0f;
        lastPosition = transform.position;
@@ -94,7 +94,7 @@ public class KartAgent : Agent
          1f
         );
 
-        kart.SetInputs(throttle, steering, false);
+        bot.SetInputs(throttle, steering, false);
 
         AddReward(timePenalty);
     }

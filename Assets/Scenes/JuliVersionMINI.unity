@@ -2287,39 +2287,17 @@ GameObject:
   - component: {fileID: 1855255096}
   - component: {fileID: 1855255095}
   - component: {fileID: 1855255094}
-  - component: {fileID: 1855255093}
   - component: {fileID: 1855255098}
   - component: {fileID: 1855255097}
   - component: {fileID: 1855255099}
+  - component: {fileID: 1855255100}
   m_Layer: 0
-  m_Name: Kart
+  m_Name: Bot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1855255093
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1855255092}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 91442d5d5ea5dc24f981127120db1fd8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  frontLeftWheel: {fileID: 386254586}
-  frontRightWheel: {fileID: 1194832010}
-  rearLeftWheel: {fileID: 274701541}
-  rearRightWheel: {fileID: 1887186570}
-  frontLeftMesh: {fileID: 857838720}
-  frontRightMesh: {fileID: 237584196}
-  rearLeftMesh: {fileID: 397319269}
-  rearRightMesh: {fileID: 549725284}
-  modelController: {fileID: 0}
-  configurationController: {fileID: 0}
 --- !u!65 &1855255094
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2410,7 +2388,7 @@ MonoBehaviour:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
   MaxStep: 0
-  kart: {fileID: 1855255093}
+  bot: {fileID: 1855255100}
   checkpoints:
   - {fileID: 468286968}
   - {fileID: 2122339825}
@@ -2473,6 +2451,28 @@ MonoBehaviour:
   DecisionPeriod: 5
   DecisionStep: 0
   TakeActionsBetweenDecisions: 1
+--- !u!114 &1855255100
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1855255092}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76bd565b883ac924e9d4dd0d15ad386a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BotBehaviour
+  frontLeftWheel: {fileID: 386254586}
+  frontRightWheel: {fileID: 1194832010}
+  rearLeftWheel: {fileID: 274701541}
+  rearRightWheel: {fileID: 1887186570}
+  frontLeftMesh: {fileID: 857838720}
+  frontRightMesh: {fileID: 237584196}
+  rearLeftMesh: {fileID: 397319269}
+  rearRightMesh: {fileID: 549725284}
+  modelController: {fileID: 0}
+  configuration: {fileID: 11400000, guid: 791c1c500d6707f49be20556c2d8b7ca, type: 2}
 --- !u!1 &1887186568
 GameObject:
   m_ObjectHideFlags: 0
