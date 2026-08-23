@@ -91,19 +91,6 @@ public class KartConfigurationController : MonoBehaviour
             return null;
         }
 
-        switch (type)
-        {
-            case PartType.Engine:
-                return runtimeConfiguration.Engine;
-
-            case PartType.Chassis:
-                return runtimeConfiguration.Chassis;
-
-            case PartType.Wheels:
-                return runtimeConfiguration.Wheels;
-
-            default:
-                return null;
-        }
+        return runtimeConfiguration.GetInstalledPart(type);
     }
 }
