@@ -33,6 +33,7 @@ public class KartBehaviour : MonoBehaviour
     private SteeringController steeringController;
     private BrakeController brakeController;
     private WheelVisualController wheelVisualController;
+    private AeroController aeroController;
 
     private KartPhysics kartPhysics;
 
@@ -98,11 +99,15 @@ public class KartBehaviour : MonoBehaviour
         steeringController = new SteeringController(kartPhysics);
         brakeController = new BrakeController(kartPhysics);
         wheelVisualController = new WheelVisualController(kartPhysics);
+        aeroController = new AeroController(kartPhysics);
 
         RefreshKart();
     }
 
-    public void SetInputs(float throttle, float steering, bool brake)
+    public void SetInputs(
+        float throttle,
+        float steering,
+        bool brake)
     {
         this.throttle = throttle;
         this.steering = steering;
@@ -127,6 +132,10 @@ public class KartBehaviour : MonoBehaviour
 
         brakeController.UpdateBrakes(
             braking,
+            kart.Stats
+        );
+
+        aeroController.UpdateAerodynamics(
             kart.Stats
         );
 

@@ -19,3 +19,5 @@ MonoBehaviour:
   modelPrefab: {fileID: 919132149155446097, guid: b21b6471d01f8734aa68aa14303da54b,
     type: 3}
   rarity: 0
+  downforce: 100
+  aerodynamicDrag: 0.02

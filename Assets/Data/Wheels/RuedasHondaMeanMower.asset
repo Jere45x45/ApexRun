@@ -16,7 +16,7 @@ MonoBehaviour:
   partName: Ruedas Honda Mean Mower
   description: 
   icon: {fileID: 0}
-  modelPrefab: {fileID: 919132149155446097, guid: eee3c29bf87e18147a11487b6815dad7,
+  modelPrefab: {fileID: 919132149155446097, guid: f3aaa4956b65c35418ab615ba47da7e1,
     type: 3}
   rarity: 0
   maxSteeringAngle: 30

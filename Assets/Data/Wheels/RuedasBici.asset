@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 35f65545d30f41142bb52c6fecb50ca3, type: 3}
-  m_Name: RuedasCarrito
+  m_Name: RuedasBici
   m_EditorClassIdentifier: Assembly-CSharp::WheelData
-  partID: wheels_carrito
-  partName: Ruedas Carrito
+  partID: 
+  partName: 
   description: 
   icon: {fileID: 0}
-  modelPrefab: {fileID: 919132149155446097, guid: eea648b0df1f48143ab557adec838bef,
+  modelPrefab: {fileID: 919132149155446097, guid: 3b3f1f8b418476e48baa7197155c401c,
     type: 3}
   rarity: 0
   maxSteeringAngle: 30
