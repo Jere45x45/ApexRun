@@ -15,3 +15,4 @@ MonoBehaviour:
   engine: {fileID: 11400000, guid: a84de6df49d6fc645b9130eb1f126181, type: 2}
   chassis: {fileID: 11400000, guid: 3e1b32fbd3739bd4ea3354eca24986c6, type: 2}
   wheels: {fileID: 11400000, guid: 7df2982a279607b41bad6c0188efbde9, type: 2}
+  aeroKit: {fileID: 11400000, guid: c7478851a351c3e409cdc49ed143d8f0, type: 2}

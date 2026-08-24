@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35f65545d30f41142bb52c6fecb50ca3, type: 3}
   m_Name: RuedasSlick
   m_EditorClassIdentifier: Assembly-CSharp::WheelData
-  partID: 
-  partName: 
+  partID: wheels_slick
+  partName: Ruedas Slick
   description: 
   icon: {fileID: 0}
   modelPrefab: {fileID: 919132149155446097, guid: 2d9b07cb5af9e7447a48f5dd396ca794,

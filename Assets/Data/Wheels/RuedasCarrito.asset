@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35f65545d30f41142bb52c6fecb50ca3, type: 3}
   m_Name: RuedasCarrito
   m_EditorClassIdentifier: Assembly-CSharp::WheelData
-  partID: 
-  partName: 
+  partID: wheels_carrito
+  partName: Ruedas Carrito
   description: 
   icon: {fileID: 0}
   modelPrefab: {fileID: 919132149155446097, guid: 6b1c05fcf48897540a48eb2f93034d32,

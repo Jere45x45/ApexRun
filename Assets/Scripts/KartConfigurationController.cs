@@ -8,11 +8,17 @@ public class KartConfigurationController : MonoBehaviour
 
     private RuntimeKartConfiguration runtimeConfiguration;
 
-    public RuntimeKartConfiguration Configuration => runtimeConfiguration;
+    public RuntimeKartConfiguration Configuration =>
+        runtimeConfiguration;
 
     public event Action ConfigurationChanged;
 
     private void Awake()
+    {
+        InitializeRuntimeConfiguration();
+    }
+
+    private void InitializeRuntimeConfiguration()
     {
         if (baseConfiguration == null)
         {
@@ -21,6 +27,7 @@ public class KartConfigurationController : MonoBehaviour
                 this
             );
 
+            runtimeConfiguration = null;
             return;
         }
 
@@ -40,26 +47,50 @@ public class KartConfigurationController : MonoBehaviour
             return;
         }
 
+        if (runtimeConfiguration == null)
+        {
+            Debug.LogError(
+                "No existe una configuración runtime válida.",
+                this
+            );
+
+            return;
+        }
+
         part.Install(runtimeConfiguration);
+
+        ConfigurationChanged?.Invoke();
+    }
+
+    public void ResetToBaseConfiguration()
+    {
+        if (baseConfiguration == null)
+        {
+            Debug.LogError(
+                "No se puede reiniciar la configuración porque no hay una KartConfiguration asignada.",
+                this
+            );
+
+            return;
+        }
+
+        InitializeRuntimeConfiguration();
 
         ConfigurationChanged?.Invoke();
     }
 
     public KartPart GetInstalledPart(PartType type)
     {
-        switch (type)
+        if (runtimeConfiguration == null)
         {
-            case PartType.Engine:
-                return runtimeConfiguration.Engine;
+            Debug.LogError(
+                "No existe una configuración runtime válida.",
+                this
+            );
 
-            case PartType.Chassis:
-                return runtimeConfiguration.Chassis;
-
-            case PartType.Wheels:
-                return runtimeConfiguration.Wheels;
-
-            default:
-                return null;
+            return null;
         }
+
+        return runtimeConfiguration.GetInstalledPart(type);
     }
 }

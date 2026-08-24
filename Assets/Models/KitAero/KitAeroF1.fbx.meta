@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: eee3c29bf87e18147a11487b6815dad7
+guid: b21b6471d01f8734aa68aa14303da54b
 ModelImporter:
   serializedVersion: 24300
   internalIDToNameTable: []
@@ -7,13 +7,48 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Honda Mean Mower Llantas
-    second: {fileID: 2100000, guid: fad6389f7f347f84fbe1c01f6d6a1c43, type: 2}
+      name: Material
+    second: {fileID: 2100000, guid: f986b8b8b7bd13044bbd52ac20b3a163, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: Material.001
-    second: {fileID: 2100000, guid: 1dc64908f6ca01446a62bd456abd4d37, type: 2}
+    second: {fileID: 2100000, guid: 7752f6c58fbaa67498099b0af4c38bd6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material.002
+    second: {fileID: 2100000, guid: 9b39027d27bc8774e9cb987f9d1cdbf6, type: 2}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: AlonsoNormalMap
+    second: {fileID: 2800000, guid: 73c9122fbc84dfe46b0e2aa90adfe2a9, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: AlonsoNormalMapBody
+    second: {fileID: 2800000, guid: 4d70731549e4f85478380a2c087b3bc5, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: AlonsoNormalMapRearWing
+    second: {fileID: 2800000, guid: d6f11963903820447b6c7dd5a3281d53, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: AlonsoTexture
+    second: {fileID: 2800000, guid: c2bb230b68dfb8645baa422bdd16c187, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: AlonsoTextureBody
+    second: {fileID: 2800000, guid: 9412b54908d1beb4c8db96c97135a194, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: AlonsoTextureRearWing
+    second: {fileID: 2800000, guid: 460ef91913924d14186fccdca32f2117, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0
