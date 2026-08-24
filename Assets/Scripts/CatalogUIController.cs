@@ -92,6 +92,11 @@ public class CatalogUIController : MonoBehaviour
         ShowCategory(PartType.Wheels);
     }
 
+    public void ShowAeroKits()
+    {
+        ShowCategory(PartType.AeroKit);
+    }
+
     private void ClearItems()
     {
         foreach (CatalogPartItem item in activeItems)

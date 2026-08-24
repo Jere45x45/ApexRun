@@ -12,6 +12,9 @@ public class KartModelController : MonoBehaviour
     [SerializeField] private ModelSlot rearLeftWheelSlot;
     [SerializeField] private ModelSlot rearRightWheelSlot;
 
+    [Header("Aero Kit")]
+    [SerializeField] private ModelSlot aeroKitSlot;
+
     public void Refresh(RuntimeKartConfiguration configuration)
     {
         if (configuration == null)
@@ -24,29 +27,74 @@ public class KartModelController : MonoBehaviour
             return;
         }
 
-        if (configuration.Engine != null)
+        if (engineSlot != null)
         {
-            engineSlot.SetModel(
-                configuration.Engine.modelPrefab
-            );
+            GameObject enginePrefab =
+                configuration.Engine != null
+                    ? configuration.Engine.modelPrefab
+                    : null;
+
+            engineSlot.SetModel(enginePrefab);
         }
 
-        if (configuration.Chassis != null)
+        if (chassisSlot != null)
         {
-            chassisSlot.SetModel(
-                configuration.Chassis.modelPrefab
-            );
+            GameObject chassisPrefab =
+                configuration.Chassis != null
+                    ? configuration.Chassis.modelPrefab
+                    : null;
+
+            chassisSlot.SetModel(chassisPrefab);
         }
 
-        if (configuration.Wheels != null)
+        if (frontLeftWheelSlot != null)
         {
             GameObject wheelPrefab =
-                configuration.Wheels.modelPrefab;
+                configuration.Wheels != null
+                    ? configuration.Wheels.modelPrefab
+                    : null;
 
             frontLeftWheelSlot.SetModel(wheelPrefab);
+        }
+
+        if (frontRightWheelSlot != null)
+        {
+            GameObject wheelPrefab =
+                configuration.Wheels != null
+                    ? configuration.Wheels.modelPrefab
+                    : null;
+
             frontRightWheelSlot.SetModel(wheelPrefab);
+        }
+
+        if (rearLeftWheelSlot != null)
+        {
+            GameObject wheelPrefab =
+                configuration.Wheels != null
+                    ? configuration.Wheels.modelPrefab
+                    : null;
+
             rearLeftWheelSlot.SetModel(wheelPrefab);
+        }
+
+        if (rearRightWheelSlot != null)
+        {
+            GameObject wheelPrefab =
+                configuration.Wheels != null
+                    ? configuration.Wheels.modelPrefab
+                    : null;
+
             rearRightWheelSlot.SetModel(wheelPrefab);
+        }
+
+        if (aeroKitSlot != null)
+        {
+            GameObject aeroKitPrefab =
+                configuration.AeroKit != null
+                    ? configuration.AeroKit.modelPrefab
+                    : null;
+
+            aeroKitSlot.SetModel(aeroKitPrefab);
         }
     }
 }

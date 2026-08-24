@@ -3,6 +3,7 @@
     Engine,
     Chassis,
     Wheels,
+    AeroKit,
     Accessory,
     Spoiler,
     Turbo
