@@ -33,7 +33,9 @@ public class KartBehaviour : MonoBehaviour
     private SteeringController steeringController;
     private BrakeController brakeController;
     private WheelVisualController wheelVisualController;
-    private AeroController aeroController;
+    
+    // NUEVO: Controlador de fricción
+    private KartFrictionController frictionController;
 
     private KartPhysics kartPhysics;
 
@@ -61,53 +63,35 @@ public class KartBehaviour : MonoBehaviour
 
         if (configurationController == null)
         {
-            Debug.LogError(
-                "KartBehaviour no tiene un KartConfigurationController asignado.",
-                this
-            );
-
+            Debug.LogError("KartBehaviour no tiene un KartConfigurationController asignado.", this);
             return;
         }
 
         if (configurationController.Configuration == null)
         {
-            Debug.LogError(
-                "El KartConfigurationController no tiene una configuración runtime válida.",
-                this
-            );
-
+            Debug.LogError("El KartConfigurationController no tiene una configuración runtime válida.", this);
             return;
         }
 
-        kart = new Kart(
-            configurationController.Configuration
-        );
+        kart = new Kart(configurationController.Configuration);
 
         kartPhysics = new KartPhysics(
-            rb,
-            frontLeftWheel,
-            frontRightWheel,
-            rearLeftWheel,
-            rearRightWheel,
-            frontLeftMesh,
-            frontRightMesh,
-            rearLeftMesh,
-            rearRightMesh
+            rb, frontLeftWheel, frontRightWheel, rearLeftWheel, rearRightWheel,
+            frontLeftMesh, frontRightMesh, rearLeftMesh, rearRightMesh
         );
 
         engineController = new EngineController(kartPhysics);
         steeringController = new SteeringController(kartPhysics);
         brakeController = new BrakeController(kartPhysics);
         wheelVisualController = new WheelVisualController(kartPhysics);
-        aeroController = new AeroController(kartPhysics);
+        
+        // NUEVO: Inicializamos el controlador de fricción
+        frictionController = new KartFrictionController(kartPhysics);
 
         RefreshKart();
     }
 
-    public void SetInputs(
-        float throttle,
-        float steering,
-        bool brake)
+    public void SetInputs(float throttle, float steering, bool brake)
     {
         this.throttle = throttle;
         this.steering = steering;
@@ -119,25 +103,14 @@ public class KartBehaviour : MonoBehaviour
         if (kart == null)
             return;
 
-        engineController.UpdateMotor(
-            throttle,
-            kart.Stats
-        );
+        float currentSpeed = rb.linearVelocity.magnitude;
 
-        steeringController.UpdateSteering(
-            steering,
-            rb.linearVelocity.magnitude,
-            kart.Stats
-        );
-
-        brakeController.UpdateBrakes(
-            braking,
-            kart.Stats
-        );
-
-        aeroController.UpdateAerodynamics(
-            kart.Stats
-        );
+        engineController.UpdateMotor(throttle, currentSpeed, kart.Stats);
+        steeringController.UpdateSteering(steering, currentSpeed, kart.Stats);
+        brakeController.UpdateBrakes(braking, kart.Stats);
+        
+        // NUEVO: Actualizamos la fricción basándonos en el clima
+        frictionController.UpdateFriction();
 
         wheelVisualController.UpdateVisuals();
     }
@@ -151,10 +124,7 @@ public class KartBehaviour : MonoBehaviour
 
         if (kartPhysics != null)
         {
-            PhysicsConfigurator.Configure(
-                kartPhysics,
-                kart.Stats
-            );
+            PhysicsConfigurator.Configure(kartPhysics, kart.Stats);
         }
 
         UpdateVisualModel();
@@ -164,16 +134,11 @@ public class KartBehaviour : MonoBehaviour
     {
         if (kart == null)
         {
-            Debug.LogWarning(
-                "Se intentó asignar un Kart nulo.",
-                this
-            );
-
+            Debug.LogWarning("Se intentó asignar un Kart nulo.", this);
             return;
         }
 
         this.kart = kart;
-
         RefreshKart();
     }
 
@@ -181,19 +146,13 @@ public class KartBehaviour : MonoBehaviour
     {
         if (modelController == null)
         {
-            Debug.LogWarning(
-                "KartBehaviour no tiene un KartModelController asignado.",
-                this
-            );
-
+            Debug.LogWarning("KartBehaviour no tiene un KartModelController asignado.", this);
             return;
         }
 
         if (kart == null)
             return;
 
-        modelController.Refresh(
-            kart.Configuration
-        );
+        modelController.Refresh(kart.Configuration);
     }
 }
