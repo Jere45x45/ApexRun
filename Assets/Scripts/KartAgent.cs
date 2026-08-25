@@ -130,7 +130,6 @@ public class KartAgent : Agent
         if (other.CompareTag("FallZone"))
         {
             FallOffTrack();
-            Debug.Log("se callo");
         }
     }
 
