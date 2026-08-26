@@ -16,7 +16,7 @@ MonoBehaviour:
   partName: Ruedas Slick
   description: 
   icon: {fileID: 0}
-  modelPrefab: {fileID: 919132149155446097, guid: 2d9b07cb5af9e7447a48f5dd396ca794,
+  modelPrefab: {fileID: 919132149155446097, guid: b8d23c03c7972e24189020a187d7f80e,
     type: 3}
   rarity: 0
   maxSteeringAngle: 30

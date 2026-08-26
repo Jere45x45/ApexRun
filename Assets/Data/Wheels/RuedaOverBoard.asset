@@ -16,7 +16,7 @@ MonoBehaviour:
   partName: Ruedas OverBoard
   description: 
   icon: {fileID: 0}
-  modelPrefab: {fileID: 919132149155446097, guid: 3df18478d4f1a31488e9022ed8bca335,
+  modelPrefab: {fileID: 919132149155446097, guid: 96b823c2450daed4989eda49c6f795e1,
     type: 3}
   rarity: 0
   maxSteeringAngle: 30

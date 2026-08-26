@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 
+
 public class KartBehaviour : MonoBehaviour
 {
     [Header("Wheel Colliders")]
@@ -8,35 +9,47 @@ public class KartBehaviour : MonoBehaviour
     [SerializeField] private WheelCollider rearLeftWheel;
     [SerializeField] private WheelCollider rearRightWheel;
 
+
     [Header("Wheel Meshes (Empty Parents)")]
     [SerializeField] private Transform frontLeftMesh;
     [SerializeField] private Transform frontRightMesh;
     [SerializeField] private Transform rearLeftMesh;
     [SerializeField] private Transform rearRightMesh;
 
+
     [Header("Model")]
     [SerializeField] private KartModelController modelController;
+
 
     [Header("Configuration")]
     [SerializeField] private KartConfigurationController configurationController;
 
+
     private Kart kart;
+
 
     private float throttle;
     private float steering;
 
+
     private Rigidbody rb;
 
+
     private bool braking;
+
 
     private EngineController engineController;
     private SteeringController steeringController;
     private BrakeController brakeController;
     private WheelVisualController wheelVisualController;
+    private AeroController aeroController;
+
 
     private KartPhysics kartPhysics;
 
+
     public Kart Kart => kart;
+
 
     private void OnEnable()
     {
@@ -46,6 +59,7 @@ public class KartBehaviour : MonoBehaviour
         }
     }
 
+
     private void OnDisable()
     {
         if (configurationController != null)
@@ -54,9 +68,11 @@ public class KartBehaviour : MonoBehaviour
         }
     }
 
+
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
+
 
         if (configurationController == null)
         {
@@ -65,8 +81,10 @@ public class KartBehaviour : MonoBehaviour
                 this
             );
 
+
             return;
         }
+
 
         if (configurationController.Configuration == null)
         {
@@ -75,12 +93,15 @@ public class KartBehaviour : MonoBehaviour
                 this
             );
 
+
             return;
         }
+
 
         kart = new Kart(
             configurationController.Configuration
         );
+
 
         kartPhysics = new KartPhysics(
             rb,
@@ -94,30 +115,40 @@ public class KartBehaviour : MonoBehaviour
             rearRightMesh
         );
 
+
         engineController = new EngineController(kartPhysics);
         steeringController = new SteeringController(kartPhysics);
         brakeController = new BrakeController(kartPhysics);
         wheelVisualController = new WheelVisualController(kartPhysics);
+        aeroController = new AeroController(kartPhysics);
+
 
         RefreshKart();
     }
 
-    public void SetInputs(float throttle, float steering, bool brake)
+
+    public void SetInputs(
+        float throttle,
+        float steering,
+        bool brake)
     {
         this.throttle = throttle;
         this.steering = steering;
         this.braking = brake;
     }
 
+
     private void FixedUpdate()
     {
         if (kart == null)
             return;
 
+
         engineController.UpdateMotor(
             throttle,
             kart.Stats
         );
+
 
         steeringController.UpdateSteering(
             steering,
@@ -125,20 +156,30 @@ public class KartBehaviour : MonoBehaviour
             kart.Stats
         );
 
+
         brakeController.UpdateBrakes(
             braking,
             kart.Stats
         );
 
+
+        aeroController.UpdateAerodynamics(
+            kart.Stats
+        );
+
+
         wheelVisualController.UpdateVisuals();
     }
+
 
     public void RefreshKart()
     {
         if (kart == null)
             return;
 
+
         kart.Rebuild();
+
 
         if (kartPhysics != null)
         {
@@ -148,8 +189,10 @@ public class KartBehaviour : MonoBehaviour
             );
         }
 
+
         UpdateVisualModel();
     }
+
 
     public void Refresh(Kart kart)
     {
@@ -160,13 +203,17 @@ public class KartBehaviour : MonoBehaviour
                 this
             );
 
+
             return;
         }
 
+
         this.kart = kart;
+
 
         RefreshKart();
     }
+
 
     private void UpdateVisualModel()
     {
@@ -177,11 +224,14 @@ public class KartBehaviour : MonoBehaviour
                 this
             );
 
+
             return;
         }
 
+
         if (kart == null)
             return;
+
 
         modelController.Refresh(
             kart.Configuration
