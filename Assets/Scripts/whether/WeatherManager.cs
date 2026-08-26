@@ -1,9 +1,8 @@
 using UnityEngine;
 
-public class WeatherProfile : MonoBehaviour
+public class WeatherManager : MonoBehaviour
 {
-    // Singleton simple para acceso global al entorno (aceptable para sistemas ambientales únicos)
-    public static WeatherProfile Instance { get; private set; }
+    public static WeatherManager Instance { get; private set; }
 
     [Header("Perfiles de Clima")]
     [SerializeField] private WeatherProfile normalWeather;
@@ -19,7 +18,6 @@ public class WeatherProfile : MonoBehaviour
 
     private WeatherProfile targetProfile;
 
-    // El Kart leerá este valor
     public float CurrentGripMultiplier { get; private set; } = 1f;
 
     private void Awake()
@@ -32,21 +30,19 @@ public class WeatherProfile : MonoBehaviour
         Instance = this;
         
         targetProfile = normalWeather;
-        RenderSettings.fog = true; // Aseguramos que la niebla esté activa
+        RenderSettings.fog = true;
     }
 
     private void Update()
     {
         if (targetProfile == null) return;
 
-        // 1. Transición suave de la Física
         CurrentGripMultiplier = Mathf.Lerp(
             CurrentGripMultiplier, 
             targetProfile.gripMultiplier, 
             Time.deltaTime * transitionSpeed
         );
 
-        // 2. Transición suave de la Visibilidad
         RenderSettings.fogDensity = Mathf.Lerp(
             RenderSettings.fogDensity, 
             targetProfile.fogDensity, 
@@ -58,7 +54,6 @@ public class WeatherProfile : MonoBehaviour
             Time.deltaTime * transitionSpeed
         );
 
-        // 3. Transición suave de las Partículas
         UpdateParticleEmission(rainParticles, targetProfile.rainEmissionRate);
         UpdateParticleEmission(snowParticles, targetProfile.snowEmissionRate);
     }
@@ -74,7 +69,6 @@ public class WeatherProfile : MonoBehaviour
         emission.rateOverTime = newRate;
     }
 
-    // Métodos para cambiar el clima desde UI, triggers u otros scripts
     public void SetNormal() => targetProfile = normalWeather;
     public void SetRain() => targetProfile = rainWeather;
     public void SetSnow() => targetProfile = snowWeather;
