@@ -9,10 +9,10 @@ public class KartPhysics
     public WheelCollider RearLeftWheel { get; }
     public WheelCollider RearRightWheel { get; }
 
-    public Transform FrontLeftMesh { get; }
-    public Transform FrontRightMesh { get; }
-    public Transform RearLeftMesh { get; }
-    public Transform RearRightMesh { get; }
+    public Transform FrontLeftSlot { get; }
+    public Transform FrontRightSlot { get; }
+    public Transform RearLeftSlot { get; }
+    public Transform RearRightSlot { get; }
 
     public KartPhysics(
         Rigidbody rigidbody,
@@ -20,10 +20,10 @@ public class KartPhysics
         WheelCollider frontRight,
         WheelCollider rearLeft,
         WheelCollider rearRight,
-        Transform frontLeftMesh,
-        Transform frontRightMesh,
-        Transform rearLeftMesh,
-        Transform rearRightMesh)
+        Transform frontLeftSlot,
+        Transform frontRightSlot,
+        Transform rearLeftSlot,
+        Transform rearRightSlot)
     {
         Rigidbody = rigidbody;
 
@@ -32,9 +32,9 @@ public class KartPhysics
         RearLeftWheel = rearLeft;
         RearRightWheel = rearRight;
 
-        FrontLeftMesh = frontLeftMesh;
-        FrontRightMesh = frontRightMesh;
-        RearLeftMesh = rearLeftMesh;
-        RearRightMesh = rearRightMesh;
+        FrontLeftSlot = frontLeftSlot;
+        FrontRightSlot = frontRightSlot;
+        RearLeftSlot = rearLeftSlot;
+        RearRightSlot = rearRightSlot;
     }
 }

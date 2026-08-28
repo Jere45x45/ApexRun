@@ -7,10 +7,10 @@ public class WheelVisualController
     private readonly WheelCollider rearLeftWheel;
     private readonly WheelCollider rearRightWheel;
 
-    private readonly Transform frontLeftMesh;
-    private readonly Transform frontRightMesh;
-    private readonly Transform rearLeftMesh;
-    private readonly Transform rearRightMesh;
+    private readonly Transform frontLeftSlot;
+    private readonly Transform frontRightSlot;
+    private readonly Transform rearLeftSlot;
+    private readonly Transform rearRightSlot;
 
     public WheelVisualController(KartPhysics physics)
     {
@@ -18,26 +18,39 @@ public class WheelVisualController
         frontRightWheel = physics.FrontRightWheel;
         rearLeftWheel = physics.RearLeftWheel;
         rearRightWheel = physics.RearRightWheel;
-        
-        frontLeftMesh = physics.FrontLeftMesh;
-        frontRightMesh = physics.FrontRightMesh;
-        rearLeftMesh = physics.RearLeftMesh;
-        rearRightMesh = physics.RearRightMesh;
+
+        frontLeftSlot = physics.FrontLeftSlot;
+        frontRightSlot = physics.FrontRightSlot;
+        rearLeftSlot = physics.RearLeftSlot;
+        rearRightSlot = physics.RearRightSlot;
     }
 
     public void UpdateVisuals()
     {
-        UpdateWheel(frontLeftWheel, frontLeftMesh);
-        UpdateWheel(frontRightWheel, frontRightMesh);
-        UpdateWheel(rearLeftWheel, rearLeftMesh);
-        UpdateWheel(rearRightWheel, rearRightMesh);
+        UpdateWheel(frontLeftWheel, frontLeftSlot);
+        UpdateWheel(frontRightWheel, frontRightSlot);
+        UpdateWheel(rearLeftWheel, rearLeftSlot);
+        UpdateWheel(rearRightWheel, rearRightSlot);
     }
 
-    private void UpdateWheel(WheelCollider wheel, Transform mesh)
+    private void UpdateWheel(
+        WheelCollider wheel,
+        Transform slot)
     {
-        wheel.GetWorldPose(out Vector3 position, out Quaternion rotation);
+        if (wheel == null || slot == null)
+            return;
 
-        mesh.position = position;
-        mesh.rotation = rotation;
+        if (slot.childCount == 0)
+            return;
+
+        Transform wheelVisual = slot.GetChild(0);
+
+        wheel.GetWorldPose(
+            out Vector3 position,
+            out Quaternion rotation
+        );
+
+        wheelVisual.position = position;
+        wheelVisual.rotation = rotation;
     }
 }
