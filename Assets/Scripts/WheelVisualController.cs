@@ -7,11 +7,6 @@ public class WheelVisualController
     private readonly WheelCollider rearLeftWheel;
     private readonly WheelCollider rearRightWheel;
 
-    private readonly Transform frontLeftSlot;
-    private readonly Transform frontRightSlot;
-    private readonly Transform rearLeftSlot;
-    private readonly Transform rearRightSlot;
-
     private readonly ModelSlot frontLeftModelSlot;
     private readonly ModelSlot frontRightModelSlot;
     private readonly ModelSlot rearLeftModelSlot;
@@ -28,11 +23,6 @@ public class WheelVisualController
         frontRightWheel = physics.FrontRightWheel;
         rearLeftWheel = physics.RearLeftWheel;
         rearRightWheel = physics.RearRightWheel;
-
-        frontLeftSlot = physics.FrontLeftSlot;
-        frontRightSlot = physics.FrontRightSlot;
-        rearLeftSlot = physics.RearLeftSlot;
-        rearRightSlot = physics.RearRightSlot;
 
         this.frontLeftModelSlot = frontLeftModelSlot;
         this.frontRightModelSlot = frontRightModelSlot;
@@ -70,10 +60,10 @@ public class WheelVisualController
         if (wheel == null || modelSlot == null)
             return;
 
-        GameObject currentInstance =
+        GameObject visual =
             modelSlot.CurrentInstance;
 
-        if (currentInstance == null)
+        if (visual == null)
             return;
 
         wheel.GetWorldPose(
@@ -81,10 +71,9 @@ public class WheelVisualController
             out Quaternion rotation
         );
 
-        currentInstance.transform.position =
-            position;
-
-        currentInstance.transform.rotation =
-            rotation;
+        visual.transform.SetPositionAndRotation(
+            position,
+            rotation
+        );
     }
 }

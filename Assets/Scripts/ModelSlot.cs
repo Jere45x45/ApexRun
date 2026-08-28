@@ -17,13 +17,11 @@ public class ModelSlot
         if (currentInstance != null)
         {
             Object.Destroy(currentInstance);
+            currentInstance = null;
         }
 
         if (prefab == null)
-        {
-            currentInstance = null;
             return;
-        }
 
         if (mountPoint == null)
         {
@@ -31,7 +29,6 @@ public class ModelSlot
                 "ModelSlot no tiene un Mount Point asignado."
             );
 
-            currentInstance = null;
             return;
         }
 
