@@ -12,6 +12,9 @@ public class WheelVisualController
     private readonly ModelSlot rearLeftModelSlot;
     private readonly ModelSlot rearRightModelSlot;
 
+    private static readonly Quaternion LeftWheelRotationOffset =
+        Quaternion.Euler(0f, 180f, 0f);
+
     public WheelVisualController(
         KartPhysics physics,
         ModelSlot frontLeftModelSlot,
@@ -34,28 +37,33 @@ public class WheelVisualController
     {
         UpdateWheel(
             frontLeftWheel,
-            frontLeftModelSlot
+            frontLeftModelSlot,
+            LeftWheelRotationOffset
         );
 
         UpdateWheel(
             frontRightWheel,
-            frontRightModelSlot
+            frontRightModelSlot,
+            Quaternion.identity
         );
 
         UpdateWheel(
             rearLeftWheel,
-            rearLeftModelSlot
+            rearLeftModelSlot,
+            LeftWheelRotationOffset
         );
 
         UpdateWheel(
             rearRightWheel,
-            rearRightModelSlot
+            rearRightModelSlot,
+            Quaternion.identity
         );
     }
 
     private void UpdateWheel(
         WheelCollider wheel,
-        ModelSlot modelSlot)
+        ModelSlot modelSlot,
+        Quaternion rotationOffset)
     {
         if (wheel == null || modelSlot == null)
             return;
@@ -73,7 +81,7 @@ public class WheelVisualController
 
         visual.transform.SetPositionAndRotation(
             position,
-            rotation
+            rotation * rotationOffset
         );
     }
 }
