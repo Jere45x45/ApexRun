@@ -15,6 +15,18 @@ public class KartModelController : MonoBehaviour
     [Header("Aero Kit")]
     [SerializeField] private ModelSlot aeroKitSlot;
 
+    public ModelSlot FrontLeftWheelSlot =>
+        frontLeftWheelSlot;
+
+    public ModelSlot FrontRightWheelSlot =>
+        frontRightWheelSlot;
+
+    public ModelSlot RearLeftWheelSlot =>
+        rearLeftWheelSlot;
+
+    public ModelSlot RearRightWheelSlot =>
+        rearRightWheelSlot;
+
     public void Refresh(RuntimeKartConfiguration configuration)
     {
         if (configuration == null)
@@ -47,43 +59,28 @@ public class KartModelController : MonoBehaviour
             chassisSlot.SetModel(chassisPrefab);
         }
 
+        GameObject wheelPrefab =
+            configuration.Wheels != null
+                ? configuration.Wheels.modelPrefab
+                : null;
+
         if (frontLeftWheelSlot != null)
         {
-            GameObject wheelPrefab =
-                configuration.Wheels != null
-                    ? configuration.Wheels.modelPrefab
-                    : null;
-
             frontLeftWheelSlot.SetModel(wheelPrefab);
         }
 
         if (frontRightWheelSlot != null)
         {
-            GameObject wheelPrefab =
-                configuration.Wheels != null
-                    ? configuration.Wheels.modelPrefab
-                    : null;
-
             frontRightWheelSlot.SetModel(wheelPrefab);
         }
 
         if (rearLeftWheelSlot != null)
         {
-            GameObject wheelPrefab =
-                configuration.Wheels != null
-                    ? configuration.Wheels.modelPrefab
-                    : null;
-
             rearLeftWheelSlot.SetModel(wheelPrefab);
         }
 
         if (rearRightWheelSlot != null)
         {
-            GameObject wheelPrefab =
-                configuration.Wheels != null
-                    ? configuration.Wheels.modelPrefab
-                    : null;
-
             rearRightWheelSlot.SetModel(wheelPrefab);
         }
 

@@ -430,10 +430,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91442d5d5ea5dc24f981127120db1fd8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  frontLeftWheel: {fileID: 848164235}
-  frontRightWheel: {fileID: 265681049}
-  rearLeftWheel: {fileID: 1395618441}
-  rearRightWheel: {fileID: 1411493400}
+  frontLeftWheel: {fileID: 1411493400}
+  frontRightWheel: {fileID: 1395618441}
+  rearLeftWheel: {fileID: 265681049}
+  rearRightWheel: {fileID: 848164235}
   frontLeftSlot: {fileID: 927022596}
   frontRightSlot: {fileID: 1307129074}
   rearLeftSlot: {fileID: 456319931}

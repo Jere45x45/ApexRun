@@ -12,7 +12,17 @@ public class WheelVisualController
     private readonly Transform rearLeftSlot;
     private readonly Transform rearRightSlot;
 
-    public WheelVisualController(KartPhysics physics)
+    private readonly ModelSlot frontLeftModelSlot;
+    private readonly ModelSlot frontRightModelSlot;
+    private readonly ModelSlot rearLeftModelSlot;
+    private readonly ModelSlot rearRightModelSlot;
+
+    public WheelVisualController(
+        KartPhysics physics,
+        ModelSlot frontLeftModelSlot,
+        ModelSlot frontRightModelSlot,
+        ModelSlot rearLeftModelSlot,
+        ModelSlot rearRightModelSlot)
     {
         frontLeftWheel = physics.FrontLeftWheel;
         frontRightWheel = physics.FrontRightWheel;
@@ -23,34 +33,58 @@ public class WheelVisualController
         frontRightSlot = physics.FrontRightSlot;
         rearLeftSlot = physics.RearLeftSlot;
         rearRightSlot = physics.RearRightSlot;
+
+        this.frontLeftModelSlot = frontLeftModelSlot;
+        this.frontRightModelSlot = frontRightModelSlot;
+        this.rearLeftModelSlot = rearLeftModelSlot;
+        this.rearRightModelSlot = rearRightModelSlot;
     }
 
     public void UpdateVisuals()
     {
-        UpdateWheel(frontLeftWheel, frontLeftSlot);
-        UpdateWheel(frontRightWheel, frontRightSlot);
-        UpdateWheel(rearLeftWheel, rearLeftSlot);
-        UpdateWheel(rearRightWheel, rearRightSlot);
+        UpdateWheel(
+            frontLeftWheel,
+            frontLeftModelSlot
+        );
+
+        UpdateWheel(
+            frontRightWheel,
+            frontRightModelSlot
+        );
+
+        UpdateWheel(
+            rearLeftWheel,
+            rearLeftModelSlot
+        );
+
+        UpdateWheel(
+            rearRightWheel,
+            rearRightModelSlot
+        );
     }
 
     private void UpdateWheel(
         WheelCollider wheel,
-        Transform slot)
+        ModelSlot modelSlot)
     {
-        if (wheel == null || slot == null)
+        if (wheel == null || modelSlot == null)
             return;
 
-        if (slot.childCount == 0)
-            return;
+        GameObject currentInstance =
+            modelSlot.CurrentInstance;
 
-        Transform wheelVisual = slot.GetChild(0);
+        if (currentInstance == null)
+            return;
 
         wheel.GetWorldPose(
             out Vector3 position,
             out Quaternion rotation
         );
 
-        wheelVisual.position = position;
-        wheelVisual.rotation = rotation;
+        currentInstance.transform.position =
+            position;
+
+        currentInstance.transform.rotation =
+            rotation;
     }
 }

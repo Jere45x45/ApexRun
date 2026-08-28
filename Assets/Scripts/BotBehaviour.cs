@@ -8,49 +8,63 @@ public class BotBehaviour : MonoBehaviour
     [SerializeField] private WheelCollider rearLeftWheel;
     [SerializeField] private WheelCollider rearRightWheel;
 
+    [Header("Wheel Slots")]
+    [SerializeField] private Transform frontLeftSlot;
+    [SerializeField] private Transform frontRightSlot;
+    [SerializeField] private Transform rearLeftSlot;
+    [SerializeField] private Transform rearRightSlot;
 
-    [Header("Wheel Meshes (Empty Parents)")]
-    [SerializeField] private Transform frontLeftMesh;
-    [SerializeField] private Transform frontRightMesh;
-    [SerializeField] private Transform rearLeftMesh;
-    [SerializeField] private Transform rearRightMesh;
-
-
+    [Header("Model")]
     [SerializeField] private KartModelController modelController;
 
-
     [Header("Vehicle Settings")]
-    private Kart kart;
     [SerializeField] private KartConfiguration configuration;
-   
+
+    private Kart kart;
+
     private float throttle;
     private float steering;
 
-
     private Rigidbody rb;
 
-
     private bool braking;
-   
+
     private EngineController engineController;
     private SteeringController steeringController;
     private BrakeController brakeController;
     private WheelVisualController wheelVisualController;
 
-
     private KartPhysics kartPhysics;
 
-
     public Kart Kart => kart;
-
 
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
 
+        if (configuration == null)
+        {
+            Debug.LogError(
+                "BotBehaviour no tiene una KartConfiguration asignada.",
+                this
+            );
 
-        kart = new Kart(new RuntimeKartConfiguration(configuration));
+            return;
+        }
 
+        if (modelController == null)
+        {
+            Debug.LogError(
+                "BotBehaviour no tiene un KartModelController asignado.",
+                this
+            );
+
+            return;
+        }
+
+        kart = new Kart(
+            new RuntimeKartConfiguration(configuration)
+        );
 
         kartPhysics = new KartPhysics(
             rb,
@@ -58,44 +72,52 @@ public class BotBehaviour : MonoBehaviour
             frontRightWheel,
             rearLeftWheel,
             rearRightWheel,
-            frontLeftMesh,
-            frontRightMesh,
-            rearLeftMesh,
-            rearRightMesh
-        );  
+            frontLeftSlot,
+            frontRightSlot,
+            rearLeftSlot,
+            rearRightSlot
+        );
 
+        engineController =
+            new EngineController(kartPhysics);
 
-        engineController = new EngineController(kartPhysics);
+        steeringController =
+            new SteeringController(kartPhysics);
 
+        brakeController =
+            new BrakeController(kartPhysics);
 
-        steeringController = new SteeringController(kartPhysics);
-
-
-        brakeController = new BrakeController(kartPhysics);
-
-
-        wheelVisualController = new WheelVisualController(kartPhysics);
-
+        wheelVisualController =
+            new WheelVisualController(
+                kartPhysics,
+                modelController.FrontLeftWheelSlot,
+                modelController.FrontRightWheelSlot,
+                modelController.RearLeftWheelSlot,
+                modelController.RearRightWheelSlot
+            );
 
         RefreshKart();
     }
 
-
-    public void SetInputs(float throttle, float steering, bool brake)
+    public void SetInputs(
+        float throttle,
+        float steering,
+        bool brake)
     {
-    this.throttle = throttle;
-    this.steering = steering;
-    this.braking = brake;
+        this.throttle = throttle;
+        this.steering = steering;
+        this.braking = brake;
     }
-
 
     private void FixedUpdate()
     {
+        if (kart == null)
+            return;
+
         engineController.UpdateMotor(
             throttle,
             kart.Stats
         );
-
 
         steeringController.UpdateSteering(
             steering,
@@ -103,44 +125,66 @@ public class BotBehaviour : MonoBehaviour
             kart.Stats
         );
 
-
         brakeController.UpdateBrakes(
             braking,
             kart.Stats
         );
 
-
         wheelVisualController.UpdateVisuals();
     }
 
-
     public void RefreshKart()
     {
+        if (kart == null)
+            return;
+
         kart.Rebuild();
 
-
-        PhysicsConfigurator.Configure(
-            kartPhysics,
-            kart.Stats
-        );
-
+        if (kartPhysics != null)
+        {
+            PhysicsConfigurator.Configure(
+                kartPhysics,
+                kart.Stats
+            );
+        }
 
         UpdateVisualModel();
     }
 
-
     public void Refresh(Kart kart)
     {
-        this.kart = kart;
+        if (kart == null)
+        {
+            Debug.LogWarning(
+                "Se intentó asignar un Kart nulo.",
+                this
+            );
 
+            return;
+        }
+
+        this.kart = kart;
 
         RefreshKart();
     }
 
-
     private void UpdateVisualModel()
     {
-        modelController.Refresh(kart.Configuration);
+        if (modelController == null)
+        {
+            Debug.LogWarning(
+                "BotBehaviour no tiene un KartModelController asignado.",
+                this
+            );
+
+            return;
+        }
+
+        if (kart == null)
+            return;
+
+        modelController.Refresh(
+            kart.Configuration
+        );
     }
 }
-

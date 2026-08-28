@@ -79,6 +79,16 @@ public class KartBehaviour : MonoBehaviour
             return;
         }
 
+        if (modelController == null)
+        {
+            Debug.LogError(
+                "KartBehaviour no tiene un KartModelController asignado.",
+                this
+            );
+
+            return;
+        }
+
         kart = new Kart(
             configurationController.Configuration
         );
@@ -95,11 +105,26 @@ public class KartBehaviour : MonoBehaviour
             rearRightSlot
         );
 
-        engineController = new EngineController(kartPhysics);
-        steeringController = new SteeringController(kartPhysics);
-        brakeController = new BrakeController(kartPhysics);
-        wheelVisualController = new WheelVisualController(kartPhysics);
-        aeroController = new AeroController(kartPhysics);
+        engineController =
+            new EngineController(kartPhysics);
+
+        steeringController =
+            new SteeringController(kartPhysics);
+
+        brakeController =
+            new BrakeController(kartPhysics);
+
+        wheelVisualController =
+            new WheelVisualController(
+                kartPhysics,
+                modelController.FrontLeftWheelSlot,
+                modelController.FrontRightWheelSlot,
+                modelController.RearLeftWheelSlot,
+                modelController.RearRightWheelSlot
+            );
+
+        aeroController =
+            new AeroController(kartPhysics);
 
         RefreshKart();
     }
