@@ -6,44 +6,53 @@ using Unity.MLAgents.Sensors;
 public class KartAgent : Agent
 {
     [Header("Kart")]
-    [SerializeField] private BotBehaviour bot;
+    [SerializeField] private KartBehaviour kart;
 
     [Header("Checkpoints")]
     [SerializeField] private Transform[] checkpoints;
 
-    [Header("Settings")]
-    [SerializeField] private float maxSpeed = 30f;
+    private Rigidbody rb;
 
-    [Header("Rewards")]
-    [SerializeField] private float checkpointReward = 1f;
-    [SerializeField] private float finishReward = 10f;
-    [SerializeField] private float fallPenalty = -2f;
-    [SerializeField] private float timePenalty = -0.001f;
-
-    [SerializeField] private float stuckTime = 3f;
-    [SerializeField] private float minSpeedToConsiderMoving = 0.5f;
-
-    private float stuckTimer = 0f;
-    private Vector3 lastPosition;
-
-    private int nextCheckpoint = 0;
+    private int nextCheckpoint;
 
     private Vector3 startPosition;
     private Quaternion startRotation;
-    private Rigidbody rb;
 
-    private void Awake()
+    private void Start()
     {
+        if (kart == null)
+        {
+            Debug.LogError(
+                "KartAgent no tiene un KartBehaviour asignado.",
+                this
+            );
+
+            return;
+        }
+
         rb = GetComponent<Rigidbody>();
+
+        if (rb == null)
+        {
+            Debug.LogError(
+                "KartAgent necesita un Rigidbody en el mismo GameObject.",
+                this
+            );
+
+            return;
+        }
 
         startPosition = transform.position;
         startRotation = transform.rotation;
-        
-        lastPosition = transform.position;
+
+        nextCheckpoint = 0;
     }
 
     public override void OnEpisodeBegin()
     {
+        if (kart == null || rb == null)
+            return;
+
         nextCheckpoint = 0;
 
         rb.linearVelocity = Vector3.zero;
@@ -52,113 +61,122 @@ public class KartAgent : Agent
         transform.position = startPosition;
         transform.rotation = startRotation;
 
-        bot.SetInputs(0f, 0f, false);
-
-       stuckTimer = 0f;
-       lastPosition = transform.position;
+        kart.SetInputs(
+            0f,
+            0f,
+            true
+        );
     }
 
-    public override void CollectObservations(VectorSensor sensor)
+    public override void CollectObservations(
+        VectorSensor sensor)
     {
-        if (checkpoints.Length == 0)
+        if (kart == null ||
+            rb == null ||
+            kart.Kart == null)
         {
             return;
         }
 
-        Transform target = checkpoints[nextCheckpoint];
+        if (checkpoints == null ||
+            checkpoints.Length == 0)
+        {
+            return;
+        }
 
-        Vector3 directionToTarget = target.position - transform.position;
+        if (nextCheckpoint >= checkpoints.Length)
+        {
+            return;
+        }
 
-        Vector3 localDirection = transform.InverseTransformDirection(
-            directionToTarget.normalized
+        Transform target =
+            checkpoints[nextCheckpoint];
+
+        if (target == null)
+            return;
+
+        Vector3 directionToTarget =
+            target.position -
+            transform.position;
+
+        Vector3 localDirection =
+            transform.InverseTransformDirection(
+                directionToTarget.normalized
+            );
+
+        sensor.AddObservation(
+            localDirection.x
         );
 
-        sensor.AddObservation(localDirection.x);
-        sensor.AddObservation(localDirection.z);
+        sensor.AddObservation(
+            localDirection.z
+        );
 
-        float speed = rb.linearVelocity.magnitude / maxSpeed;
+        float maxSpeed =
+            kart.Kart.Stats.maxSpeed;
+
+        float speed = 0f;
+
+        if (maxSpeed > 0f)
+        {
+            speed =
+                rb.linearVelocity.magnitude /
+                maxSpeed;
+        }
+
         sensor.AddObservation(speed);
     }
 
-    public override void OnActionReceived(ActionBuffers actions)
+    public override void OnActionReceived(
+        ActionBuffers actions)
     {
-        float steering = Mathf.Clamp(
-            actions.ContinuousActions[0],
-            -1f,
-            1f
+        if (kart == null)
+            return;
+
+        float steering =
+            Mathf.Clamp(
+                actions.ContinuousActions[0],
+                -1f,
+                1f
+            );
+
+        float throttle =
+            Mathf.Clamp(
+                actions.ContinuousActions[1],
+                -1f,
+                1f
+            );
+
+        kart.SetInputs(
+            throttle,
+            steering,
+            false
         );
 
-        float throttle = Mathf.Clamp(
-            actions.ContinuousActions[1],
-         -1f,
-         1f
-        );
-
-        bot.SetInputs(throttle, steering, false);
-
-        AddReward(timePenalty);
-    }
-    
-    public override void Heuristic(in ActionBuffers actionsOut)
-    {
-    var actions = actionsOut.ContinuousActions;
-
-    actions[0] = Input.GetAxis("Horizontal");
-    actions[1] = Input.GetAxis("Vertical");
+        AddReward(-0.001f);
     }
 
-    public void ReachCheckpoint(int checkpointIndex)
+    public void ReachCheckpoint(
+        int checkpointIndex)
     {
         if (checkpointIndex != nextCheckpoint)
-        {
             return;
-        }
 
-     AddReward(checkpointReward);
+        AddReward(1f);
 
         nextCheckpoint++;
 
         if (nextCheckpoint >= checkpoints.Length)
         {
-            AddReward(finishReward);
+            AddReward(10f);
             EndEpisode();
         }
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("FallZone"))
-        {
-            FallOffTrack();
-        }
-    }
-
-    private void FixedUpdate()
-    {
-        float movementSpeed =
-        Vector3.Distance(transform.position, lastPosition)
-        / Time.fixedDeltaTime;
-
-        if (movementSpeed < minSpeedToConsiderMoving)
-        {
-            stuckTimer += Time.fixedDeltaTime;
-        }
-        else
-        {
-            stuckTimer = 0f;
-        }
-
-     lastPosition = transform.position;
-
-        if (stuckTimer >= stuckTime)
-        {
-            FallOffTrack();
-        }
-    }
-  
     public void FallOffTrack()
     {
-        AddReward(fallPenalty);
+        AddReward(-2f);
+
         EndEpisode();
     }
 }
