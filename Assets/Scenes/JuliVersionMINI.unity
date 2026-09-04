@@ -280,6 +280,52 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
+--- !u!1 &178078394
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 178078396}
+  - component: {fileID: 178078395}
+  m_Layer: 0
+  m_Name: MechanicAI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &178078395
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 178078394}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf8e4bd19f0d8484f81743ed6fe25af9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MechanicAI
+  Epregunta: {fileID: 538980162}
+  RTATxt: {fileID: 819370398}
+--- !u!4 &178078396
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 178078394}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 210.7403, y: 119.38699, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &190731700
 GameObject:
   m_ObjectHideFlags: 0
@@ -1170,8 +1216,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.0000033379, y: 15}
-  m_SizeDelta: {x: 428.5663, y: 30}
+  m_AnchoredPosition: {x: -0.0000019073, y: 66}
+  m_SizeDelta: {x: 481.2418, y: 47.5585}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &538980162
 MonoBehaviour:
@@ -1815,8 +1861,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 14
-  m_fontSizeBase: 14
+  m_fontSize: 28.6
+  m_fontSizeBase: 28.6
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -1893,7 +1939,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 819370396}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1902,8 +1948,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -42.083, y: -100}
-  m_SizeDelta: {x: 329.83, y: 50}
+  m_AnchoredPosition: {x: 0.0000076294, y: -112}
+  m_SizeDelta: {x: 601.9865, y: 86.8728}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &819370398
 MonoBehaviour:
@@ -1952,8 +1998,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 19.4
-  m_fontSizeBase: 19.4
+  m_fontSize: 25.43
+  m_fontSizeBase: 25.43
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -2325,7 +2371,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.CanvasScaler
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 800, y: 600}
@@ -2597,8 +2643,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -45.725, y: 70}
-  m_SizeDelta: {x: 337.1161, y: 50}
+  m_AnchoredPosition: {x: -0.000003798, y: 151}
+  m_SizeDelta: {x: 451.384, y: 69.8566}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1058208058
 MonoBehaviour:
@@ -2647,8 +2693,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 18.4
-  m_fontSizeBase: 18.4
+  m_fontSize: 26.21
+  m_fontSizeBase: 26.21
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -3260,8 +3306,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -31}
-  m_SizeDelta: {x: 160, y: 30}
+  m_AnchoredPosition: {x: 0.000005722, y: -0.000011444}
+  m_SizeDelta: {x: 170.5351, y: 37.0234}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1736573449
 MonoBehaviour:
@@ -3306,7 +3352,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1736573450}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 178078395}
+        m_TargetAssemblyTypeName: MechanicAI, Assembly-CSharp
+        m_MethodName: Preguntar
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1736573450
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3597,6 +3655,7 @@ GameObject:
   - component: {fileID: 1855255097}
   - component: {fileID: 1855255099}
   - component: {fileID: 1855255100}
+  - component: {fileID: 1855255101}
   m_Layer: 0
   m_Name: Bot
   m_TagString: Untagged
@@ -3694,7 +3753,7 @@ MonoBehaviour:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
   MaxStep: 0
-  bot: {fileID: 0}
+  bot: {fileID: 1855255100}
   checkpoints:
   - {fileID: 468286968}
   - {fileID: 2122339825}
@@ -3773,12 +3832,28 @@ MonoBehaviour:
   frontRightWheel: {fileID: 1194832010}
   rearLeftWheel: {fileID: 274701541}
   rearRightWheel: {fileID: 1887186570}
-  frontLeftMesh: {fileID: 0}
-  frontRightMesh: {fileID: 0}
-  rearLeftMesh: {fileID: 0}
-  rearRightMesh: {fileID: 0}
+  frontLeftMesh: {fileID: 857838720}
+  frontRightMesh: {fileID: 237584196}
+  rearLeftMesh: {fileID: 397319269}
+  rearRightMesh: {fileID: 549725284}
   modelController: {fileID: 0}
   configuration: {fileID: 11400000, guid: 791c1c500d6707f49be20556c2d8b7ca, type: 2}
+--- !u!114 &1855255101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1855255092}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88b6042bc9a5d4aa58d931eae49442e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.ML-Agents::Unity.MLAgents.Agent
+  agentParameters:
+    maxStep: 0
+  hasUpgradedFromAgentParameters: 1
+  MaxStep: 0
 --- !u!1 &1887186568
 GameObject:
   m_ObjectHideFlags: 0
@@ -4295,3 +4370,4 @@ SceneRoots:
   - {fileID: 1477596744}
   - {fileID: 908252319}
   - {fileID: 21676368}
+  - {fileID: 178078396}

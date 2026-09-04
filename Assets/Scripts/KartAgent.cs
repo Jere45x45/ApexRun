@@ -5,7 +5,7 @@ using Unity.MLAgents.Sensors;
 
 public class KartAgent : Agent
 {
-    [Header("Kart")]
+    [Header("Bot")]
     [SerializeField] private BotBehaviour bot;
 
     [Header("Checkpoints")]
