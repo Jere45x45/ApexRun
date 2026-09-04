@@ -23,5 +23,5 @@ MonoBehaviour:
   minSteeringAngle: 10
   steeringReductionSpeed: 20
   brakeTorque: 3000
-  suspensionDistance: 0.2
+  suspensionDistance: 0
   radius: 0.165
