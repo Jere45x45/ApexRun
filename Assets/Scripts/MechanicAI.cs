@@ -9,6 +9,10 @@ public class MechanicAI : MonoBehaviour
     [SerializeField] private TMP_InputField Epregunta;
     [SerializeField] private TMP_Text RTATxt;
 
+    [Header("Panel")]
+    [SerializeField] private GameObject mechanicPanel;
+    [SerializeField] private GameObject mechanicButton;
+
     private string ollamaURL = "http://localhost:11434/api/generate";
 
     public void Preguntar()
@@ -33,7 +37,7 @@ public class MechanicAI : MonoBehaviour
         {
             model = "llama3.2",
 
-            prompt = "Sos el mecánico del juego Apex Run. " +
+            prompt = "Sos el mecánico del juego Apex Run. " + "Te llamas Pepe" +
                      "Respondé en español. " +
                      "Respondé de forma muy breve, clara y fácil de entender. " +
                      "Usá como máximo 2 o 3 frases. " +
@@ -84,6 +88,18 @@ public class MechanicAI : MonoBehaviour
     [System.Serializable]
     private class OllamaResponse
     {
-        public string response;
+      public string response;
+    }
+
+    public void AbrirPanel()
+    {
+      mechanicPanel.SetActive(true);
+      mechanicButton.SetActive(false);
+    }
+
+    public void CerrarPanel()
+    {
+      mechanicPanel.SetActive(false);
+      mechanicButton.SetActive(true);
     }
 }
