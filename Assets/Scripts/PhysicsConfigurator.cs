@@ -2,26 +2,32 @@
 
 public static class PhysicsConfigurator
 {
-    public static void Configure(KartPhysics physics, KartStats stats)
+    public static void Configure(
+        KartPhysics physics,
+        KartStats stats)
     {
-        physics.Rigidbody.mass = stats.mass;
+        if (physics == null || stats == null)
+            return;
 
-        physics.Rigidbody.linearDamping = stats.drag;
-        physics.Rigidbody.angularDamping = stats.angularDrag;
+        Rigidbody rb = physics.Rigidbody;
 
-        physics.Rigidbody.centerOfMass = stats.centerOfMass;
+        if (rb == null)
+            return;
 
-        physics.Rigidbody.maxLinearVelocity = stats.maxSpeed;
+        rb.mass = stats.mass;
 
-        ConfigureWheel(physics.FrontLeftWheel, stats);
-        ConfigureWheel(physics.FrontRightWheel, stats);
-        ConfigureWheel(physics.RearLeftWheel, stats);
-        ConfigureWheel(physics.RearRightWheel, stats);
-    }
+        rb.linearDamping =
+            stats.drag;
 
-    private static void ConfigureWheel(WheelCollider wheel, KartStats stats)
-    {
-        wheel.radius = stats.wheelRadius;
-        wheel.suspensionDistance = stats.suspensionDistance;
+        rb.angularDamping =
+            stats.angularDrag;
+
+        rb.centerOfMass =
+            stats.centerOfMass;
+
+        rb.maxLinearVelocity =
+            stats.maxSpeed;
+
+        physics.Configure(stats);
     }
 }

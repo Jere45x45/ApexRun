@@ -25,6 +25,8 @@ public class KartStats
     [Header("Ruedas")]
     public float wheelRadius;
     public float suspensionDistance;
+    public float springRate;
+    public float damperRate;
 
     [Header("Aerodinámica")]
     public float downforce;

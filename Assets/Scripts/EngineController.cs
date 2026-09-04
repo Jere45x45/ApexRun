@@ -2,20 +2,34 @@
 
 public class EngineController
 {
-    private readonly WheelCollider rearLeftWheel;
-    private readonly WheelCollider rearRightWheel;
+    private readonly WheelPhysics rearLeftWheel;
+    private readonly WheelPhysics rearRightWheel;
 
     public EngineController(KartPhysics physics)
     {
-        rearLeftWheel = physics.RearLeftWheel;
-        rearRightWheel = physics.RearRightWheel;
+        rearLeftWheel =
+            physics.RearLeftWheel;
+
+        rearRightWheel =
+            physics.RearRightWheel;
     }
 
-    public void UpdateMotor(float throttle, KartStats stats)
+    public void UpdateMotor(
+        float throttle,
+        KartStats stats)
     {
-        float torque = throttle * stats.motorTorque;
+        if (stats == null)
+            return;
 
-        rearLeftWheel.motorTorque = torque;
-        rearRightWheel.motorTorque = torque;
+        float torque =
+            throttle * stats.motorTorque;
+
+        rearLeftWheel.SetDriveTorque(
+            torque
+        );
+
+        rearRightWheel.SetDriveTorque(
+            torque
+        );
     }
 }

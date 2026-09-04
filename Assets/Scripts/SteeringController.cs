@@ -2,24 +2,52 @@
 
 public class SteeringController
 {
-    private readonly WheelCollider frontLeftWheel;
-    private readonly WheelCollider frontRightWheel;
+    private readonly WheelPhysics frontLeftWheel;
+    private readonly WheelPhysics frontRightWheel;
 
     public SteeringController(KartPhysics physics)
     {
-        frontLeftWheel = physics.FrontLeftWheel;
-        frontRightWheel = physics.FrontRightWheel;
+        frontLeftWheel =
+            physics.FrontLeftWheel;
+
+        frontRightWheel =
+            physics.FrontRightWheel;
     }
 
-    public void UpdateSteering(float steeringInput, float speed, KartStats stats)
+    public void UpdateSteering(
+        float steeringInput,
+        float speed,
+        KartStats stats)
     {
-        float steeringAngle = Mathf.Lerp(
-            stats.maxSteeringAngle,
-            stats.minSteeringAngle,
-            Mathf.Clamp01(speed / stats.steeringReductionSpeed)
+        if (stats == null)
+            return;
+
+        float steeringAngle =
+            Mathf.Lerp(
+                stats.maxSteeringAngle,
+                stats.minSteeringAngle,
+                Mathf.Clamp01(
+                    speed /
+                    Mathf.Max(
+                        stats.steeringReductionSpeed,
+                        0.001f
+                    )
+                )
+            );
+
+        float targetAngle =
+            Mathf.Clamp(
+                steeringInput,
+                -1f,
+                1f
+            ) * steeringAngle;
+
+        frontLeftWheel.SetSteeringAngle(
+            targetAngle
         );
 
-        frontLeftWheel.steerAngle = steeringInput * steeringAngle;
-        frontRightWheel.steerAngle = steeringInput * steeringAngle;
+        frontRightWheel.SetSteeringAngle(
+            targetAngle
+        );
     }
 }
