@@ -2,6 +2,8 @@ using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
+using UnityEngine.EventSystems;
+using TMPro;
 
 public class KartAgent : Agent
 {
@@ -82,21 +84,27 @@ public class KartAgent : Agent
 
     public override void OnActionReceived(ActionBuffers actions)
     {
-        float steering = Mathf.Clamp(
-            actions.ContinuousActions[0],
-            -1f,
-            1f
-        );
+        if (IsWriting())
+    {
+        bot.SetInputs(0f, 0f, false);
+        return;
+    }
 
-        float throttle = Mathf.Clamp(
-            actions.ContinuousActions[1],
-         -1f,
-         1f
-        );
+    float steering = Mathf.Clamp(
+        actions.ContinuousActions[0],
+        -1f,
+        1f
+    );
 
-        bot.SetInputs(throttle, steering, false);
+    float throttle = Mathf.Clamp(
+        actions.ContinuousActions[1],
+        -1f,
+        1f
+    );
 
-        AddReward(timePenalty);
+     bot.SetInputs(throttle, steering, false);
+
+     AddReward(timePenalty);
     }
     
     public override void Heuristic(in ActionBuffers actionsOut)
@@ -160,5 +168,12 @@ public class KartAgent : Agent
     {
         AddReward(fallPenalty);
         EndEpisode();
+    }
+
+    private bool IsWriting()
+    {
+        return EventSystem.current != null &&
+           EventSystem.current.currentSelectedGameObject != null &&
+           EventSystem.current.currentSelectedGameObject.GetComponent<TMP_InputField>() != null;
     }
 }
