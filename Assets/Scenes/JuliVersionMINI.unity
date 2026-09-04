@@ -3694,7 +3694,7 @@ MonoBehaviour:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
   MaxStep: 0
-  bot: {fileID: 1855255100}
+  bot: {fileID: 0}
   checkpoints:
   - {fileID: 468286968}
   - {fileID: 2122339825}
@@ -3704,7 +3704,7 @@ MonoBehaviour:
   - {fileID: 898327077}
   - {fileID: 545407095}
   - {fileID: 1578167220}
-  maxSpeed: 1
+  maxSpeed: 30
   checkpointReward: 1
   finishReward: 10
   fallPenalty: -2
@@ -3773,10 +3773,10 @@ MonoBehaviour:
   frontRightWheel: {fileID: 1194832010}
   rearLeftWheel: {fileID: 274701541}
   rearRightWheel: {fileID: 1887186570}
-  frontLeftMesh: {fileID: 857838720}
-  frontRightMesh: {fileID: 237584196}
-  rearLeftMesh: {fileID: 397319269}
-  rearRightMesh: {fileID: 549725284}
+  frontLeftMesh: {fileID: 0}
+  frontRightMesh: {fileID: 0}
+  rearLeftMesh: {fileID: 0}
+  rearRightMesh: {fileID: 0}
   modelController: {fileID: 0}
   configuration: {fileID: 11400000, guid: 791c1c500d6707f49be20556c2d8b7ca, type: 2}
 --- !u!1 &1887186568
