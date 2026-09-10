@@ -86,7 +86,7 @@ public class KartAgent : Agent
     {
         if (IsWriting())
     {
-        bot.SetInputs(0f, 0f, false);
+        bot.SetInputs(1f, 0f, false);
         return;
     }
 
@@ -95,11 +95,9 @@ public class KartAgent : Agent
         -1f,
         1f
     );
-
-    float throttle = Mathf.Clamp(
-        actions.ContinuousActions[1],
-        -1f,
-        1f
+    
+    float throttle = Mathf.Clamp01(
+    actions.ContinuousActions[1]
     );
 
      bot.SetInputs(throttle, steering, false);
