@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -18,6 +19,9 @@ public class RaceCheckpointManager : MonoBehaviour
         checkpoints != null
             ? checkpoints.Length
             : 0;
+
+    public event Action<Rigidbody, int>
+        CheckpointPassed;
 
     private void Awake()
     {
@@ -61,10 +65,9 @@ public class RaceCheckpointManager : MonoBehaviour
         nextCheckpointByKart[kart] =
             nextCheckpoint;
 
-        Debug.Log(
-            $"[{kart.name}] pasó el checkpoint {checkpointIndex}. " +
-            $"Siguiente: {nextCheckpoint}.",
-            kart
+        CheckpointPassed?.Invoke(
+            kart,
+            checkpointIndex
         );
     }
 
@@ -104,6 +107,20 @@ public class RaceCheckpointManager : MonoBehaviour
         }
 
         return lastCheckpoint;
+    }
+
+    public RaceCheckpoint GetCheckpoint(
+        int checkpointIndex)
+    {
+        if (checkpointIndex < 0 ||
+            checkpointIndex >= CheckpointCount)
+        {
+            return null;
+        }
+
+        return checkpoints[
+            checkpointIndex
+        ];
     }
 
     public void RegisterKart(

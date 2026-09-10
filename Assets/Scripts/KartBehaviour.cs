@@ -26,6 +26,8 @@ public class KartBehaviour : MonoBehaviour
     private float steering;
     private bool braking;
 
+    private bool inputEnabled;
+
     private Rigidbody rb;
 
     private EngineController engineController;
@@ -38,6 +40,8 @@ public class KartBehaviour : MonoBehaviour
     private KartPhysics kartPhysics;
 
     public Kart Kart => kart;
+
+    public bool InputEnabled => inputEnabled;
 
     private void OnEnable()
     {
@@ -141,6 +145,8 @@ public class KartBehaviour : MonoBehaviour
             new KartFrictionController(kartPhysics);
 
         RefreshKart();
+
+        SetInputEnabled(false);
     }
 
     public void SetInputs(
@@ -148,13 +154,45 @@ public class KartBehaviour : MonoBehaviour
         float steering,
         bool brake)
     {
+        if (!inputEnabled)
+        {
+            ClearInputs();
+            return;
+        }
+
         this.throttle =
-            Mathf.Clamp(throttle, -1f, 1f);
+            Mathf.Clamp(
+                throttle,
+                -1f,
+                1f
+            );
 
         this.steering =
-            Mathf.Clamp(steering, -1f, 1f);
+            Mathf.Clamp(
+                steering,
+                -1f,
+                1f
+            );
 
         this.braking = brake;
+    }
+
+    public void SetInputEnabled(
+        bool enabled)
+    {
+        inputEnabled = enabled;
+
+        if (!enabled)
+        {
+            ClearInputs();
+        }
+    }
+
+    private void ClearInputs()
+    {
+        throttle = 0f;
+        steering = 0f;
+        braking = false;
     }
 
     private void FixedUpdate()
@@ -219,7 +257,8 @@ public class KartBehaviour : MonoBehaviour
         UpdateVisualModel();
     }
 
-    public void Refresh(Kart newKart)
+    public void Refresh(
+        Kart newKart)
     {
         if (newKart == null)
         {
