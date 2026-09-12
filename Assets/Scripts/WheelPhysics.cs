@@ -15,7 +15,9 @@ public class WheelPhysics
     private float driveTorque;
     private float brakeTorque;
     private float steeringAngle;
+
     private float gripMultiplier = 1f;
+    private float surfaceGripMultiplier = 1f;
 
     private float previousCompression;
 
@@ -37,7 +39,27 @@ public class WheelPhysics
 
     public float GripMultiplier => gripMultiplier;
 
+    public float SurfaceGripMultiplier => surfaceGripMultiplier;
+
+    public float CombinedGripMultiplier =>
+        gripMultiplier * surfaceGripMultiplier;
+
     public Transform WheelPoint => wheelPoint;
+
+    public float RayLength => suspensionDistance + radius;
+
+    public TrackSurfaceData CurrentSurface { get; private set; }
+
+    public bool HasSurface =>
+        CurrentSurface != null;
+
+    public bool IsOnValidTrack =>
+        CurrentSurface == null ||
+        CurrentSurface.IsValidForTrack;
+
+    public bool IsOnInvalidSurface =>
+        CurrentSurface != null &&
+        !CurrentSurface.IsValidForTrack;
 
     public Vector3 VisualPosition
     {
@@ -136,6 +158,12 @@ public class WheelPhysics
             Mathf.Max(0f, multiplier);
     }
 
+    public void SetSurfaceGripMultiplier(float multiplier)
+    {
+        surfaceGripMultiplier =
+            Mathf.Max(0f, multiplier);
+    }
+
     public void SetSteeringAngle(float angle)
     {
         steeringAngle = angle;
@@ -207,6 +235,10 @@ public class WheelPhysics
                 rigidbody.GetPointVelocity(
                     hit.point
                 );
+
+            UpdateSurfaceInformation(
+                hit.collider
+            );
         }
         else
         {
@@ -217,9 +249,42 @@ public class WheelPhysics
             ContactVelocity = Vector3.zero;
 
             Compression = 0f;
+
+            ClearSurfaceInformation();
         }
 
         previousCompression = oldCompression;
+    }
+
+    private void UpdateSurfaceInformation(
+        Collider collider)
+    {
+        TrackSurface surface =
+            collider.GetComponentInParent<TrackSurface>();
+
+        if (surface == null)
+        {
+            ClearSurfaceInformation();
+            return;
+        }
+
+        CurrentSurface =
+            surface.SurfaceData;
+
+        if (CurrentSurface == null)
+        {
+            surfaceGripMultiplier = 1f;
+            return;
+        }
+
+        surfaceGripMultiplier =
+            CurrentSurface.GripMultiplier;
+    }
+
+    private void ClearSurfaceInformation()
+    {
+        CurrentSurface = null;
+        surfaceGripMultiplier = 1f;
     }
 
     public float GetSuspensionForce(float deltaTime)

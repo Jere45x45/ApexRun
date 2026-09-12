@@ -10,6 +10,8 @@ public class KartPhysics
     public WheelPhysics RearLeftWheel { get; }
     public WheelPhysics RearRightWheel { get; }
 
+    public WheelPhysics[] Wheels { get; }
+
     public KartPhysics(
         Rigidbody rigidbody,
         Transform frontLeftPoint,
@@ -57,6 +59,14 @@ public class KartPhysics
                 rigidbody,
                 rearRightPoint
             );
+
+        Wheels = new[]
+        {
+            FrontLeftWheel,
+            FrontRightWheel,
+            RearLeftWheel,
+            RearRightWheel
+        };
     }
 
     public void Configure(KartStats stats)

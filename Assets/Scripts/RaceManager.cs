@@ -30,6 +30,9 @@ public class RaceManager : MonoBehaviour
     [SerializeField]
     private RaceLapManager lapManager;
 
+    [SerializeField]
+    private RaceTrackLimitsController trackLimitsController;
+
     private RaceState currentState =
         RaceState.Waiting;
 
@@ -200,6 +203,13 @@ public class RaceManager : MonoBehaviour
             lapManager.RegisterKart(
                 rb
             );
+
+            if (trackLimitsController != null)
+            {
+                trackLimitsController.RegisterKart(
+                    kart
+                );
+            }
         }
     }
 
@@ -300,6 +310,16 @@ public class RaceManager : MonoBehaviour
         {
             Debug.LogError(
                 "RaceManager necesita un RaceLapManager.",
+                this
+            );
+
+            valid = false;
+        }
+
+        if (trackLimitsController == null)
+        {
+            Debug.LogError(
+                "RaceManager necesita un RaceTrackLimitsController.",
                 this
             );
 

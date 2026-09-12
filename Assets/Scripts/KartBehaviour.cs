@@ -41,6 +41,8 @@ public class KartBehaviour : MonoBehaviour
 
     public Kart Kart => kart;
 
+    public KartPhysics Physics => kartPhysics;
+
     public bool InputEnabled => inputEnabled;
 
     private void OnEnable()
