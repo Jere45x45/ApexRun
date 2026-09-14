@@ -37,25 +37,28 @@ public class KartRaySensor : MonoBehaviour
         for (int i = 0; i < positions.Length; i++)
         {
             Vector3 start = positions[i] + Vector3.up * sensorHeight;
-
-            if (Physics.Raycast(
-                start,
-                Vector3.down,
-                out RaycastHit hit,
-                rayLength,
-                trackLayer))
+            if (Physics.Raycast(start, Vector3.down, out RaycastHit hit, rayLength, trackLayer))
             {
                 values[i] = 1f;
+
+                Debug.DrawLine
+                (
+                    start,
+                    hit.point,
+                    Color.green
+                );
             }
             else
             {
                 values[i] = 0f;
-            }
 
-            Debug.DrawRay(
-                start,
-                Vector3.down * rayLength
-            );
+                Debug.DrawRay
+                (
+                    start,
+                    Vector3.down * rayLength,
+                    Color.red
+                );
+            }
         }
 
         return values;

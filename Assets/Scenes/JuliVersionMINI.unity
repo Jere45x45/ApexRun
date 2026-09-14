@@ -2940,10 +2940,10 @@ MonoBehaviour:
   - {fileID: 659591736}
   - {fileID: 1433957123}
   - {fileID: 1485807533}
-  maxSpeed: 5
-  checkpointReward: 1
-  finishReward: 10
-  fallPenalty: -2
+  maxSpeed: 1
+  checkpointReward: 2
+  finishReward: 20
+  fallPenalty: -5
   timePenalty: -0.001
   stuckTime: 3
   minSpeedToConsiderMoving: 0.5

@@ -80,32 +80,44 @@ public class KartAgent : Agent
     public override void OnActionReceived(ActionBuffers actions)
     {
         if (IsWriting())
-    {
-        bot.SetInputs(1f, 0f, false);
-        return;
-    }
+        {
+            bot.SetInputs(1f, 0f, false);
+            return;
+        }
 
-    float steering = Mathf.Clamp(
-        actions.ContinuousActions[0],
-        -1f,
-        1f
-    );
+        float steering = Mathf.Clamp
+        (
+            actions.ContinuousActions[0],
+            -1f,
+            1f
+        );
     
-    float throttle = Mathf.Clamp01(
-    actions.ContinuousActions[1]
-    );
+        float throttle = Mathf.Clamp01
+        (
+            actions.ContinuousActions[1]
+        );
 
-     bot.SetInputs(throttle, steering, false);
+        bot.SetInputs(throttle, steering, false);
+        float forwardSpeed = Vector3.Dot
+        (
+            rb.linearVelocity,
+            transform.forward
+        );
 
-     AddReward(timePenalty);
+        if (forwardSpeed > 0f)
+        {
+            AddReward(forwardSpeed * 0.001f);
+        }
+
+        AddReward(timePenalty);
     }
     
     public override void Heuristic(in ActionBuffers actionsOut)
     {
-    var actions = actionsOut.ContinuousActions;
+        var actions = actionsOut.ContinuousActions;
 
-    actions[0] = Input.GetAxis("Horizontal");
-    actions[1] = Input.GetAxis("Vertical");
+        actions[0] = Input.GetAxis("Horizontal");
+        actions[1] = Input.GetAxis("Vertical");
     }
 
     public void ReachCheckpoint(int checkpointIndex)
