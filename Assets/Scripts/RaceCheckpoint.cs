@@ -2,35 +2,32 @@ using UnityEngine;
 
 public class RaceCheckpoint : MonoBehaviour
 {
+    [Header("Checkpoint")]
     [SerializeField]
-    [Min(0)]
     private int checkpointIndex;
 
+    [Header("Respawn")]
     [SerializeField]
-    private RaceCheckpointManager manager;
+    private Transform respawnPoint;
 
-    public int CheckpointIndex => checkpointIndex;
+    public int CheckpointIndex =>
+        checkpointIndex;
 
-    private void Reset()
-    {
-        Collider collider =
-            GetComponent<Collider>();
-
-        if (collider != null)
-        {
-            collider.isTrigger = true;
-        }
-    }
+    public Transform RespawnPoint =>
+        respawnPoint;
 
     private void OnTriggerEnter(Collider other)
     {
-        if (manager == null)
-            return;
-
         Rigidbody rb =
             other.attachedRigidbody;
 
         if (rb == null)
+            return;
+
+        RaceCheckpointManager manager =
+            FindFirstObjectByType<RaceCheckpointManager>();
+
+        if (manager == null)
             return;
 
         manager.TryPassCheckpoint(
