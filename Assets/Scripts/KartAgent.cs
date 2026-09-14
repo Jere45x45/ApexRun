@@ -10,6 +10,8 @@ public class KartAgent : Agent
     [Header("Bot")]
     [SerializeField] private BotBehaviour bot;
 
+    private KartRaySensor raySensor;
+
     [Header("Checkpoints")]
     [SerializeField] private Transform[] checkpoints;
 
@@ -37,6 +39,7 @@ public class KartAgent : Agent
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        raySensor = GetComponent<KartRaySensor>();
 
         startPosition = transform.position;
         startRotation = transform.rotation;
@@ -62,22 +65,14 @@ public class KartAgent : Agent
 
     public override void CollectObservations(VectorSensor sensor)
     {
-        if (checkpoints.Length == 0)
+        //rayos
+        float[] trackSensors = raySensor.GetTrackSensors();
+        for (int i = 0; i < trackSensors.Length; i++)
         {
-            return;
+            sensor.AddObservation(trackSensors[i]);
         }
 
-        Transform target = checkpoints[nextCheckpoint];
-
-        Vector3 directionToTarget = target.position - transform.position;
-
-        Vector3 localDirection = transform.InverseTransformDirection(
-            directionToTarget.normalized
-        );
-
-        sensor.AddObservation(localDirection.x);
-        sensor.AddObservation(localDirection.z);
-
+        //kart
         float speed = rb.linearVelocity.magnitude / maxSpeed;
         sensor.AddObservation(speed);
     }
