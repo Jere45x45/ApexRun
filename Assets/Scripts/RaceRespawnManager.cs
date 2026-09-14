@@ -7,68 +7,54 @@ public class RaceRespawnManager : MonoBehaviour
     private RaceCheckpointManager checkpointManager;
 
     [SerializeField]
-    private Transform startingRespawnPoint;
+    private Transform startRespawnPoint;
 
     [Header("Respawn")]
     [SerializeField]
-    [Min(0f)]
-    private float respawnHeight = 0.5f;
+    private float verticalOffset = 0.5f;
 
-    [SerializeField]
-    [Min(0f)]
-    private float backwardOffset = 1.5f;
-
-    public void Respawn(
+    public void RespawnKart(
         Rigidbody kart)
     {
         if (kart == null)
             return;
 
-        Transform respawnPoint =
-            GetRespawnPoint(kart);
-
-        if (respawnPoint == null)
+        if (checkpointManager == null)
         {
-            Debug.LogWarning(
-                $"No se encontró un punto de respawn para {kart.name}.",
-                kart
+            Debug.LogError(
+                "RaceRespawnManager necesita un RaceCheckpointManager.",
+                this
             );
 
             return;
         }
+
+        Transform respawnPoint =
+            GetRespawnPoint(kart);
+
+        if (respawnPoint == null)
+            return;
+
+        Vector3 respawnPosition =
+            respawnPoint.position +
+            respawnPoint.up * verticalOffset;
+
+        kart.position =
+            respawnPosition;
+
+        kart.rotation =
+            respawnPoint.rotation;
 
         kart.linearVelocity =
             Vector3.zero;
 
         kart.angularVelocity =
             Vector3.zero;
-
-        Vector3 forward =
-            respawnPoint.forward;
-
-        Vector3 position =
-            respawnPoint.position -
-            forward * backwardOffset +
-            Vector3.up * respawnHeight;
-
-        Quaternion rotation =
-            respawnPoint.rotation;
-
-        kart.position =
-            position;
-
-        kart.rotation =
-            rotation;
     }
 
     private Transform GetRespawnPoint(
         Rigidbody kart)
     {
-        if (checkpointManager == null)
-        {
-            return startingRespawnPoint;
-        }
-
         int lastCheckpoint =
             checkpointManager.GetLastCheckpoint(
                 kart
@@ -76,7 +62,19 @@ public class RaceRespawnManager : MonoBehaviour
 
         if (lastCheckpoint < 0)
         {
-            return startingRespawnPoint;
+            if (startRespawnPoint == null)
+            {
+                Debug.LogError(
+                    $"El kart {kart.name} todavía no pasó " +
+                    "ningún checkpoint y RaceRespawnManager " +
+                    "no tiene un Start Respawn Point asignado.",
+                    this
+                );
+
+                return null;
+            }
+
+            return startRespawnPoint;
         }
 
         RaceCheckpoint checkpoint =
@@ -86,9 +84,25 @@ public class RaceRespawnManager : MonoBehaviour
 
         if (checkpoint == null)
         {
-            return startingRespawnPoint;
+            Debug.LogError(
+                $"No se encontró el checkpoint {lastCheckpoint}.",
+                this
+            );
+
+            return null;
         }
 
-        return checkpoint.transform;
+        if (checkpoint.RespawnPoint == null)
+        {
+            Debug.LogError(
+                $"El checkpoint {lastCheckpoint} no tiene " +
+                "RespawnPoint asignado.",
+                checkpoint
+            );
+
+            return null;
+        }
+
+        return checkpoint.RespawnPoint;
     }
 }

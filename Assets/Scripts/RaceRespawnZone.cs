@@ -5,31 +5,19 @@ public class RaceRespawnZone : MonoBehaviour
     [SerializeField]
     private RaceRespawnManager respawnManager;
 
-    private void Reset()
+    private void OnTriggerEnter(Collider other)
     {
-        Collider collider =
-            GetComponent<Collider>();
+        Rigidbody kart =
+            other.attachedRigidbody;
 
-        if (collider != null)
-        {
-            collider.isTrigger = true;
-        }
-    }
+        if (kart == null)
+            return;
 
-    private void OnTriggerEnter(
-        Collider other)
-    {
         if (respawnManager == null)
             return;
 
-        Rigidbody rb =
-            other.attachedRigidbody;
-
-        if (rb == null)
-            return;
-
-        respawnManager.Respawn(
-            rb
+        respawnManager.RespawnKart(
+            kart
         );
     }
 }
