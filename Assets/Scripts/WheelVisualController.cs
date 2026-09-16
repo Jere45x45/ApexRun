@@ -2,22 +2,17 @@
 
 public class WheelVisualController
 {
-    private readonly WheelPhysics frontLeftWheel;
-    private readonly WheelPhysics frontRightWheel;
-    private readonly WheelPhysics rearLeftWheel;
-    private readonly WheelPhysics rearRightWheel;
+    private readonly CustomWheel frontLeftWheel;
+    private readonly CustomWheel frontRightWheel;
+    private readonly CustomWheel rearLeftWheel;
+    private readonly CustomWheel rearRightWheel;
 
     private readonly ModelSlot frontLeftModelSlot;
     private readonly ModelSlot frontRightModelSlot;
     private readonly ModelSlot rearLeftModelSlot;
     private readonly ModelSlot rearRightModelSlot;
 
-    private static readonly Quaternion LeftWheelRotationOffset =
-        Quaternion.Euler(
-            0f,
-            180f,
-            0f
-        );
+    private static readonly Quaternion LeftWheelRotationOffset = Quaternion.Euler(0f, 180f, 0f);
 
     public WheelVisualController(
         KartPhysics physics,
@@ -26,79 +21,40 @@ public class WheelVisualController
         ModelSlot rearLeftModelSlot,
         ModelSlot rearRightModelSlot)
     {
-        frontLeftWheel =
-            physics.FrontLeftWheel;
+        frontLeftWheel = physics.FrontLeftWheel;
+        frontRightWheel = physics.FrontRightWheel;
+        rearLeftWheel = physics.RearLeftWheel;
+        rearRightWheel = physics.RearRightWheel;
 
-        frontRightWheel =
-            physics.FrontRightWheel;
-
-        rearLeftWheel =
-            physics.RearLeftWheel;
-
-        rearRightWheel =
-            physics.RearRightWheel;
-
-        this.frontLeftModelSlot =
-            frontLeftModelSlot;
-
-        this.frontRightModelSlot =
-            frontRightModelSlot;
-
-        this.rearLeftModelSlot =
-            rearLeftModelSlot;
-
-        this.rearRightModelSlot =
-            rearRightModelSlot;
+        this.frontLeftModelSlot = frontLeftModelSlot;
+        this.frontRightModelSlot = frontRightModelSlot;
+        this.rearLeftModelSlot = rearLeftModelSlot;
+        this.rearRightModelSlot = rearRightModelSlot;
     }
 
     public void UpdateVisuals()
     {
-        UpdateWheel(
-            frontLeftWheel,
-            frontLeftModelSlot,
-            LeftWheelRotationOffset
-        );
-
-        UpdateWheel(
-            frontRightWheel,
-            frontRightModelSlot,
-            Quaternion.identity
-        );
-
-        UpdateWheel(
-            rearLeftWheel,
-            rearLeftModelSlot,
-            LeftWheelRotationOffset
-        );
-
-        UpdateWheel(
-            rearRightWheel,
-            rearRightModelSlot,
-            Quaternion.identity
-        );
+        UpdateWheel(frontLeftWheel, frontLeftModelSlot, LeftWheelRotationOffset);
+        UpdateWheel(frontRightWheel, frontRightModelSlot, Quaternion.identity);
+        UpdateWheel(rearLeftWheel, rearLeftModelSlot, LeftWheelRotationOffset);
+        UpdateWheel(rearRightWheel, rearRightModelSlot, Quaternion.identity);
     }
 
-    private void UpdateWheel(
-        WheelPhysics wheel,
-        ModelSlot modelSlot,
-        Quaternion rotationOffset)
+    private void UpdateWheel(CustomWheel wheel, ModelSlot modelSlot, Quaternion rotationOffset)
     {
-        if (wheel == null ||
-            modelSlot == null)
-        {
-            return;
-        }
+        if (wheel == null || modelSlot == null) return;
 
-        GameObject visual =
-            modelSlot.CurrentInstance;
+        GameObject visual = modelSlot.CurrentInstance;
+        if (visual == null) return;
 
-        if (visual == null)
-            return;
+        // Calculamos la posición visual basándonos en el Raycast de la CustomWheel
+        Vector3 position = wheel.IsGrounded 
+            ? wheel.GroundHit.point + (wheel.transform.up * wheel.radius)
+            : wheel.transform.position - (wheel.transform.up * wheel.suspensionDistance);
 
         visual.transform.SetPositionAndRotation(
-            wheel.VisualPosition,
-            wheel.VisualRotation *
-            rotationOffset
+            position,
+            wheel.transform.rotation * rotationOffset
         );
     }
 }
