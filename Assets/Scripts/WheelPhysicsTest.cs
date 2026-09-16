@@ -12,16 +12,21 @@ public class WheelPhysicsTest : MonoBehaviour
     private float radius = 0.25f;
 
     [SerializeField]
-    [Min(0f)]
-    private float suspensionDistance = 0.2f;
+    [Min(0.01f)]
+    private float suspensionDistance = 0.20f;
+
+    [SerializeField]
+    [Range(0f, 1f)]
+    private float targetPosition = 0.5f;
+
+    [Header("Suspension")]
+    [SerializeField]
+    [Min(0.1f)]
+    private float naturalFrequencyHz = 2f;
 
     [SerializeField]
     [Min(0f)]
-    private float springRate = 6000f;
-
-    [SerializeField]
-    [Min(0f)]
-    private float damperRate = 600f;
+    private float dampingRatio = 1f;
 
     private Rigidbody rb;
     private WheelPhysics wheelPhysics;
@@ -31,7 +36,8 @@ public class WheelPhysicsTest : MonoBehaviour
 
     private void Awake()
     {
-        rb = GetComponent<Rigidbody>();
+        rb =
+            GetComponent<Rigidbody>();
 
         if (rb == null)
         {
@@ -55,17 +61,38 @@ public class WheelPhysicsTest : MonoBehaviour
             return;
         }
 
+        /*
+         * Necesitamos una detección de colisiones
+         * apropiada para objetos rápidos.
+         */
+        rb.collisionDetectionMode =
+            CollisionDetectionMode.ContinuousDynamic;
+
+        rb.interpolation =
+            RigidbodyInterpolation.Interpolate;
+
         wheelPhysics =
             new WheelPhysics(
                 rb,
                 wheelPoint
             );
 
+        /*
+         * En esta prueba existe una sola rueda.
+         *
+         * Por lo tanto esta rueda representa
+         * toda la masa soportada.
+         */
+        float sprungMass =
+            rb.mass;
+
         wheelPhysics.Configure(
             radius,
             suspensionDistance,
-            springRate,
-            damperRate
+            targetPosition,
+            naturalFrequencyHz,
+            dampingRatio,
+            sprungMass
         );
     }
 
@@ -74,16 +101,11 @@ public class WheelPhysicsTest : MonoBehaviour
         if (wheelPhysics == null)
             return;
 
-        float deltaTime =
-            Time.fixedDeltaTime;
-
         wheelPhysics.Update(
-            deltaTime
+            Time.fixedDeltaTime
         );
 
-        wheelPhysics.ApplySuspensionForce(
-            deltaTime
-        );
+        wheelPhysics.ApplySuspensionForce();
     }
 
     private void OnDrawGizmos()
@@ -92,7 +114,8 @@ public class WheelPhysicsTest : MonoBehaviour
             return;
 
         float rayLength =
-            suspensionDistance + radius;
+            suspensionDistance +
+            radius;
 
         Gizmos.color =
             wheelPhysics != null &&
@@ -103,7 +126,8 @@ public class WheelPhysicsTest : MonoBehaviour
         Gizmos.DrawLine(
             wheelPoint.position,
             wheelPoint.position -
-            wheelPoint.up * rayLength
+            wheelPoint.up *
+            rayLength
         );
 
         if (wheelPhysics != null &&
@@ -117,7 +141,8 @@ public class WheelPhysicsTest : MonoBehaviour
             Gizmos.DrawLine(
                 wheelPhysics.GroundPoint,
                 wheelPhysics.GroundPoint +
-                wheelPhysics.GroundNormal * 0.25f
+                wheelPhysics.GroundNormal *
+                0.25f
             );
         }
     }
@@ -131,9 +156,17 @@ public class WheelPhysicsTest : MonoBehaviour
             new Rect(
                 20f,
                 20f,
-                300f,
-                160f
+                400f,
+                260f
             )
+        );
+
+        GUILayout.Label(
+            $"Mass: {rb.mass:F2} kg"
+        );
+
+        GUILayout.Label(
+            $"Sprung Mass: {wheelPhysics.SprungMass:F2} kg"
         );
 
         GUILayout.Label(
@@ -145,7 +178,20 @@ public class WheelPhysicsTest : MonoBehaviour
         );
 
         GUILayout.Label(
-            $"Ray Length: {wheelPhysics.RayLength:F3}"
+            $"Suspension Length: {wheelPhysics.SuspensionLength:F3} m"
+        );
+
+        GUILayout.Label(
+            $"Spring Rate: {wheelPhysics.SpringRate:F1} N/m"
+        );
+
+        GUILayout.Label(
+            $"Damper Rate: {wheelPhysics.DamperRate:F1} Ns/m"
+        );
+
+        GUILayout.Label(
+            $"Suspension Force: " +
+            $"{wheelPhysics.GetSuspensionForce():F1} N"
         );
 
         GUILayout.Label(
