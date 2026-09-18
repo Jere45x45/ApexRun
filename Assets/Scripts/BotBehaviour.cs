@@ -140,7 +140,10 @@ public class BotBehaviour : MonoBehaviour
 
     private void UpdateVisualModel()
     {
-        modelController.Refresh(kart.Configuration);
+        if (modelController != null)
+        {
+            modelController.Refresh(kart.Configuration);
+        }
     }
 }
 
