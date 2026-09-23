@@ -24,6 +24,10 @@ public class CarController2 : MonoBehaviour
     [SerializeField] private float maxSteerAngle = 30f;
     [SerializeField] private float maxSpeedKmh = 120f;
 
+    [Header("Suavizado de dirección")]
+    [Tooltip("Grados por segundo a los que el ángulo de dirección se mueve hacia el objetivo. Más bajo = más suave/lento.")]
+    [SerializeField] private float steerSpeedDegPerSec = 180f;
+
     [Header("Estabilidad (opcional)")]
     [SerializeField] private Transform centerOfMass;
 
@@ -35,6 +39,9 @@ public class CarController2 : MonoBehaviour
 
     private Vector2 moveInput;
     private bool isBraking;
+
+    // Ángulo de dirección actualmente aplicado, se mueve gradualmente hacia el objetivo
+    private float currentAppliedSteerAngle;
 
     private void Awake()
     {
@@ -94,10 +101,21 @@ public class CarController2 : MonoBehaviour
         float steerInput = moveInput.x;   // A/D o flechas izq/der
         float accelInput = moveInput.y;   // W/S o flechas arriba/abajo
 
-        // --- Dirección (solo ruedas delanteras) ---
-        float currentSteerAngle = maxSteerAngle * steerInput;
-        frontLeftWheel.steerAngle = currentSteerAngle;
-        frontRightWheel.steerAngle = currentSteerAngle;
+        // --- Dirección (solo ruedas delanteras), suavizada ---
+        // El Input System con teclado es binario (0 o 1), sin gradación.
+        // Por eso no asignamos el ángulo directamente: lo interpolamos hacia
+        // el objetivo a una velocidad angular fija, para que un toque de tecla
+        // no produzca un salto instantáneo a dirección máxima.
+        float targetSteerAngle = maxSteerAngle * steerInput;
+
+        currentAppliedSteerAngle = Mathf.MoveTowards(
+            currentAppliedSteerAngle,
+            targetSteerAngle,
+            steerSpeedDegPerSec * Time.fixedDeltaTime
+        );
+
+        frontLeftWheel.steerAngle = currentAppliedSteerAngle;
+        frontRightWheel.steerAngle = currentAppliedSteerAngle;
 
         // --- Aceleración (tracción en las 4 ruedas), con límite de velocidad ---
         // Nota: en Unity 6+ el Rigidbody usa "linearVelocity". Si usás una versión
