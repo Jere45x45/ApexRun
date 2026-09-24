@@ -12,6 +12,9 @@ public class KartAgent : Agent
     [SerializeField] private BotBehaviour bot;
     private KartRaySensor raySensor;
 
+    [Header("Random Parts")]
+    [SerializeField] private BotRandomizer randomizer;
+
     [Header("Track Progress")]
     [FormerlySerializedAs("checkpoints")]
     [SerializeField] private Transform[] progressPoints;
@@ -65,6 +68,11 @@ public class KartAgent : Agent
 
         stuckTimer = 0f;
         lastPosition = transform.position;
+
+        if (randomizer != null)
+        {
+            randomizer.RandomizeKart();
+        }
     }
 
     public override void CollectObservations(VectorSensor sensor)

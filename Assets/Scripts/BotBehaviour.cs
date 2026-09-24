@@ -145,5 +145,21 @@ public class BotBehaviour : MonoBehaviour
             modelController.Refresh(kart.Configuration);
         }
     }
+
+    public void SetRandomConfiguration(EngineData engine, ChassisData chassis, WheelData wheels, AeroKitData aeroKit)
+    {
+        if (kart == null)
+        {
+            Debug.LogError("El Kart todavía no fue inicializado.", this);
+            return;
+        }
+
+        kart.Configuration.InstallEngine(engine);
+        kart.Configuration.InstallChassis(chassis);
+        kart.Configuration.InstallWheels(wheels);
+        kart.Configuration.InstallAeroKit(aeroKit);
+
+        RefreshKart();
+    }
 }
 
