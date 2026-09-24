@@ -165,7 +165,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 27
 --- !u!65 &15546993
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -437,7 +436,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 26
 --- !u!65 &34539695
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -504,7 +502,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 31
 --- !u!65 &65157045
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -693,7 +690,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 13
 --- !u!65 &174634766
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -964,7 +960,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 2
 --- !u!65 &276074395
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1189,7 +1184,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 28
 --- !u!65 &304136258
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1256,7 +1250,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 6
 --- !u!65 &307184981
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1323,7 +1316,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 12
 --- !u!65 &406060841
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1480,7 +1472,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 20
 --- !u!65 &422867582
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1684,7 +1675,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 15
 --- !u!65 &526023307
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2021,7 +2011,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 25
 --- !u!65 &579165965
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2088,7 +2077,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 8
 --- !u!65 &585277678
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2155,7 +2143,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 0
 --- !u!65 &588917224
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2222,7 +2209,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 9
 --- !u!65 &623878570
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2289,7 +2275,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 22
 --- !u!65 &626461066
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2446,7 +2431,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 30
 --- !u!65 &657762976
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2513,7 +2497,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 32
 --- !u!65 &659591738
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2651,7 +2634,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 21
 --- !u!65 &757231403
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2827,6 +2809,7 @@ GameObject:
   - component: {fileID: 814944230}
   - component: {fileID: 814944229}
   - component: {fileID: 814944237}
+  - component: {fileID: 814944238}
   m_Layer: 0
   m_Name: Bot
   m_TagString: Untagged
@@ -2904,6 +2887,7 @@ MonoBehaviour:
   hasUpgradedFromAgentParameters: 1
   MaxStep: 0
   bot: {fileID: 814944230}
+  randomizer: {fileID: 814944238}
   progressPoints:
   - {fileID: 588917222}
   - {fileID: 2122339825}
@@ -3071,6 +3055,20 @@ MonoBehaviour:
   trackLayer:
     serializedVersion: 2
     m_Bits: 8
+--- !u!114 &814944238
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 814944228}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d4e0d3bbed6d984bbba5d7c3ac44d3d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BotRandomizer
+  catalog: {fileID: 11400000, guid: 7e1f2cc49d52469479892d21ba2aa279, type: 2}
+  bot: {fileID: 814944230}
 --- !u!1 &819370396
 GameObject:
   m_ObjectHideFlags: 0
@@ -3253,7 +3251,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 29
 --- !u!65 &834809117
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -3503,7 +3500,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 24
 --- !u!65 &917520992
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -3977,7 +3973,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 5
 --- !u!65 &1245047848
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -4044,7 +4039,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 14
 --- !u!65 &1246664250
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -4111,7 +4105,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 3
 --- !u!65 &1268219923
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -4244,7 +4237,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 11
 --- !u!65 &1425102997
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -4311,7 +4303,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 33
 --- !u!65 &1433957125
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -4520,7 +4511,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 34
 --- !u!65 &1485807535
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -4744,7 +4734,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 17
 --- !u!65 &1557366446
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -4901,7 +4890,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 23
 --- !u!65 &1600598194
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -5219,7 +5207,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 18
 --- !u!65 &1647767277
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -5498,7 +5485,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 16
 --- !u!65 &1724809443
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -5769,7 +5755,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 10
 --- !u!65 &1789956888
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -6267,7 +6252,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 7
 --- !u!65 &2089376240
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -6467,7 +6451,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 4
 --- !u!65 &2112350323
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -6534,7 +6517,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 1
 --- !u!65 &2122339827
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -6601,7 +6583,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e292fe76d3a65c44291e4cc80a552526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
-  checkpointIndex: 19
 --- !u!65 &2133908413
 BoxCollider:
   m_ObjectHideFlags: 0
