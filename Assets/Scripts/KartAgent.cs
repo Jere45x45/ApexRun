@@ -33,6 +33,8 @@ public class KartAgent : Agent
     [SerializeField] private float stuckTime = 3f;
     [SerializeField] private float minSpeedToConsiderMoving = 0.5f;
 
+    private bool raceStarted = false;
+
     private int PuntoDeProgresoActual = 0;
 
     private float stuckTimer = 0f;
@@ -42,6 +44,11 @@ public class KartAgent : Agent
     private Quaternion startRotation;
 
     private Rigidbody rb;
+
+    public void StartRace()
+    {
+        raceStarted = true;
+    }
 
     private void Awake()
     {
@@ -92,6 +99,12 @@ public class KartAgent : Agent
 
     public override void OnActionReceived(ActionBuffers actions)
     {
+        if (!raceStarted)
+        {
+            bot.SetInputs(0f, 0f, false);
+            return;
+        }
+        
         if (IsWriting())
         {
             bot.SetInputs(0f, 0f, false);
