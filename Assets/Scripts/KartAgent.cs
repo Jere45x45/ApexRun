@@ -32,7 +32,7 @@ public class KartAgent : Agent
     [Header("Stuck Detection")]
     [SerializeField] private float stuckTime = 3f;
     [SerializeField] private float minSpeedToConsiderMoving = 0.5f;
-
+    private bool isStopped = false; 
     private int PuntoDeProgresoActual = 0;
 
     private float stuckTimer = 0f;
@@ -56,6 +56,8 @@ public class KartAgent : Agent
 
     public override void OnEpisodeBegin()
     {
+        PuntoDeProgresoActual = 0;
+        isStopped = false;
         PuntoDeProgresoActual = 0;
 
         rb.linearVelocity = Vector3.zero;
@@ -93,23 +95,19 @@ public class KartAgent : Agent
     public override void OnActionReceived(ActionBuffers actions)
     {
         
-        if (IsWriting())
+        if (IsWriting() || isStopped)
         {
-            bot.SetInputs(0f, 0f, false);
+            bot.SetInputs(0f, 0f, true); // Enviamos freno de mano activo (true)
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
             return;
         }
 
-        float steering = Mathf.Clamp(
-            actions.ContinuousActions[0],
-            -1f,
-            1f
-        );
+        float steering = Mathf.Clamp(actions.ContinuousActions[0], -1f, 1f);
+        float throttle = Mathf.Clamp01(actions.ContinuousActions[1]);
+        float brake = Mathf.Clamp01(actions.ContinuousActions[2]);
 
-        float throttle = Mathf.Clamp01(
-            actions.ContinuousActions[1]
-        );
-
-        bot.SetInputs(throttle, steering, false);
+        bot.SetInputs(throttle, steering, brake > 0.5f);
 
         float forwardSpeed = Vector3.Dot(
             rb.linearVelocity,
@@ -125,6 +123,19 @@ public class KartAgent : Agent
 
         CheckProgress();
     }
+
+    public void StopAgent()
+{
+    isStopped = true;
+    bot.SetInputs(0f, 0f, true);
+    rb.linearVelocity = Vector3.zero;
+    rb.angularVelocity = Vector3.zero;
+}
+
+public void ResumeAgent()
+{
+    isStopped = false;
+}
 
     private void CheckProgress()
     {
@@ -178,16 +189,30 @@ public class KartAgent : Agent
     {
         var actions = actionsOut.ContinuousActions;
 
-        actions[0] = Input.GetAxis("Horizontal");
-        actions[1] = Input.GetAxis("Vertical");
+        actions[0] = Input.GetAxis("Horizontal"); // dirección
+        actions[1] = Input.GetAxis("Vertical");   // acelerar
+
+        actions[2] = Input.GetKey(KeyCode.Space) ? 1f : 0f; // freno
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("FallZone"))
-        {
-            FallOffTrack();
-        }
+         if (other.CompareTag("Finish"))
+    {
+        AddReward(finishReward); // Usamos tu variable finishReward configurada en el inspector
+        
+        // Activamos el freno total que creamos antes
+        StopAgent(); 
+
+        // OPCIONAL: Si quieres que el episodio termine un par de segundos después de frenar,
+        // puedes usar una Corrutina. Si prefieres que se quede frenado para siempre, borra la línea de abajo.
+        StartCoroutine(EndEpisodeDelayed(2f)); 
+    }
+
+    if (other.CompareTag("FallZone"))
+    {
+        FallOffTrack();
+    }
     }
 
     private void FixedUpdate()
@@ -228,4 +253,9 @@ public class KartAgent : Agent
                EventSystem.current.currentSelectedGameObject
                    .GetComponent<TMP_InputField>() != null;
     }
+    private System.Collections.IEnumerator EndEpisodeDelayed(float delay)
+{
+    yield return new WaitForSeconds(delay);
+    EndEpisode();
+}
 }
