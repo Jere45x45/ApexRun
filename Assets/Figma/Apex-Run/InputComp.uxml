@@ -1,0 +1,12 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <Style src="AI-Mechanic-Iteracion-2-Predeterminado.uss" />
+    <ui:VisualElement class="inputcomp-ai">
+        <ui:VisualElement style="width: 849px; height: 99px; position: absolute; left: 0px; top: 0px; background-image: url(&quot;project://database/Assets/Figma/Apex-Run/images/img-twgrx3bgapcf-4428.png?fileID=2800000&amp;guid=217645c0e557cc24eb25b7443e775d3f&amp;type=3#img-twgrx3bgapcf-4428&quot;); -unity-background-scale-mode: scale-to-fit;" />
+        <ui:VisualElement style="width: 738.305px; height: 98.87px; position: absolute; left: 0px; top: 0px; background-image: url(&quot;project://database/Assets/Figma/Apex-Run/images/img-13dqb8dvra3c3-5354.png?fileID=2800000&amp;guid=c72ff8132fc23654aa7038fb2e524615&amp;type=3#img-13dqb8dvra3c3-5354&quot;); -unity-background-scale-mode: scale-to-fit;" />
+        <ui:VisualElement style="display: flex; padding: 10px; justify-content: center; align-items: center; flex-direction: row; position: absolute; left: 40px; top: 12px;">
+            <ui:VisualElement style="width: 53px; height: 53px; background-image: url(&quot;project://database/Assets/Figma/Apex-Run/images/img-1exznglety9mr-2396.png?fileID=2800000&amp;guid=474ab482807d9be4aaf4e5cc94ad9b4d&amp;type=3#img-1exznglety9mr-2396&quot;); -unity-background-scale-mode: scale-to-fit;" />
+            <ui:Label name="text-0" text="Search..." class="unity-label" style="color: #464646; font-size: 50.487px; -unity-font-style: bold; letter-spacing: 2.524px; white-space: nowrap;" />
+        </ui:VisualElement>
+        <ui:VisualElement style="width: 43px; height: 49.143px; position: absolute; left: 730px; top: 24px; background-image: url(&quot;project://database/Assets/Figma/Apex-Run/images/img-kbm7l7twjt6b-939.png?fileID=2800000&amp;guid=783bca9013cced14fbbd6adfe975e53b&amp;type=3#img-kbm7l7twjt6b-939&quot;); -unity-background-scale-mode: scale-to-fit;" />
+    </ui:VisualElement>
+</ui:UXML>

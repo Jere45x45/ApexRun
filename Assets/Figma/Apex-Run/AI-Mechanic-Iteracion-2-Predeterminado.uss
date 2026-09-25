@@ -1,0 +1,45 @@
+.compchico1-iteracion-2-predeterminada {
+    display: flex;
+    width: 579px;
+    height: 94.088px;
+    justify-content: flex-end;
+    align-items: center;
+    flex-direction: row;
+    color: #FAFAFA;
+    -unity-text-align: middle-center;
+    font-size: 48px;
+    -unity-font-style: bold;
+    letter-spacing: 2.4px;
+    white-space: nowrap;
+}
+
+.tittles {
+    width: 849.5px;
+    height: 99px;
+    color: #FAFAFA;
+    font-size: 50.487px;
+    -unity-font-style: bold;
+    letter-spacing: 2.524px;
+    white-space: nowrap;
+}
+
+.inputcomp-ai {
+    width: 849.5px;
+    height: 99px;
+    color: #464646;
+    font-size: 50.487px;
+    -unity-font-style: bold;
+    letter-spacing: 2.524px;
+    white-space: nowrap;
+}
+
+.pepemecnicochat {
+    width: 886px;
+    height: 898px;
+    color: #FFF;
+    font-size: 50.487px;
+    -unity-font-style: bold;
+    letter-spacing: 2.524px;
+    white-space: nowrap;
+}
+
