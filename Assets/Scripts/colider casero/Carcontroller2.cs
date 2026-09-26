@@ -21,12 +21,21 @@ public class CarController2 : MonoBehaviour
     [Header("Configuración del auto")]
     [SerializeField] private float motorTorque = 1500f;
     [SerializeField] private float brakeTorque = 3000f;
-    [SerializeField] private float maxSteerAngle = 30f;
     [SerializeField] private float maxSpeedKmh = 120f;
+
+    [Header("Dirección: ángulo según velocidad")]
+    [Tooltip("Ángulo máximo de dirección a baja velocidad (maniobrabilidad).")]
+    [SerializeField] private float maxSteerAngle = 30f;
+
+    [Tooltip("Ángulo máximo de dirección a alta velocidad (estabilidad).")]
+    [SerializeField] private float minSteerAngle = 12f;
+
+    [Tooltip("Velocidad (km/h) a partir de la cual el ángulo llega a su mínimo. Por debajo de esto, se interpola.")]
+    [SerializeField] private float steeringReductionSpeed = 80f;
 
     [Header("Suavizado de dirección")]
     [Tooltip("Grados por segundo a los que el ángulo de dirección se mueve hacia el objetivo. Más bajo = más suave/lento.")]
-    [SerializeField] private float steerSpeedDegPerSec = 180f;
+    [SerializeField] private float steerSpeedDegPerSec = 240f;
 
     [Header("Estabilidad (opcional)")]
     [SerializeField] private Transform centerOfMass;
@@ -101,12 +110,19 @@ public class CarController2 : MonoBehaviour
         float steerInput = moveInput.x;   // A/D o flechas izq/der
         float accelInput = moveInput.y;   // W/S o flechas arriba/abajo
 
+        float speedKmh = rb.linearVelocity.magnitude * 3.6f;
+
+        // --- Ángulo máximo de dirección disponible según la velocidad actual ---
+        // A baja velocidad, se permite el ángulo completo (maxSteerAngle).
+        // A medida que la velocidad se acerca a steeringReductionSpeed, el ángulo
+        // disponible se reduce hacia minSteerAngle. Esto evita pedirle a la rueda
+        // delantera más fuerza lateral de la que puede sostener sin saturarse
+        // y perder agarre (derrape/understeer a alta velocidad).
+        float speedFactor = Mathf.Clamp01(speedKmh / steeringReductionSpeed);
+        float availableSteerAngle = Mathf.Lerp(maxSteerAngle, minSteerAngle, speedFactor);
+
         // --- Dirección (solo ruedas delanteras), suavizada ---
-        // El Input System con teclado es binario (0 o 1), sin gradación.
-        // Por eso no asignamos el ángulo directamente: lo interpolamos hacia
-        // el objetivo a una velocidad angular fija, para que un toque de tecla
-        // no produzca un salto instantáneo a dirección máxima.
-        float targetSteerAngle = maxSteerAngle * steerInput;
+        float targetSteerAngle = availableSteerAngle * steerInput;
 
         currentAppliedSteerAngle = Mathf.MoveTowards(
             currentAppliedSteerAngle,
@@ -120,7 +136,6 @@ public class CarController2 : MonoBehaviour
         // --- Aceleración (tracción en las 4 ruedas), con límite de velocidad ---
         // Nota: en Unity 6+ el Rigidbody usa "linearVelocity". Si usás una versión
         // anterior (2021/2022/2023), cambiá "rb.linearVelocity" por "rb.velocity".
-        float speedKmh = rb.linearVelocity.magnitude * 3.6f;
         float currentMotorTorque = (speedKmh < maxSpeedKmh) ? motorTorque * accelInput : 0f;
 
         frontLeftWheel.motorTorque = currentMotorTorque;

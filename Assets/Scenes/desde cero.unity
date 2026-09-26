@@ -1182,8 +1182,10 @@ MonoBehaviour:
   rearRightMesh: {fileID: 0}
   motorTorque: 300
   brakeTorque: 2250
-  maxSteerAngle: 30
   maxSpeedKmh: 120
+  maxSteerAngle: 30
+  minSteerAngle: 12
+  steeringReductionSpeed: 80
   steerSpeedDegPerSec: 240
   centerOfMass: {fileID: 50463877}
 --- !u!1 &772837148
@@ -2800,7 +2802,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 54480b525feed064d80a050eec9a9211,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1946555618210276182, guid: 54480b525feed064d80a050eec9a9211,
         type: 3}
@@ -2947,7 +2949,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1689493697
 Transform:
   m_ObjectHideFlags: 0
