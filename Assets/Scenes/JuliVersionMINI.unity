@@ -4465,7 +4465,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.ML-Agents::Unity.MLAgents.Policies.BehaviorParameters
   m_BrainParameters:
-    VectorObservationSize: 18
+    VectorObservationSize: 12
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 3
@@ -4571,11 +4571,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::KartRaySensor
   sensorHeight: 2
   rayLength: 5
-  forwardDistance: 3
   sideDistance: 2
-  forwardSensorHeight: 0.8
-  forwardSensorLength: 8
-  forwardSensorAngle: 30
+  nearDistance: 2.5
+  middleDistance: 5
+  farDistance: 8
   trackLayer:
     serializedVersion: 2
     m_Bits: 8
@@ -5450,11 +5449,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::KartRaySensor
   sensorHeight: 2
   rayLength: 5
-  forwardDistance: 3
   sideDistance: 2
-  forwardSensorHeight: 0.8
-  forwardSensorLength: 8
-  forwardSensorAngle: 30
+  nearDistance: 2.5
+  middleDistance: 5
+  farDistance: 8
   trackLayer:
     serializedVersion: 2
     m_Bits: 8
@@ -12187,11 +12185,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::KartRaySensor
   sensorHeight: 2
   rayLength: 5
-  forwardDistance: 3
   sideDistance: 2
-  forwardSensorHeight: 0.8
-  forwardSensorLength: 8
-  forwardSensorAngle: 30
+  nearDistance: 2.5
+  middleDistance: 5
+  farDistance: 8
   trackLayer:
     serializedVersion: 2
     m_Bits: 8
@@ -13048,11 +13045,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::KartRaySensor
   sensorHeight: 2
   rayLength: 5
-  forwardDistance: 3
   sideDistance: 2
-  forwardSensorHeight: 0.8
-  forwardSensorLength: 8
-  forwardSensorAngle: 30
+  nearDistance: 2.5
+  middleDistance: 5
+  farDistance: 8
   trackLayer:
     serializedVersion: 2
     m_Bits: 8
@@ -13695,11 +13691,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::KartRaySensor
   sensorHeight: 2
   rayLength: 5
-  forwardDistance: 3
   sideDistance: 2
-  forwardSensorHeight: 0.8
-  forwardSensorLength: 8
-  forwardSensorAngle: 30
+  nearDistance: 2.5
+  middleDistance: 5
+  farDistance: 8
   trackLayer:
     serializedVersion: 2
     m_Bits: 8

@@ -2,71 +2,75 @@ using UnityEngine;
 
 public class KartRaySensor : MonoBehaviour
 {
-    [Header("Ground Sensors")]
-    [SerializeField] private float sensorHeight = 2f;
-    [SerializeField] private float rayLength = 5f;
+    [Header("Sensor Height")]
+    [SerializeField] private float sensorHeight = 3f;
 
-    [Header("Ground Sensor Positions")]
-    [SerializeField] private float forwardDistance = 3f;
-    [SerializeField] private float sideDistance = 2f;
+    [Header("Ray Length")]
+    [SerializeField] private float rayLength = 7f;
 
-    [Header("Forward Edge Sensors")]
-    [SerializeField] private float forwardSensorHeight = 0.8f;
-    [SerializeField] private float forwardSensorLength = 8f;
-    [SerializeField] private float forwardSensorAngle = 30f;
+    [Header("Sensor Width")]
+    [SerializeField] private float sideDistance = 2.5f;
+
+    [Header("Sensor Forward Distance")]
+    [SerializeField] private float nearDistance = 2.5f;
+    [SerializeField] private float middleDistance = 5f;
+    [SerializeField] private float farDistance = 8f;
 
     [Header("Track")]
     [SerializeField] private LayerMask trackLayer;
 
     public float[] GetTrackSensors()
     {
-        // 9 sensores de suelo + 6 sensores frontales
-        float[] values = new float[15];
+        float[] values = new float[9];
 
-        // =========================================================
-        // 9 SENSORES DE SUELO
-        // =========================================================
-
-        Vector3[] groundPositions =
+        Vector3[] positions =
         {
-            // Fila cercana
+
             transform.position
-                + transform.forward * forwardDistance
+                + transform.forward * nearDistance
                 - transform.right * sideDistance,
 
             transform.position
-                + transform.forward * forwardDistance,
+                + transform.forward * nearDistance,
 
             transform.position
-                + transform.forward * forwardDistance
+                + transform.forward * nearDistance
                 + transform.right * sideDistance,
 
-            // Fila central
+
+
+
             transform.position
+                + transform.forward * middleDistance
                 - transform.right * sideDistance,
 
-            transform.position,
+            transform.position
+                + transform.forward * middleDistance,
 
             transform.position
+                + transform.forward * middleDistance
                 + transform.right * sideDistance,
 
-            // Fila lejana
-            transform.position
-                + transform.forward * (forwardDistance * 1.5f)
-                - transform.right * sideDistance * 0.5f,
+
+
 
             transform.position
-                + transform.forward * (forwardDistance * 1.5f),
+                + transform.forward * farDistance
+                - transform.right * sideDistance,
 
             transform.position
-                + transform.forward * (forwardDistance * 1.5f)
-                + transform.right * sideDistance * 0.5f
+                + transform.forward * farDistance,
+
+            transform.position
+                + transform.forward * farDistance
+                + transform.right * sideDistance
         };
 
-        for (int i = 0; i < groundPositions.Length; i++)
+        for (int i = 0; i < positions.Length; i++)
         {
             Vector3 start =
-                groundPositions[i] + Vector3.up * sensorHeight;
+                positions[i] +
+                Vector3.up * sensorHeight;
 
             if (Physics.Raycast(
                 start,
@@ -75,83 +79,28 @@ public class KartRaySensor : MonoBehaviour
                 rayLength,
                 trackLayer))
             {
+
                 values[i] =
                     1f - (hit.distance / rayLength);
+
+                values[i] =
+                    Mathf.Clamp01(values[i]);
+
+                Debug.DrawLine(
+                    start,
+                    hit.point,
+                    Color.green
+                );
             }
             else
             {
                 values[i] = 0f;
-            }
-        }
 
-        // =========================================================
-        // 6 SENSORES FRONTALES
-        // =========================================================
-
-        Vector3 sensorOrigin =
-            transform.position +
-            Vector3.up * forwardSensorHeight;
-
-        Vector3[] directions =
-        {
-            // Izquierda lejana
-            Quaternion.AngleAxis(
-                -forwardSensorAngle,
-                Vector3.up
-            ) * transform.forward,
-
-            // Izquierda cercana
-            Quaternion.AngleAxis(
-                -forwardSensorAngle * 0.5f,
-                Vector3.up
-            ) * transform.forward,
-
-            // Centro
-            transform.forward,
-
-            // Derecha cercana
-            Quaternion.AngleAxis(
-                forwardSensorAngle * 0.5f,
-                Vector3.up
-            ) * transform.forward,
-
-            // Derecha lejana
-            Quaternion.AngleAxis(
-                forwardSensorAngle,
-                Vector3.up
-            ) * transform.forward,
-
-            // Centro largo
-            transform.forward
-        };
-
-        float[] maxDistances =
-        {
-            forwardSensorLength,
-            forwardSensorLength,
-            forwardSensorLength,
-            forwardSensorLength,
-            forwardSensorLength,
-            forwardSensorLength * 1.25f
-        };
-
-        for (int i = 0; i < directions.Length; i++)
-        {
-            int index = 9 + i;
-
-            if (Physics.Raycast(
-                sensorOrigin,
-                directions[i],
-                out RaycastHit hit,
-                maxDistances[i],
-                trackLayer))
-            {
-                values[index] =
-                    1f - (hit.distance / maxDistances[i]);
-            }
-            else
-            {
-                values[index] = 0f;
+                Debug.DrawRay(
+                    start,
+                    Vector3.down * rayLength,
+                    Color.red
+                );
             }
         }
 
@@ -160,52 +109,53 @@ public class KartRaySensor : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        // Solo sirve para visualizar aproximadamente
-        // dónde salen los sensores en el editor.
-
         Gizmos.color = Color.yellow;
 
-        Vector3 origin =
-            transform.position +
-            Vector3.up * forwardSensorHeight;
-
-        Vector3[] directions =
+        Vector3[] positions =
         {
-            Quaternion.AngleAxis(
-                -forwardSensorAngle,
-                Vector3.up
-            ) * transform.forward,
+            transform.position
+                + transform.forward * nearDistance
+                - transform.right * sideDistance,
 
-            Quaternion.AngleAxis(
-                -forwardSensorAngle * 0.5f,
-                Vector3.up
-            ) * transform.forward,
+            transform.position
+                + transform.forward * nearDistance,
 
-            transform.forward,
+            transform.position
+                + transform.forward * nearDistance
+                + transform.right * sideDistance,
 
-            Quaternion.AngleAxis(
-                forwardSensorAngle * 0.5f,
-                Vector3.up
-            ) * transform.forward,
+            transform.position
+                + transform.forward * middleDistance
+                - transform.right * sideDistance,
 
-            Quaternion.AngleAxis(
-                forwardSensorAngle,
-                Vector3.up
-            ) * transform.forward,
+            transform.position
+                + transform.forward * middleDistance,
 
-            transform.forward
+            transform.position
+                + transform.forward * middleDistance
+                + transform.right * sideDistance,
+
+            transform.position
+                + transform.forward * farDistance
+                - transform.right * sideDistance,
+
+            transform.position
+                + transform.forward * farDistance,
+
+            transform.position
+                + transform.forward * farDistance
+                + transform.right * sideDistance
         };
 
-        for (int i = 0; i < directions.Length; i++)
+        for (int i = 0; i < positions.Length; i++)
         {
-            float length = forwardSensorLength;
+            Vector3 start =
+                positions[i] +
+                Vector3.up * sensorHeight;
 
-            if (i == 5)
-                length *= 1.25f;
-
-            Gizmos.DrawRay(
-                origin,
-                directions[i] * length
+            Gizmos.DrawLine(
+                start,
+                start + Vector3.down * rayLength
             );
         }
     }
