@@ -90,6 +90,10 @@ public class KartAgent : Agent
         speed = Mathf.Clamp01(speed);
 
         sensor.AddObservation(speed);
+        Debug.Log
+        (
+            $"Rays: {string.Join(", ", trackSensors)} | Speed: {speed:F3}"
+        );
     }
 
     public override void OnActionReceived(ActionBuffers actions)
@@ -97,17 +101,18 @@ public class KartAgent : Agent
         
         if (IsWriting() || isStopped)
         {
-            bot.SetInputs(0f, 0f, true); // Enviamos freno de mano activo (true)
+            bot.SetInputs(0f, 0f, true); 
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
             return;
         }
 
         float steering = Mathf.Clamp(actions.ContinuousActions[0], -1f, 1f);
-        float throttle = Mathf.Clamp01(actions.ContinuousActions[1]);
+        float throttle = (actions.ContinuousActions[1] + 1f) / 2f;
         float brake = Mathf.Clamp01(actions.ContinuousActions[2]);
 
         bot.SetInputs(throttle, steering, brake > 0.5f);
+        Debug.Log($"Steering: {steering:F3} | Throttle: {throttle:F3} | Brake: {brake:F3}");
 
         float forwardSpeed = Vector3.Dot(
             rb.linearVelocity,
@@ -176,11 +181,10 @@ public void ResumeAgent()
 
             PuntoDeProgresoActual = closestPoint;
 
-            // Llegó al último punto
             if (PuntoDeProgresoActual >= progressPoints.Length - 1)
             {
                 AddReward(finishReward);
-                EndEpisode();
+                StopAgent();
             }
         }
     }
@@ -197,17 +201,11 @@ public void ResumeAgent()
 
     private void OnTriggerEnter(Collider other)
     {
-         if (other.CompareTag("Finish"))
-    {
-        AddReward(finishReward); // Usamos tu variable finishReward configurada en el inspector
-        
-        // Activamos el freno total que creamos antes
-        StopAgent(); 
-
-        // OPCIONAL: Si quieres que el episodio termine un par de segundos después de frenar,
-        // puedes usar una Corrutina. Si prefieres que se quede frenado para siempre, borra la línea de abajo.
-        StartCoroutine(EndEpisodeDelayed(2f)); 
-    }
+        if (other.CompareTag("Finish"))
+        {
+            AddReward(finishReward);
+            StopAgent();
+        }
 
     if (other.CompareTag("FallZone"))
     {

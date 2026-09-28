@@ -2,6 +2,28 @@
     "metadata": {
         "stats_format_version": "0.3.0",
         "mlagents_version": "1.1.0",
-        "torch_version": "2.14.0+cpu"
+        "torch_version": "2.2.2+cpu"
+    },
+    "ApexBot": {
+        "checkpoints": [
+            {
+                "steps": 26328,
+                "file_path": "results\\ApexKartihy\\ApexBot\\ApexBot-26328.onnx",
+                "reward": 2.3090741069152436,
+                "creation_time": 1790598414.8470657,
+                "auxillary_file_paths": [
+                    "results\\ApexKartihy\\ApexBot\\ApexBot-26328.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 26328,
+            "file_path": "results\\ApexKartihy\\ApexBot.onnx",
+            "reward": 2.3090741069152436,
+            "creation_time": 1790598414.8470657,
+            "auxillary_file_paths": [
+                "results\\ApexKartihy\\ApexBot\\ApexBot-26328.pt"
+            ]
+        }
     }
 }
