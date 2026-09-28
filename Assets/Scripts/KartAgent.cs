@@ -43,7 +43,7 @@ public class KartAgent : Agent
 
     private Rigidbody rb;
 
-    private void Awake()
+    private new void Awake()
     {
         rb = GetComponent<Rigidbody>();
         raySensor = GetComponent<KartRaySensor>();
@@ -90,10 +90,25 @@ public class KartAgent : Agent
         speed = Mathf.Clamp01(speed);
 
         sensor.AddObservation(speed);
-        Debug.Log
-        (
-            $"Rays: {string.Join(", ", trackSensors)} | Speed: {speed:F3}"
-        );
+
+        if (progressPoints != null && progressPoints.Length > 0 && PuntoDeProgresoActual < progressPoints.Length)
+        {
+            Vector3 direction =
+            progressPoints[PuntoDeProgresoActual].position - transform.position;
+
+            Vector3 localDirection = transform.InverseTransformDirection
+            (
+                direction.normalized
+            );
+
+            sensor.AddObservation(localDirection.x);
+            sensor.AddObservation(localDirection.z);
+        }
+        else
+        {
+            sensor.AddObservation(0f);
+            sensor.AddObservation(1f);
+        }
     }
 
     public override void OnActionReceived(ActionBuffers actions)
@@ -108,11 +123,16 @@ public class KartAgent : Agent
         }
 
         float steering = Mathf.Clamp(actions.ContinuousActions[0], -1f, 1f);
+
         float throttle = (actions.ContinuousActions[1] + 1f) / 2f;
+
         float brake = Mathf.Clamp01(actions.ContinuousActions[2]);
 
-        bot.SetInputs(throttle, steering, brake > 0.5f);
-        Debug.Log($"Steering: {steering:F3} | Throttle: {throttle:F3} | Brake: {brake:F3}");
+        bot.SetInputs(
+        throttle,
+        steering,
+        brake > 0.5f
+        );  
 
         float forwardSpeed = Vector3.Dot(
             rb.linearVelocity,

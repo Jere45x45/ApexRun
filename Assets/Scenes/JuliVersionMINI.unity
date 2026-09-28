@@ -1924,118 +1924,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 357501503}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1 &401971812
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 401971816}
-  - component: {fileID: 401971815}
-  - component: {fileID: 401971814}
-  - component: {fileID: 401971813}
-  m_Layer: 3
-  m_Name: Cube
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!65 &401971813
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 401971812}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!23 &401971814
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 401971812}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_MaskInteraction: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &401971815
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 401971812}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!4 &401971816
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 401971812}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -8.28, y: 7.66, z: -46.02}
-  m_LocalScale: {x: 22.8, y: 1, z: 3.5}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &406060838
 GameObject:
   m_ObjectHideFlags: 0
@@ -4559,7 +4447,7 @@ MonoBehaviour:
   - {fileID: 1485807533}
   progressReward: 2
   finishReward: 20
-  maxSpeed: 5
+  maxSpeed: 30
   fallPenalty: -5
   timePenalty: -0.001
   stuckTime: 3
@@ -4577,7 +4465,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.ML-Agents::Unity.MLAgents.Policies.BehaviorParameters
   m_BrainParameters:
-    VectorObservationSize: 7
+    VectorObservationSize: 18
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 3
@@ -4588,7 +4476,7 @@ MonoBehaviour:
     hasUpgradedBrainParametersWithActionSpec: 1
   m_Model: {fileID: 5022602860645237092, guid: 0b8c43504a2ea9e43b6adddc9885d435, type: 3}
   m_InferenceDevice: 0
-  m_BehaviorType: 2
+  m_BehaviorType: 0
   m_BehaviorName: ApexBot
   TeamId: 0
   m_UseChildSensors: 1
@@ -4651,8 +4539,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 814944228}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.7265685, z: -0, w: -0.6870941}
-  m_LocalPosition: {x: -66.1, y: 9.33, z: 139.41}
+  m_LocalRotation: {x: -0, y: -0.7078042, z: -0, w: -0.7064087}
+  m_LocalPosition: {x: -71.29, y: 5.54, z: 47.77}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4668,7 +4556,7 @@ Transform:
   - {fileID: 67032234}
   - {fileID: 558095357}
   m_Father: {fileID: 1777968238}
-  m_LocalEulerAnglesHint: {x: 0, y: -266.801, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -269.887, z: 0}
 --- !u!114 &814944237
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4683,8 +4571,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::KartRaySensor
   sensorHeight: 2
   rayLength: 5
-  forwardDistance: 2
-  sideDistance: 1.5
+  forwardDistance: 3
+  sideDistance: 2
+  forwardSensorHeight: 0.8
+  forwardSensorLength: 8
+  forwardSensorAngle: 30
   trackLayer:
     serializedVersion: 2
     m_Bits: 8
@@ -5559,8 +5450,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::KartRaySensor
   sensorHeight: 2
   rayLength: 5
-  forwardDistance: 2
-  sideDistance: 1.5
+  forwardDistance: 3
+  sideDistance: 2
+  forwardSensorHeight: 0.8
+  forwardSensorLength: 8
+  forwardSensorAngle: 30
   trackLayer:
     serializedVersion: 2
     m_Bits: 8
@@ -9061,72 +8955,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1536592045}
   m_Mesh: {fileID: 4300002, guid: 6bdf620309293f945b6605a24de7d589, type: 3}
---- !u!1 &1538760000
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1538760003}
-  - component: {fileID: 1538760002}
-  - component: {fileID: 1538760001}
-  m_Layer: 0
-  m_Name: GameObject
-  m_TagString: FallZone
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1538760001
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1538760000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f361fa5bb4cb5e44d86cf5ba8c5a6f35, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TrainingBounds
---- !u!65 &1538760002
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1538760000}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 30, y: 1, z: 10}
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!4 &1538760003
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1538760000}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -6.56, y: 6.05, z: -48.04}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1542038370
 GameObject:
   m_ObjectHideFlags: 0
@@ -9283,59 +9111,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!1 &1571500293
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1571500295}
-  - component: {fileID: 1571500294}
-  m_Layer: 0
-  m_Name: Finishline
-  m_TagString: Finish
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!65 &1571500294
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1571500293}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 3}
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!4 &1571500295
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1571500293}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.34, y: 8.33, z: -46.36}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1574913923
 GameObject:
   m_ObjectHideFlags: 0
@@ -12412,8 +12187,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::KartRaySensor
   sensorHeight: 2
   rayLength: 5
-  forwardDistance: 2
-  sideDistance: 1.5
+  forwardDistance: 3
+  sideDistance: 2
+  forwardSensorHeight: 0.8
+  forwardSensorLength: 8
+  forwardSensorAngle: 30
   trackLayer:
     serializedVersion: 2
     m_Bits: 8
@@ -13270,8 +13048,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::KartRaySensor
   sensorHeight: 2
   rayLength: 5
-  forwardDistance: 2
-  sideDistance: 1.5
+  forwardDistance: 3
+  sideDistance: 2
+  forwardSensorHeight: 0.8
+  forwardSensorLength: 8
+  forwardSensorAngle: 30
   trackLayer:
     serializedVersion: 2
     m_Bits: 8
@@ -13914,8 +13695,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::KartRaySensor
   sensorHeight: 2
   rayLength: 5
-  forwardDistance: 2
-  sideDistance: 1.5
+  forwardDistance: 3
+  sideDistance: 2
+  forwardSensorHeight: 0.8
+  forwardSensorLength: 8
+  forwardSensorAngle: 30
   trackLayer:
     serializedVersion: 2
     m_Bits: 8
@@ -14192,6 +13976,3 @@ SceneRoots:
   - {fileID: 1388270298}
   - {fileID: 1777968238}
   - {fileID: 2061634718}
-  - {fileID: 401971816}
-  - {fileID: 1538760003}
-  - {fileID: 1571500295}

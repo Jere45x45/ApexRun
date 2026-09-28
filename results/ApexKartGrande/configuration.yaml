@@ -14,7 +14,7 @@ behaviors:
       learning_rate_schedule: linear
       beta_schedule: linear
       epsilon_schedule: linear
-    checkpoint_interval: 10000
+    checkpoint_interval: 500000
     network_settings:
       normalize: true
       hidden_units: 128
@@ -38,7 +38,7 @@ behaviors:
     init_path: null
     keep_checkpoints: 5
     even_checkpoints: false
-    max_steps: 200000
+    max_steps: 500000
     time_horizon: 64
     summary_freq: 10000
     threaded: false
@@ -69,7 +69,7 @@ checkpoint_settings:
   run_id: ApexKartGrande
   initialize_from: null
   load_model: false
-  resume: true
+  resume: false
   force: false
   train_model: false
   inference: false
