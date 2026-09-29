@@ -1,10 +1,11 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Unity.Netcode; // Requerido para Netcode for GameObjects
 
 // Poné este script en el empty "Kart" (el padre de todo) o en el "Chasis".
-// Necesita tener (o encontrar en el padre/hijo) un Rigidbody.
+// Necesita tener (o encontrar en el padre/hijo) un Rigidbody y un NetworkObject.
 [RequireComponent(typeof(Rigidbody))]
-public class CarController2 : MonoBehaviour
+public class CarController2 : NetworkBehaviour
 {
     [Header("Wheel Colliders (arrastrá los 4 emptys con WheelCollider)")]
     [SerializeField] private WheelCollider frontLeftWheel;
@@ -42,14 +43,14 @@ public class CarController2 : MonoBehaviour
 
     private Rigidbody rb;
 
-    // Acciones de input creadas por código (no requieren un Input Actions Asset)
+    // Acciones de input creadas por código
     private InputAction moveAction;
     private InputAction brakeAction;
 
     private Vector2 moveInput;
     private bool isBraking;
 
-    // Ángulo de dirección actualmente aplicado, se mueve gradualmente hacia el objetivo
+    // Ángulo de dirección actualmente aplicado
     private float currentAppliedSteerAngle;
 
     private void Awake()
@@ -62,7 +63,7 @@ public class CarController2 : MonoBehaviour
         if (centerOfMass != null)
             rb.centerOfMass = centerOfMass.localPosition;
 
-        // --- Input: movimiento (WASD / flechas / stick del gamepad) ---
+        // --- Input: movimiento ---
         moveAction = new InputAction("Move", InputActionType.Value, expectedControlType: "Vector2");
         moveAction.AddCompositeBinding("2DVector")
             .With("Up", "<Keyboard>/w")
@@ -76,25 +77,40 @@ public class CarController2 : MonoBehaviour
             .With("Right", "<Keyboard>/rightArrow");
         moveAction.AddBinding("<Gamepad>/leftStick");
 
-        // --- Input: freno de mano (Espacio / botón sur del gamepad) ---
+        // --- Input: freno de mano ---
         brakeAction = new InputAction("Brake", InputActionType.Button, "<Keyboard>/space");
         brakeAction.AddBinding("<Gamepad>/buttonSouth");
     }
 
-    private void OnEnable()
+    public override void OnNetworkSpawn()
     {
-        moveAction.Enable();
-        brakeAction.Enable();
+        base.OnNetworkSpawn();
+
+        // Solo activamos las lecturas de input si este kart le pertenece al jugador local
+        if (IsOwner)
+        {
+            moveAction.Enable();
+            brakeAction.Enable();
+        }
     }
 
-    private void OnDisable()
+    public override void OnNetworkDespawn()
     {
-        moveAction.Disable();
-        brakeAction.Disable();
+        base.OnNetworkDespawn();
+
+        // Desactivamos los inputs al desconectarse o destruirse
+        if (IsOwner)
+        {
+            moveAction.Disable();
+            brakeAction.Disable();
+        }
     }
 
     private void Update()
     {
+        // Si no soy el dueño de este kart, no procesamos la entrada ni las animaciones visuales locales
+        if (!IsOwner) return;
+
         moveInput = moveAction.ReadValue<Vector2>();
         isBraking = brakeAction.IsPressed();
 
@@ -107,17 +123,15 @@ public class CarController2 : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // Si no soy el dueño, las físicas y la dirección las maneja el cliente local correspondiente
+        if (!IsOwner) return;
+
         float steerInput = moveInput.x;   // A/D o flechas izq/der
         float accelInput = moveInput.y;   // W/S o flechas arriba/abajo
 
         float speedKmh = rb.linearVelocity.magnitude * 3.6f;
 
         // --- Ángulo máximo de dirección disponible según la velocidad actual ---
-        // A baja velocidad, se permite el ángulo completo (maxSteerAngle).
-        // A medida que la velocidad se acerca a steeringReductionSpeed, el ángulo
-        // disponible se reduce hacia minSteerAngle. Esto evita pedirle a la rueda
-        // delantera más fuerza lateral de la que puede sostener sin saturarse
-        // y perder agarre (derrape/understeer a alta velocidad).
         float speedFactor = Mathf.Clamp01(speedKmh / steeringReductionSpeed);
         float availableSteerAngle = Mathf.Lerp(maxSteerAngle, minSteerAngle, speedFactor);
 
@@ -134,8 +148,6 @@ public class CarController2 : MonoBehaviour
         frontRightWheel.steerAngle = currentAppliedSteerAngle;
 
         // --- Aceleración (tracción en las 4 ruedas), con límite de velocidad ---
-        // Nota: en Unity 6+ el Rigidbody usa "linearVelocity". Si usás una versión
-        // anterior (2021/2022/2023), cambiá "rb.linearVelocity" por "rb.velocity".
         float currentMotorTorque = (speedKmh < maxSpeedKmh) ? motorTorque * accelInput : 0f;
 
         frontLeftWheel.motorTorque = currentMotorTorque;
