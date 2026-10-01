@@ -18,8 +18,7 @@ public class KartTrackSurfaceDebugger : MonoBehaviour
     {
         if (kartBehaviour == null)
         {
-            kartBehaviour =
-                GetComponent<KartBehaviour>();
+            kartBehaviour = GetComponent<KartBehaviour>();
         }
     }
 
@@ -28,35 +27,15 @@ public class KartTrackSurfaceDebugger : MonoBehaviour
         if (kartBehaviour == null)
             return;
 
-        KartPhysics physics =
-            kartBehaviour.Physics;
+        KartPhysics physics = kartBehaviour.Physics;
 
         if (physics == null)
             return;
 
-        UpdateWheel(
-            "FL",
-            physics.FrontLeftWheel,
-            ref frontLeftSurface
-        );
-
-        UpdateWheel(
-            "FR",
-            physics.FrontRightWheel,
-            ref frontRightSurface
-        );
-
-        UpdateWheel(
-            "RL",
-            physics.RearLeftWheel,
-            ref rearLeftSurface
-        );
-
-        UpdateWheel(
-            "RR",
-            physics.RearRightWheel,
-            ref rearRightSurface
-        );
+        UpdateWheel("FL", physics.FrontLeftWheel, ref frontLeftSurface);
+        UpdateWheel("FR", physics.FrontRightWheel, ref frontRightSurface);
+        UpdateWheel("RL", physics.RearLeftWheel, ref rearLeftSurface);
+        UpdateWheel("RR", physics.RearRightWheel, ref rearRightSurface);
     }
 
     private void UpdateWheel(
@@ -67,32 +46,22 @@ public class KartTrackSurfaceDebugger : MonoBehaviour
         if (wheel == null)
             return;
 
-        string currentSurface =
-            GetSurfaceName(wheel);
+        string currentSurface = GetSurfaceName(wheel);
 
-        if (logSurfaceChanges &&
-            currentSurface != previousSurface)
+        if (logSurfaceChanges && currentSurface != previousSurface)
         {
-            Debug.Log(
-                $"{wheelName} → {currentSurface}",
-                this
-            );
-
-            previousSurface =
-                currentSurface;
+            Debug.Log($"{wheelName} → {currentSurface}", this);
+            previousSurface = currentSurface;
         }
 
         if (!drawRays)
             return;
 
-        Vector3 origin =
-            wheel.WheelPoint.position;
+        WheelCollider collider = wheel.WheelCollider;
 
-        Vector3 direction =
-            -wheel.WheelPoint.up;
-
-        float length =
-            wheel.RayLength;
+        Vector3 origin = collider.transform.position;
+        Vector3 direction = -collider.transform.up;
+        float length = collider.suspensionDistance + collider.radius;
 
         Color rayColor;
 
@@ -109,15 +78,10 @@ public class KartTrackSurfaceDebugger : MonoBehaviour
             rayColor = Color.green;
         }
 
-        Debug.DrawRay(
-            origin,
-            direction * length,
-            rayColor
-        );
+        Debug.DrawRay(origin, direction * length, rayColor);
     }
 
-    private string GetSurfaceName(
-        WheelPhysics wheel)
+    private string GetSurfaceName(WheelPhysics wheel)
     {
         if (!wheel.IsGrounded)
             return "AIR";

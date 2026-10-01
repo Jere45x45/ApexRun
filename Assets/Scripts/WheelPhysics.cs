@@ -4,38 +4,21 @@ using UnityEngine;
 public class WheelPhysics
 {
     private readonly Rigidbody rigidbody;
-    private readonly Transform wheelPoint;
-    private readonly Quaternion initialLocalRotation;
+    private readonly WheelCollider wheelCollider;
 
-    private float radius;
-    private float suspensionDistance;
-    private float springRate;
-    private float damperRate;
-
-    private float driveTorque;
-    private float brakeTorque;
-    private float steeringAngle;
+    private WheelFrictionCurve baseForwardFriction;
+    private WheelFrictionCurve baseSidewaysFriction;
 
     private float gripMultiplier = 1f;
     private float surfaceGripMultiplier = 1f;
 
-    private float previousCompression;
-
     public bool IsGrounded { get; private set; }
-
-    public float Compression { get; private set; }
 
     public Vector3 GroundPoint { get; private set; }
 
-    public Vector3 GroundNormal { get; private set; }
+    public Vector3 GroundNormal { get; private set; } = Vector3.up;
 
     public Vector3 ContactVelocity { get; private set; }
-
-    public float DriveTorque => driveTorque;
-
-    public float BrakeTorque => brakeTorque;
-
-    public float SteeringAngle => steeringAngle;
 
     public float GripMultiplier => gripMultiplier;
 
@@ -44,137 +27,91 @@ public class WheelPhysics
     public float CombinedGripMultiplier =>
         gripMultiplier * surfaceGripMultiplier;
 
-    public Transform WheelPoint => wheelPoint;
-
-    public float RayLength => suspensionDistance + radius;
+    public WheelCollider WheelCollider => wheelCollider;
 
     public TrackSurfaceData CurrentSurface { get; private set; }
 
-    public bool HasSurface =>
-        CurrentSurface != null;
+    public bool HasSurface => CurrentSurface != null;
 
     public bool IsOnValidTrack =>
-        CurrentSurface == null ||
-        CurrentSurface.IsValidForTrack;
+        CurrentSurface == null || CurrentSurface.IsValidForTrack;
 
     public bool IsOnInvalidSurface =>
-        CurrentSurface != null &&
-        !CurrentSurface.IsValidForTrack;
-
-    public Vector3 VisualPosition
-    {
-        get
-        {
-            if (!IsGrounded)
-                return wheelPoint.position;
-
-            return GroundPoint +
-                   GroundNormal * radius;
-        }
-    }
-
-    public Quaternion VisualRotation =>
-        wheelPoint.rotation;
+        CurrentSurface != null && !CurrentSurface.IsValidForTrack;
 
     public WheelPhysics(
         Rigidbody rigidbody,
-        Transform wheelPoint)
+        WheelCollider wheelCollider)
     {
         if (rigidbody == null)
-            throw new ArgumentNullException(
-                nameof(rigidbody)
-            );
+            throw new ArgumentNullException(nameof(rigidbody));
 
-        if (wheelPoint == null)
-            throw new ArgumentNullException(
-                nameof(wheelPoint)
-            );
+        if (wheelCollider == null)
+            throw new ArgumentNullException(nameof(wheelCollider));
 
         this.rigidbody = rigidbody;
-        this.wheelPoint = wheelPoint;
-
-        initialLocalRotation =
-            wheelPoint.localRotation;
-
-        GroundNormal = Vector3.up;
+        this.wheelCollider = wheelCollider;
     }
 
     public void Configure(
         float radius,
         float suspensionDistance,
         float springRate,
-        float damperRate)
+        float damperRate,
+        float suspensionTargetPosition,
+        WheelFrictionCurve forwardFriction,
+        WheelFrictionCurve sidewaysFriction)
     {
         if (radius <= 0f)
-            throw new ArgumentOutOfRangeException(
-                nameof(radius)
-            );
+            throw new ArgumentOutOfRangeException(nameof(radius));
 
         if (suspensionDistance < 0f)
-            throw new ArgumentOutOfRangeException(
-                nameof(suspensionDistance)
-            );
+            throw new ArgumentOutOfRangeException(nameof(suspensionDistance));
 
         if (springRate < 0f)
-            throw new ArgumentOutOfRangeException(
-                nameof(springRate)
-            );
+            throw new ArgumentOutOfRangeException(nameof(springRate));
 
         if (damperRate < 0f)
-            throw new ArgumentOutOfRangeException(
-                nameof(damperRate)
-            );
+            throw new ArgumentOutOfRangeException(nameof(damperRate));
 
-        this.radius = radius;
-        this.suspensionDistance = suspensionDistance;
-        this.springRate = springRate;
-        this.damperRate = damperRate;
+        wheelCollider.radius = radius;
+        wheelCollider.suspensionDistance = suspensionDistance;
+
+        JointSpring spring = wheelCollider.suspensionSpring;
+        spring.spring = springRate;
+        spring.damper = damperRate;
+        spring.targetPosition = Mathf.Clamp01(suspensionTargetPosition);
+        wheelCollider.suspensionSpring = spring;
+
+        baseForwardFriction = forwardFriction;
+        baseSidewaysFriction = sidewaysFriction;
+
+        ApplyFrictionCurves();
     }
 
     public void SetDriveTorque(float torque)
     {
-        driveTorque = torque;
+        wheelCollider.motorTorque = torque;
     }
 
     public void ClearDriveTorque()
     {
-        driveTorque = 0f;
+        wheelCollider.motorTorque = 0f;
     }
 
     public void SetBrakeTorque(float torque)
     {
-        brakeTorque =
-            Mathf.Max(0f, torque);
+        wheelCollider.brakeTorque = Mathf.Max(0f, torque);
     }
 
     public void ClearBrakeTorque()
     {
-        brakeTorque = 0f;
-    }
-
-    public void SetGripMultiplier(float multiplier)
-    {
-        gripMultiplier =
-            Mathf.Max(0f, multiplier);
-    }
-
-    public void SetSurfaceGripMultiplier(float multiplier)
-    {
-        surfaceGripMultiplier =
-            Mathf.Max(0f, multiplier);
+        wheelCollider.brakeTorque = 0f;
     }
 
     public void SetSteeringAngle(float angle)
     {
-        steeringAngle = angle;
-
-        wheelPoint.localRotation =
-            initialLocalRotation *
-            Quaternion.Euler(
-                0f,
-                steeringAngle,
-                0f
-            );
+        wheelCollider.steerAngle = angle;
     }
 
     public void ResetSteering()
@@ -182,63 +119,44 @@ public class WheelPhysics
         SetSteeringAngle(0f);
     }
 
+    public void SetGripMultiplier(float multiplier)
+    {
+        gripMultiplier = Mathf.Max(0f, multiplier);
+        ApplyFrictionCurves();
+    }
+
+    private void SetSurfaceGripMultiplier(float multiplier)
+    {
+        surfaceGripMultiplier = Mathf.Max(0f, multiplier);
+        ApplyFrictionCurves();
+    }
+
+    private void ApplyFrictionCurves()
+    {
+        float combined = gripMultiplier * surfaceGripMultiplier;
+
+        WheelFrictionCurve forward = baseForwardFriction;
+        forward.stiffness = baseForwardFriction.stiffness * combined;
+        wheelCollider.forwardFriction = forward;
+
+        WheelFrictionCurve sideways = baseSidewaysFriction;
+        sideways.stiffness = baseSidewaysFriction.stiffness * combined;
+        wheelCollider.sidewaysFriction = sideways;
+    }
+
     public void Update(float deltaTime)
     {
-        if (deltaTime <= 0f)
-            return;
-
-        float oldCompression =
-            Compression;
-
-        Vector3 origin =
-            wheelPoint.position;
-
-        float rayLength =
-            suspensionDistance + radius;
-
-        if (Physics.Raycast(
-            origin,
-            -wheelPoint.up,
-            out RaycastHit hit,
-            rayLength))
+        if (wheelCollider.GetGroundHit(out WheelHit hit))
         {
             IsGrounded = true;
 
             GroundPoint = hit.point;
             GroundNormal = hit.normal;
 
-            float suspensionLength =
-                hit.distance - radius;
-
-            suspensionLength =
-                Mathf.Clamp(
-                    suspensionLength,
-                    0f,
-                    suspensionDistance
-                );
-
-            Compression =
-                suspensionDistance > 0f
-                    ? 1f -
-                      (
-                          suspensionLength /
-                          suspensionDistance
-                      )
-                    : 0f;
-
-            Compression =
-                Mathf.Clamp01(
-                    Compression
-                );
-
             ContactVelocity =
-                rigidbody.GetPointVelocity(
-                    hit.point
-                );
+                rigidbody.GetPointVelocity(hit.point);
 
-            UpdateSurfaceInformation(
-                hit.collider
-            );
+            UpdateSurfaceInformation(hit.collider);
         }
         else
         {
@@ -248,16 +166,11 @@ public class WheelPhysics
             GroundNormal = Vector3.up;
             ContactVelocity = Vector3.zero;
 
-            Compression = 0f;
-
             ClearSurfaceInformation();
         }
-
-        previousCompression = oldCompression;
     }
 
-    private void UpdateSurfaceInformation(
-        Collider collider)
+    private void UpdateSurfaceInformation(Collider collider)
     {
         TrackSurface surface =
             collider.GetComponentInParent<TrackSurface>();
@@ -268,72 +181,33 @@ public class WheelPhysics
             return;
         }
 
-        CurrentSurface =
-            surface.SurfaceData;
+        CurrentSurface = surface.SurfaceData;
 
-        if (CurrentSurface == null)
-        {
-            surfaceGripMultiplier = 1f;
-            return;
-        }
-
-        surfaceGripMultiplier =
-            CurrentSurface.GripMultiplier;
+        SetSurfaceGripMultiplier(
+            CurrentSurface != null
+                ? CurrentSurface.GripMultiplier
+                : 1f
+        );
     }
 
     private void ClearSurfaceInformation()
     {
         CurrentSurface = null;
-        surfaceGripMultiplier = 1f;
+        SetSurfaceGripMultiplier(1f);
     }
 
-    public float GetSuspensionForce(float deltaTime)
+    public void GetVisualPose(
+        out Vector3 position,
+        out Quaternion rotation)
     {
-        if (!IsGrounded ||
-            deltaTime <= 0f)
-        {
-            return 0f;
-        }
-
-        float compressionVelocity =
-            (Compression - previousCompression) /
-            deltaTime;
-
-        float springForce =
-            Compression * springRate;
-
-        float damperForce =
-            compressionVelocity * damperRate;
-
-        return Mathf.Max(
-            0f,
-            springForce + damperForce
-        );
-    }
-
-    public void ApplySuspensionForce(float deltaTime)
-    {
-        if (!IsGrounded)
-            return;
-
-        float force =
-            GetSuspensionForce(deltaTime);
-
-        if (force <= 0f)
-            return;
-
-        rigidbody.AddForceAtPosition(
-            wheelPoint.up * force,
-            GroundPoint,
-            ForceMode.Force
-        );
+        wheelCollider.GetWorldPose(out position, out rotation);
     }
 
     public Vector3 GetWheelForward()
     {
         Vector3 forward =
             Vector3.ProjectOnPlane(
-                wheelPoint.forward,
+                wheelCollider.transform.forward,
                 GroundNormal
             );
 
@@ -347,7 +221,7 @@ public class WheelPhysics
     {
         Vector3 right =
             Vector3.ProjectOnPlane(
-                wheelPoint.right,
+                wheelCollider.transform.right,
                 GroundNormal
             );
 
@@ -356,4 +230,4 @@ public class WheelPhysics
 
         return right.normalized;
     }
-}   
+}

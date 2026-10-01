@@ -2,11 +2,11 @@ using UnityEngine;
 
 public class BotBehaviour : MonoBehaviour
 {
-    [Header("Wheel Points")]
-    [SerializeField] private Transform frontLeftWheelPoint;
-    [SerializeField] private Transform frontRightWheelPoint;
-    [SerializeField] private Transform rearLeftWheelPoint;
-    [SerializeField] private Transform rearRightWheelPoint;
+    [Header("Wheel Colliders")]
+    [SerializeField] private WheelCollider frontLeftWheelCollider;
+    [SerializeField] private WheelCollider frontRightWheelCollider;
+    [SerializeField] private WheelCollider rearLeftWheelCollider;
+    [SerializeField] private WheelCollider rearRightWheelCollider;
 
     [Header("Wheel Slots")]
     [SerializeField] private Transform frontLeftSlot;
@@ -71,87 +71,53 @@ public class BotBehaviour : MonoBehaviour
             return;
         }
 
-        if (!ValidateWheelPoints())
+        if (!ValidateWheelColliders())
             return;
 
         kart = new Kart(
-            new RuntimeKartConfiguration(
-                configuration
-            )
+            new RuntimeKartConfiguration(configuration)
         );
 
         kartPhysics = new KartPhysics(
             rb,
-            frontLeftWheelPoint,
-            frontRightWheelPoint,
-            rearLeftWheelPoint,
-            rearRightWheelPoint
+            frontLeftWheelCollider,
+            frontRightWheelCollider,
+            rearLeftWheelCollider,
+            rearRightWheelCollider
         );
 
-        engineController =
-            new EngineController(
-                kartPhysics
-            );
+        engineController = new EngineController(kartPhysics);
+        steeringController = new SteeringController(kartPhysics);
+        brakeController = new BrakeController(kartPhysics);
 
-        steeringController =
-            new SteeringController(
-                kartPhysics
-            );
-
-        brakeController =
-            new BrakeController(
-                kartPhysics
-            );
-
-        wheelVisualController =
-            new WheelVisualController(
-                kartPhysics,
-                modelController.FrontLeftWheelSlot,
-                modelController.FrontRightWheelSlot,
-                modelController.RearLeftWheelSlot,
-                modelController.RearRightWheelSlot
-            );
+        wheelVisualController = new WheelVisualController(
+            kartPhysics,
+            modelController.FrontLeftWheelSlot,
+            modelController.FrontRightWheelSlot,
+            modelController.RearLeftWheelSlot,
+            modelController.RearRightWheelSlot
+        );
 
         RefreshKart();
     }
 
-    public void SetInputs(
-        float throttle,
-        float steering,
-        bool brake)
+    public void SetInputs(float throttle, float steering, bool brake)
     {
-        this.throttle =
-            Mathf.Clamp(throttle, -1f, 1f);
-
-        this.steering =
-            Mathf.Clamp(steering, -1f, 1f);
-
+        this.throttle = Mathf.Clamp(throttle, -1f, 1f);
+        this.steering = Mathf.Clamp(steering, -1f, 1f);
         this.braking = brake;
     }
 
     private void FixedUpdate()
     {
-        if (kart == null ||
-            kartPhysics == null)
-        {
+        if (kart == null || kartPhysics == null)
             return;
-        }
 
-        float deltaTime =
-            Time.fixedDeltaTime;
+        float deltaTime = Time.fixedDeltaTime;
 
-        kartPhysics.UpdateWheels(
-            deltaTime
-        );
+        kartPhysics.UpdateWheels(deltaTime);
 
-        kartPhysics.ApplySuspension(
-            deltaTime
-        );
-
-        engineController.UpdateMotor(
-            throttle,
-            kart.Stats
-        );
+        engineController.UpdateMotor(throttle, kart.Stats);
 
         steeringController.UpdateSteering(
             steering,
@@ -159,10 +125,7 @@ public class BotBehaviour : MonoBehaviour
             kart.Stats
         );
 
-        brakeController.UpdateBrakes(
-            braking,
-            kart.Stats
-        );
+        brakeController.UpdateBrakes(braking, kart.Stats);
 
         wheelVisualController.UpdateVisuals();
     }
@@ -176,10 +139,7 @@ public class BotBehaviour : MonoBehaviour
 
         if (kartPhysics != null)
         {
-            PhysicsConfigurator.Configure(
-                kartPhysics,
-                kart.Stats
-            );
+            PhysicsConfigurator.Configure(kartPhysics, kart.Stats);
         }
 
         UpdateVisualModel();
@@ -193,49 +153,47 @@ public class BotBehaviour : MonoBehaviour
         if (kart == null)
             return;
 
-        modelController.Refresh(
-            kart.Configuration
-        );
+        modelController.Refresh(kart.Configuration);
     }
 
-    private bool ValidateWheelPoints()
+    private bool ValidateWheelColliders()
     {
         bool valid = true;
 
-        if (frontLeftWheelPoint == null)
+        if (frontLeftWheelCollider == null)
         {
             Debug.LogError(
-                "BotBehaviour no tiene WheelPoint-FL asignado.",
+                "BotBehaviour no tiene WheelCollider-FL asignado.",
                 this
             );
 
             valid = false;
         }
 
-        if (frontRightWheelPoint == null)
+        if (frontRightWheelCollider == null)
         {
             Debug.LogError(
-                "BotBehaviour no tiene WheelPoint-FR asignado.",
+                "BotBehaviour no tiene WheelCollider-FR asignado.",
                 this
             );
 
             valid = false;
         }
 
-        if (rearLeftWheelPoint == null)
+        if (rearLeftWheelCollider == null)
         {
             Debug.LogError(
-                "BotBehaviour no tiene WheelPoint-RL asignado.",
+                "BotBehaviour no tiene WheelCollider-RL asignado.",
                 this
             );
 
             valid = false;
         }
 
-        if (rearRightWheelPoint == null)
+        if (rearRightWheelCollider == null)
         {
             Debug.LogError(
-                "BotBehaviour no tiene WheelPoint-RR asignado.",
+                "BotBehaviour no tiene WheelCollider-RR asignado.",
                 this
             );
 

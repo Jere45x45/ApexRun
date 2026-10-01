@@ -27,6 +27,15 @@ public class KartStats
     public float suspensionDistance;
     public float springRate;
     public float damperRate;
+    public float suspensionTargetPosition;
+
+    [Header("Fricción - Delanteras")]
+    public WheelFrictionCurve frontForwardFriction;
+    public WheelFrictionCurve frontSidewaysFriction;
+
+    [Header("Fricción - Traseras")]
+    public WheelFrictionCurve rearForwardFriction;
+    public WheelFrictionCurve rearSidewaysFriction;
 
     [Header("Aerodinámica")]
     public float downforce;

@@ -13,11 +13,7 @@ public class WheelVisualController
     private readonly ModelSlot rearRightModelSlot;
 
     private static readonly Quaternion LeftWheelRotationOffset =
-        Quaternion.Euler(
-            0f,
-            180f,
-            0f
-        );
+        Quaternion.Euler(0f, 180f, 0f);
 
     public WheelVisualController(
         KartPhysics physics,
@@ -26,56 +22,23 @@ public class WheelVisualController
         ModelSlot rearLeftModelSlot,
         ModelSlot rearRightModelSlot)
     {
-        frontLeftWheel =
-            physics.FrontLeftWheel;
+        frontLeftWheel = physics.FrontLeftWheel;
+        frontRightWheel = physics.FrontRightWheel;
+        rearLeftWheel = physics.RearLeftWheel;
+        rearRightWheel = physics.RearRightWheel;
 
-        frontRightWheel =
-            physics.FrontRightWheel;
-
-        rearLeftWheel =
-            physics.RearLeftWheel;
-
-        rearRightWheel =
-            physics.RearRightWheel;
-
-        this.frontLeftModelSlot =
-            frontLeftModelSlot;
-
-        this.frontRightModelSlot =
-            frontRightModelSlot;
-
-        this.rearLeftModelSlot =
-            rearLeftModelSlot;
-
-        this.rearRightModelSlot =
-            rearRightModelSlot;
+        this.frontLeftModelSlot = frontLeftModelSlot;
+        this.frontRightModelSlot = frontRightModelSlot;
+        this.rearLeftModelSlot = rearLeftModelSlot;
+        this.rearRightModelSlot = rearRightModelSlot;
     }
 
     public void UpdateVisuals()
     {
-        UpdateWheel(
-            frontLeftWheel,
-            frontLeftModelSlot,
-            LeftWheelRotationOffset
-        );
-
-        UpdateWheel(
-            frontRightWheel,
-            frontRightModelSlot,
-            Quaternion.identity
-        );
-
-        UpdateWheel(
-            rearLeftWheel,
-            rearLeftModelSlot,
-            LeftWheelRotationOffset
-        );
-
-        UpdateWheel(
-            rearRightWheel,
-            rearRightModelSlot,
-            Quaternion.identity
-        );
+        UpdateWheel(frontLeftWheel, frontLeftModelSlot, LeftWheelRotationOffset);
+        UpdateWheel(frontRightWheel, frontRightModelSlot, Quaternion.identity);
+        UpdateWheel(rearLeftWheel, rearLeftModelSlot, LeftWheelRotationOffset);
+        UpdateWheel(rearRightWheel, rearRightModelSlot, Quaternion.identity);
     }
 
     private void UpdateWheel(
@@ -83,22 +46,22 @@ public class WheelVisualController
         ModelSlot modelSlot,
         Quaternion rotationOffset)
     {
-        if (wheel == null ||
-            modelSlot == null)
-        {
+        if (wheel == null || modelSlot == null)
             return;
-        }
 
-        GameObject visual =
-            modelSlot.CurrentInstance;
+        GameObject visual = modelSlot.CurrentInstance;
 
         if (visual == null)
             return;
 
+        wheel.GetVisualPose(
+            out Vector3 position,
+            out Quaternion rotation
+        );
+
         visual.transform.SetPositionAndRotation(
-            wheel.VisualPosition,
-            wheel.VisualRotation *
-            rotationOffset
+            position,
+            rotation * rotationOffset
         );
     }
 }

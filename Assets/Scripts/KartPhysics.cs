@@ -14,51 +14,32 @@ public class KartPhysics
 
     public KartPhysics(
         Rigidbody rigidbody,
-        Transform frontLeftPoint,
-        Transform frontRightPoint,
-        Transform rearLeftPoint,
-        Transform rearRightPoint)
+        WheelCollider frontLeftCollider,
+        WheelCollider frontRightCollider,
+        WheelCollider rearLeftCollider,
+        WheelCollider rearRightCollider)
     {
         if (rigidbody == null)
             throw new ArgumentNullException(nameof(rigidbody));
 
-        if (frontLeftPoint == null)
-            throw new ArgumentNullException(nameof(frontLeftPoint));
+        if (frontLeftCollider == null)
+            throw new ArgumentNullException(nameof(frontLeftCollider));
 
-        if (frontRightPoint == null)
-            throw new ArgumentNullException(nameof(frontRightPoint));
+        if (frontRightCollider == null)
+            throw new ArgumentNullException(nameof(frontRightCollider));
 
-        if (rearLeftPoint == null)
-            throw new ArgumentNullException(nameof(rearLeftPoint));
+        if (rearLeftCollider == null)
+            throw new ArgumentNullException(nameof(rearLeftCollider));
 
-        if (rearRightPoint == null)
-            throw new ArgumentNullException(nameof(rearRightPoint));
+        if (rearRightCollider == null)
+            throw new ArgumentNullException(nameof(rearRightCollider));
 
         Rigidbody = rigidbody;
 
-        FrontLeftWheel =
-            new WheelPhysics(
-                rigidbody,
-                frontLeftPoint
-            );
-
-        FrontRightWheel =
-            new WheelPhysics(
-                rigidbody,
-                frontRightPoint
-            );
-
-        RearLeftWheel =
-            new WheelPhysics(
-                rigidbody,
-                rearLeftPoint
-            );
-
-        RearRightWheel =
-            new WheelPhysics(
-                rigidbody,
-                rearRightPoint
-            );
+        FrontLeftWheel = new WheelPhysics(rigidbody, frontLeftCollider);
+        FrontRightWheel = new WheelPhysics(rigidbody, frontRightCollider);
+        RearLeftWheel = new WheelPhysics(rigidbody, rearLeftCollider);
+        RearRightWheel = new WheelPhysics(rigidbody, rearRightCollider);
 
         Wheels = new[]
         {
@@ -72,36 +53,46 @@ public class KartPhysics
     public void Configure(KartStats stats)
     {
         if (stats == null)
-            throw new ArgumentNullException(
-                nameof(stats)
-            );
+            throw new ArgumentNullException(nameof(stats));
 
         FrontLeftWheel.Configure(
             stats.wheelRadius,
             stats.suspensionDistance,
             stats.springRate,
-            stats.damperRate
+            stats.damperRate,
+            stats.suspensionTargetPosition,
+            stats.frontForwardFriction,
+            stats.frontSidewaysFriction
         );
 
         FrontRightWheel.Configure(
             stats.wheelRadius,
             stats.suspensionDistance,
             stats.springRate,
-            stats.damperRate
+            stats.damperRate,
+            stats.suspensionTargetPosition,
+            stats.frontForwardFriction,
+            stats.frontSidewaysFriction
         );
 
         RearLeftWheel.Configure(
             stats.wheelRadius,
             stats.suspensionDistance,
             stats.springRate,
-            stats.damperRate
+            stats.damperRate,
+            stats.suspensionTargetPosition,
+            stats.rearForwardFriction,
+            stats.rearSidewaysFriction
         );
 
         RearRightWheel.Configure(
             stats.wheelRadius,
             stats.suspensionDistance,
             stats.springRate,
-            stats.damperRate
+            stats.damperRate,
+            stats.suspensionTargetPosition,
+            stats.rearForwardFriction,
+            stats.rearSidewaysFriction
         );
     }
 
@@ -111,13 +102,5 @@ public class KartPhysics
         FrontRightWheel.Update(deltaTime);
         RearLeftWheel.Update(deltaTime);
         RearRightWheel.Update(deltaTime);
-    }
-
-    public void ApplySuspension(float deltaTime)
-    {
-        FrontLeftWheel.ApplySuspensionForce(deltaTime);
-        FrontRightWheel.ApplySuspensionForce(deltaTime);
-        RearLeftWheel.ApplySuspensionForce(deltaTime);
-        RearRightWheel.ApplySuspensionForce(deltaTime);
     }
 }

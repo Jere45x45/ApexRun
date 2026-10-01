@@ -2,17 +2,11 @@
 
 public class KartBehaviour : MonoBehaviour
 {
-    [Header("Wheel Points")]
-    [SerializeField] private Transform frontLeftWheelPoint;
-    [SerializeField] private Transform frontRightWheelPoint;
-    [SerializeField] private Transform rearLeftWheelPoint;
-    [SerializeField] private Transform rearRightWheelPoint;
-
-    [Header("Wheel Slots")]
-    [SerializeField] private Transform frontLeftSlot;
-    [SerializeField] private Transform frontRightSlot;
-    [SerializeField] private Transform rearLeftSlot;
-    [SerializeField] private Transform rearRightSlot;
+    [Header("Wheel Colliders")]
+    [SerializeField] private WheelCollider frontLeftWheelCollider;
+    [SerializeField] private WheelCollider frontRightWheelCollider;
+    [SerializeField] private WheelCollider rearLeftWheelCollider;
+    [SerializeField] private WheelCollider rearRightWheelCollider;
 
     [Header("Model")]
     [SerializeField] private KartModelController modelController;
@@ -49,8 +43,7 @@ public class KartBehaviour : MonoBehaviour
     {
         if (configurationController != null)
         {
-            configurationController.ConfigurationChanged +=
-                RefreshKart;
+            configurationController.ConfigurationChanged += RefreshKart;
         }
     }
 
@@ -58,8 +51,7 @@ public class KartBehaviour : MonoBehaviour
     {
         if (configurationController != null)
         {
-            configurationController.ConfigurationChanged -=
-                RefreshKart;
+            configurationController.ConfigurationChanged -= RefreshKart;
         }
     }
 
@@ -107,54 +99,40 @@ public class KartBehaviour : MonoBehaviour
             return;
         }
 
-        if (!ValidateWheelPoints())
+        if (!ValidateWheelColliders())
             return;
 
-        kart = new Kart(
-            configurationController.Configuration
-        );
+        kart = new Kart(configurationController.Configuration);
 
         kartPhysics = new KartPhysics(
             rb,
-            frontLeftWheelPoint,
-            frontRightWheelPoint,
-            rearLeftWheelPoint,
-            rearRightWheelPoint
+            frontLeftWheelCollider,
+            frontRightWheelCollider,
+            rearLeftWheelCollider,
+            rearRightWheelCollider
         );
 
-        engineController =
-            new EngineController(kartPhysics);
+        engineController = new EngineController(kartPhysics);
+        steeringController = new SteeringController(kartPhysics);
+        brakeController = new BrakeController(kartPhysics);
 
-        steeringController =
-            new SteeringController(kartPhysics);
+        wheelVisualController = new WheelVisualController(
+            kartPhysics,
+            modelController.FrontLeftWheelSlot,
+            modelController.FrontRightWheelSlot,
+            modelController.RearLeftWheelSlot,
+            modelController.RearRightWheelSlot
+        );
 
-        brakeController =
-            new BrakeController(kartPhysics);
-
-        wheelVisualController =
-            new WheelVisualController(
-                kartPhysics,
-                modelController.FrontLeftWheelSlot,
-                modelController.FrontRightWheelSlot,
-                modelController.RearLeftWheelSlot,
-                modelController.RearRightWheelSlot
-            );
-
-        aeroController =
-            new AeroController(kartPhysics);
-
-        frictionController =
-            new KartFrictionController(kartPhysics);
+        aeroController = new AeroController(kartPhysics);
+        frictionController = new KartFrictionController(kartPhysics);
 
         RefreshKart();
 
         SetInputEnabled(false);
     }
 
-    public void SetInputs(
-        float throttle,
-        float steering,
-        bool brake)
+    public void SetInputs(float throttle, float steering, bool brake)
     {
         if (!inputEnabled)
         {
@@ -162,25 +140,12 @@ public class KartBehaviour : MonoBehaviour
             return;
         }
 
-        this.throttle =
-            Mathf.Clamp(
-                throttle,
-                -1f,
-                1f
-            );
-
-        this.steering =
-            Mathf.Clamp(
-                steering,
-                -1f,
-                1f
-            );
-
+        this.throttle = Mathf.Clamp(throttle, -1f, 1f);
+        this.steering = Mathf.Clamp(steering, -1f, 1f);
         this.braking = brake;
     }
 
-    public void SetInputEnabled(
-        bool enabled)
+    public void SetInputEnabled(bool enabled)
     {
         inputEnabled = enabled;
 
@@ -199,27 +164,14 @@ public class KartBehaviour : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (kart == null ||
-            kartPhysics == null)
-        {
+        if (kart == null || kartPhysics == null)
             return;
-        }
 
-        float deltaTime =
-            Time.fixedDeltaTime;
+        float deltaTime = Time.fixedDeltaTime;
 
-        kartPhysics.UpdateWheels(
-            deltaTime
-        );
+        kartPhysics.UpdateWheels(deltaTime);
 
-        kartPhysics.ApplySuspension(
-            deltaTime
-        );
-
-        engineController.UpdateMotor(
-            throttle,
-            kart.Stats
-        );
+        engineController.UpdateMotor(throttle, kart.Stats);
 
         steeringController.UpdateSteering(
             steering,
@@ -227,16 +179,11 @@ public class KartBehaviour : MonoBehaviour
             kart.Stats
         );
 
-        brakeController.UpdateBrakes(
-            braking,
-            kart.Stats
-        );
+        brakeController.UpdateBrakes(braking, kart.Stats);
 
         frictionController.UpdateFriction();
 
-        aeroController.UpdateAerodynamics(
-            kart.Stats
-        );
+        aeroController.UpdateAerodynamics(kart.Stats);
 
         wheelVisualController.UpdateVisuals();
     }
@@ -250,25 +197,17 @@ public class KartBehaviour : MonoBehaviour
 
         if (kartPhysics != null)
         {
-            PhysicsConfigurator.Configure(
-                kartPhysics,
-                kart.Stats
-            );
+            PhysicsConfigurator.Configure(kartPhysics, kart.Stats);
         }
 
         UpdateVisualModel();
     }
 
-    public void Refresh(
-        Kart newKart)
+    public void Refresh(Kart newKart)
     {
         if (newKart == null)
         {
-            Debug.LogWarning(
-                "Se intentó asignar un Kart nulo.",
-                this
-            );
-
+            Debug.LogWarning("Se intentó asignar un Kart nulo.", this);
             return;
         }
 
@@ -292,52 +231,34 @@ public class KartBehaviour : MonoBehaviour
         if (kart == null)
             return;
 
-        modelController.Refresh(
-            kart.Configuration
-        );
+        modelController.Refresh(kart.Configuration);
     }
 
-    private bool ValidateWheelPoints()
+    private bool ValidateWheelColliders()
     {
         bool valid = true;
 
-        if (frontLeftWheelPoint == null)
+        if (frontLeftWheelCollider == null)
         {
-            Debug.LogError(
-                "No hay WheelPoint-FL asignado.",
-                this
-            );
-
+            Debug.LogError("No hay WheelCollider-FL asignado.", this);
             valid = false;
         }
 
-        if (frontRightWheelPoint == null)
+        if (frontRightWheelCollider == null)
         {
-            Debug.LogError(
-                "No hay WheelPoint-FR asignado.",
-                this
-            );
-
+            Debug.LogError("No hay WheelCollider-FR asignado.", this);
             valid = false;
         }
 
-        if (rearLeftWheelPoint == null)
+        if (rearLeftWheelCollider == null)
         {
-            Debug.LogError(
-                "No hay WheelPoint-RL asignado.",
-                this
-            );
-
+            Debug.LogError("No hay WheelCollider-RL asignado.", this);
             valid = false;
         }
 
-        if (rearRightWheelPoint == null)
+        if (rearRightWheelCollider == null)
         {
-            Debug.LogError(
-                "No hay WheelPoint-RR asignado.",
-                this
-            );
-
+            Debug.LogError("No hay WheelCollider-RR asignado.", this);
             valid = false;
         }
 

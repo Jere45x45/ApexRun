@@ -23,5 +23,8 @@ MonoBehaviour:
   minSteeringAngle: 10
   steeringReductionSpeed: 20
   brakeTorque: 3000
-  suspensionDistance: 0
+  suspensionDistance: 0.3
+  springRate: 35000
+  damperRate: 4500
+  suspensionTargetPosition: 0.5
   radius: 0.165

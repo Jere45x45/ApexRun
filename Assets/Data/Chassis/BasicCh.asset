@@ -16,10 +16,10 @@ MonoBehaviour:
   partName: Basic Chassis
   description: "Chasis b\xE1sico del kart."
   icon: {fileID: 0}
-  modelPrefab: {fileID: 919132149155446097, guid: 28d45980b0a1dfc4abad8c3451135d02,
+  modelPrefab: {fileID: 919132149155446097, guid: d7085a79663f0514899faf1e9d7bdd22,
     type: 3}
   rarity: 0
-  mass: 150
+  mass: 250
   centerOfMass: {x: 0, y: -0.5, z: 0}
   drag: 0.05
-  angularDrag: 0.5
+  angularDrag: 1.5
