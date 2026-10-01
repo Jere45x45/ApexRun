@@ -20,4 +20,4 @@ MonoBehaviour:
     type: 3}
   rarity: 0
   motorTorque: 2000
-  maxSpeed: 20
+  maxSpeed: 60
