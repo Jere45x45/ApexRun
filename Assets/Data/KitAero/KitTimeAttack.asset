@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 92f86fc8aed07fc4883068ca75e8bb66, type: 3}
-  m_Name: BasicKitAero
+  m_Name: KitTimeAttack
   m_EditorClassIdentifier: Assembly-CSharp::AeroKitData
-  partID: kitaero_basic
-  partName: Basic Kit Aero
+  partID: 
+  partName: 
   description: 
   icon: {fileID: 0}
-  modelPrefab: {fileID: 919132149155446097, guid: bb46cf7c8cb8af24cad5f81ff6ada706,
+  modelPrefab: {fileID: 919132149155446097, guid: 60cafe77ccbeaeb4793fbd2665493010,
     type: 3}
   rarity: 0
   downforce: 100
