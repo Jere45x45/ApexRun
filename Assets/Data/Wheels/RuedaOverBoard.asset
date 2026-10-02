@@ -19,9 +19,9 @@ MonoBehaviour:
   modelPrefab: {fileID: 919132149155446097, guid: 96b823c2450daed4989eda49c6f795e1,
     type: 3}
   rarity: 0
-  maxSteeringAngle: 30
-  minSteeringAngle: 10
-  steeringReductionSpeed: 20
+  maxSteeringAngle: 35
+  minSteeringAngle: 20
+  steeringReductionSpeed: 80
   brakeTorque: 3000
   suspensionDistance: 0.3
   springRate: 35000

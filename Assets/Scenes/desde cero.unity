@@ -1257,8 +1257,8 @@ GameObject:
   m_Component:
   - component: {fileID: 770481606}
   - component: {fileID: 770481607}
-  - component: {fileID: 770481608}
   - component: {fileID: 770481609}
+  - component: {fileID: 770481608}
   m_Layer: 0
   m_Name: Kart
   m_TagString: Untagged
@@ -1326,6 +1326,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 872705bcbb3a6f74a9c6194c0159b548, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CarController2
+  ShowTopMostFoldoutHeaderGroup: 1
   frontLeftWheel: {fileID: 1325245249}
   frontRightWheel: {fileID: 772837150}
   rearLeftWheel: {fileID: 1216302551}
