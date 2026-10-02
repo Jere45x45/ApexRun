@@ -3,7 +3,27 @@ guid: b8d23c03c7972e24189020a187d7f80e
 ModelImporter:
   serializedVersion: 24300
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Llantas.004
+    second: {fileID: 2100000, guid: 39ba8c46331a2754a939b2be4771da21, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Slicks.001
+    second: {fileID: 2100000, guid: f424fcdc07fbd564aa798b701e7af41d, type: 2}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: NormalMapSlicks
+    second: {fileID: 2800000, guid: 785921abf7044664fa0b2cb790f5c6d3, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Textura Rueda Slick
+    second: {fileID: 2800000, guid: 519cd32eae95e544c9e249e85372b8ac, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0

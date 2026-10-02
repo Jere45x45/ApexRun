@@ -3,7 +3,32 @@ guid: d7085a79663f0514899faf1e9d7bdd22
 ModelImporter:
   serializedVersion: 24300
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Base.001
+    second: {fileID: 2100000, guid: 85b4f710df01dab45891a4fbeb7dbc4b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BasePedal.001
+    second: {fileID: 2100000, guid: 1a6318e79a636ee438bb1fe4e134e972, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Gris.001
+    second: {fileID: 2100000, guid: ee2f136a9882d46468d24b4f9567d1ed, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Metales.001
+    second: {fileID: 2100000, guid: b258495a1b1cae14d8d14568a37798b8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Pedal.001
+    second: {fileID: 2100000, guid: 8f16fe67f9999554c8deec9561b0304c, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

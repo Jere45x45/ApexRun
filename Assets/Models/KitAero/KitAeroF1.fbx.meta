@@ -3,7 +3,52 @@ guid: 64edff22999b29b4fa907a89a3a05ac4
 ModelImporter:
   serializedVersion: 24300
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material.001
+    second: {fileID: 2100000, guid: e1790abd8e137d84f8342ae5c8c58bf7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material.002
+    second: {fileID: 2100000, guid: 9caee14905e2bb9429da5d7d38c12d9d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material.003
+    second: {fileID: 2100000, guid: be5e46a2bf80a8b4b947337371a94282, type: 2}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: AlonsoNormalMap
+    second: {fileID: 2800000, guid: 2b2d6528a69ac384ba0a799d9f007b70, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: AlonsoNormalMapBody
+    second: {fileID: 2800000, guid: e5a50d3d41fe4be4d92e4f7367d42433, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: AlonsoNormalMapRearWing
+    second: {fileID: 2800000, guid: c2d1692bcbb74694f80e38179ff6c7b2, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: AlonsoTexture
+    second: {fileID: 2800000, guid: e30a6e132a86adc4198103f23801bdc0, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: AlonsoTextureBody
+    second: {fileID: 2800000, guid: 8b55d8a8f6e37c3448670f7b52da31b5, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: AlonsoTextureRearWing
+    second: {fileID: 2800000, guid: 1e59d7d4ca8242541896414e8920cfb6, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0

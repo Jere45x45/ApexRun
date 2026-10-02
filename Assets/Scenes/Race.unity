@@ -5044,6 +5044,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: pistaholu
       objectReference: {fileID: 0}
+    - target: {fileID: 1946555618210276182, guid: 074116c5de6a1e842a3c6e7948b66c2d,
+        type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 5dae1bc6b2d26de41a7b308a37f9676b, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
