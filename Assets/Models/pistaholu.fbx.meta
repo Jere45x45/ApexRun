@@ -5,40 +5,65 @@ ModelImporter:
   internalIDToNameTable: []
   externalObjects:
   - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: asfalto
+    second: {fileID: 2100000, guid: a3928778550a81345a63cc9757c92c49, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: blanquito
+    second: {fileID: 2100000, guid: 8558a02afc701ae44a4dab0451b60ad7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: cuadritos
+    second: {fileID: 2100000, guid: f9b0dec63cc41fa4c919050220fc6521, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: postes
+    second: {fileID: 2100000, guid: b580c75fdfbee6a4ebfd72cb0bae4377, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: verdecito
+    second: {fileID: 2100000, guid: 5dae1bc6b2d26de41a7b308a37f9676b, type: 2}
+  - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: 01_metal_estructura_postes (1)
-    second: {fileID: 2800000, guid: c12d4e941abc5484fb8f0a26b493d4c7, type: 3}
+    second: {fileID: 2800000, guid: 36ba7275e2c1bc743875560e27d732fd, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: 04_linea_cuadros_largada
-    second: {fileID: 2800000, guid: 2770e867198cba843bbc6c0e0b76400a, type: 3}
+    second: {fileID: 2800000, guid: 6b47ec5724373b5419af0fb436e4d04d, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: Poliigon_GrassPatchyGround_4585_BaseColor
-    second: {fileID: 2800000, guid: 5c8bbcdaa0111694199cb10c4d3c67ee, type: 3}
+    second: {fileID: 2800000, guid: 79e077cd46f7d924a81e55b046d728ed, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: Poliigon_GrassPatchyGround_4585_Normal
-    second: {fileID: 2800000, guid: 10af5097b116994468a9e2d06b2ce8fa, type: 3}
+    second: {fileID: 2800000, guid: 6661fadd0b1b1204ba6541f4d0ed63d6, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: asphalt_track_diff_4k
-    second: {fileID: 2800000, guid: 865cd7ebf24b8bc4c99b2b7ef04c3b8f, type: 3}
+    second: {fileID: 2800000, guid: 50cecc7eeb0c4da46925383254c00b51, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: asphalt_track_disp_4k
-    second: {fileID: 2800000, guid: f79a7be3cb7fd15459e6d4876c069ea6, type: 3}
+    second: {fileID: 2800000, guid: 62fbcc2df42b71c4a9eabc051ac273fc, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: asphalt_track_nor_gl_4k
-    second: {fileID: 2800000, guid: 96a9502b46866cd448359a5a3c075a78, type: 3}
+    second: {fileID: 2800000, guid: cea1c80069a88934f92dc020bcf54e8d, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0

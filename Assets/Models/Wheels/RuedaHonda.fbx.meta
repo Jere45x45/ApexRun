@@ -3,7 +3,27 @@ guid: f3aaa4956b65c35418ab615ba47da7e1
 ModelImporter:
   serializedVersion: 24300
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Honda Mean Mower Llantas.004
+    second: {fileID: 2100000, guid: 699af09050fc3a9499e0ba76d2b2baad, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material.010
+    second: {fileID: 2100000, guid: a462ef9e49b414d45934fe88194f4267, type: 2}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Honda Mean Mower Tire Texture
+    second: {fileID: 2800000, guid: 776c0dac6a2e1b042bfbc1c1909c8646, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: NormalMapCortadora de pasto
+    second: {fileID: 2800000, guid: d40e46fdac22b5243800d82d22c6af19, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0
