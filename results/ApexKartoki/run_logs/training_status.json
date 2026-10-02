@@ -36,15 +36,24 @@
                 "auxillary_file_paths": [
                     "results\\ApexKartoki\\ApexBot\\ApexBot-52394.pt"
                 ]
+            },
+            {
+                "steps": 55956,
+                "file_path": "results\\ApexKartoki\\ApexBot\\ApexBot-55956.onnx",
+                "reward": 1.694833666086197,
+                "creation_time": 1790789112.1799824,
+                "auxillary_file_paths": [
+                    "results\\ApexKartoki\\ApexBot\\ApexBot-55956.pt"
+                ]
             }
         ],
         "final_checkpoint": {
-            "steps": 52394,
+            "steps": 55956,
             "file_path": "results\\ApexKartoki\\ApexBot.onnx",
-            "reward": 1.9676648179690044,
-            "creation_time": 1790788574.1953824,
+            "reward": 1.694833666086197,
+            "creation_time": 1790789112.1799824,
             "auxillary_file_paths": [
-                "results\\ApexKartoki\\ApexBot\\ApexBot-52394.pt"
+                "results\\ApexKartoki\\ApexBot\\ApexBot-55956.pt"
             ]
         }
     },
