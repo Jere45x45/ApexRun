@@ -31,6 +31,11 @@ public class BotLearning : MonoBehaviour
     [SerializeField] private float discount = 0.95f;
     [SerializeField] private float exploration = 0.2f;
 
+    [Header("Auto Save")]
+    [SerializeField] private int saveEveryDecisions = 5000;
+
+    private int decisionsSinceSave = 0;
+
     private Dictionary<string, float[]> qTable =
         new Dictionary<string, float[]>();
 
@@ -133,6 +138,13 @@ public class BotLearning : MonoBehaviour
              currentValue);
 
         qTable[state][action] = newValue;
+        decisionsSinceSave++;
+
+        if (decisionsSinceSave >= saveEveryDecisions)
+        {
+            SaveQTable();
+            decisionsSinceSave = 0;
+        }
     }
 
     private string GetState(float[] observations)

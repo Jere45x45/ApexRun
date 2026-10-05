@@ -2976,7 +2976,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 814944228}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 88b6042bc9a5d4aa58d931eae49442e5, type: 3}
   m_Name: 
@@ -3014,7 +3014,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 814944228}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3a5c9d521e5ef4759a8246a07d52221e, type: 3}
   m_Name: 
@@ -3090,7 +3090,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 814944228}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5d1c4e0b1822b495aa52bc52839ecb30, type: 3}
   m_Name: 
@@ -3238,6 +3238,7 @@ MonoBehaviour:
   learningRate: 0.15
   discount: 0.95
   exploration: 0.2
+  saveEveryDecisions: 5000
 --- !u!114 &814944240
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3913,6 +3914,7 @@ MonoBehaviour:
   learningRate: 0.15
   discount: 0.95
   exploration: 0.2
+  saveEveryDecisions: 5000
 --- !u!4 &1042294633
 Transform:
   m_ObjectHideFlags: 0
