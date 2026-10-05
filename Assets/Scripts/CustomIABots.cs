@@ -13,13 +13,19 @@ public class CustomIABots : MonoBehaviour
     [SerializeField] private Transform[] progressPoints;
 
     [Header("Rewards")]
-    [SerializeField] private float progressReward = 2f;
-    [SerializeField] private float finishReward = 20f;
-    [SerializeField] private float fallPenalty = -5f;
-    [SerializeField] private float movementReward = 0.05f;
+    [SerializeField] private float progressReward = 5f;
+    [SerializeField] private float finishReward = 30f;
+    [SerializeField] private float fallPenalty = -20f;
+    [SerializeField] private float movementReward = 0.1f;
 
     [Header("Learning")]
     [SerializeField] private float decisionInterval = 0.1f;
+
+    [Header("Stuck Detection")]
+    [SerializeField] private float stuckTime = 3f;
+    [SerializeField] private float minimumSpeed = 0.5f;
+
+    private float timeWithoutMovement = 0f;
 
     private int currentProgress = 0;
 
@@ -54,7 +60,7 @@ public class CustomIABots : MonoBehaviour
 
     private void FixedUpdate()
     {
-        decisionTimer += Time.fixedDeltaTime;
+    decisionTimer += Time.fixedDeltaTime;
 
         if (decisionTimer < decisionInterval)
             return;
@@ -66,6 +72,8 @@ public class CustomIABots : MonoBehaviour
         MakeDecision();
 
         CheckProgress();
+
+        CheckIfStuck();
     }
 
     private void MakeDecision()
@@ -178,14 +186,27 @@ public class CustomIABots : MonoBehaviour
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
 
+
         transform.position = startPosition;
         transform.rotation = startRotation;
 
         currentProgress = 0;
 
         lastObservation = null;
+        currentObservation = null;
 
         decisionTimer = 0f;
+        timeWithoutMovement = 0f;
+
+        Invoke(nameof(StartAfterReset), 0.3f);
+    }
+
+    private void StartAfterReset()
+    {
+        if (bot == null)
+        return;
+
+        bot.SetInputs(1f, 0f, false);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -194,5 +215,42 @@ public class CustomIABots : MonoBehaviour
         {
             FallOffTrack();
         }
+    }
+    private void CheckIfStuck()
+    {
+    if (rb.linearVelocity.magnitude < minimumSpeed)
+    {
+        timeWithoutMovement += Time.fixedDeltaTime;
+
+        if (timeWithoutMovement >= stuckTime)
+        {
+            Debug.Log("BOT TRABADO → REINICIANDO");
+
+            if (lastObservation != null)
+            {
+                learning.Learn(
+                    lastObservation,
+                    lastAction,
+                    -10f,
+                    currentObservation
+                );
+            }
+
+            ResetBot();
+        }
+    }
+    else
+    {
+        timeWithoutMovement = 0f;
+    }
+    }
+    private void Update()
+    {
+    if (Input.GetKeyDown(KeyCode.R))
+    {
+        Debug.Log("R APRETADA → NUEVO EPISODIO");
+
+        ResetBot();
+    }
     }
 }

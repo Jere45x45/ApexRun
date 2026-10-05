@@ -27,9 +27,9 @@ public class BotLearning : MonoBehaviour
     public static BotLearning Instance { get; private set; }
 
     [Header("Learning")]
-    [SerializeField] private float learningRate = 0.15f;
+    [SerializeField] private float learningRate = 0.30f;
     [SerializeField] private float discount = 0.95f;
-    [SerializeField] private float exploration = 0.2f;
+    [SerializeField] private float exploration = 0.10f;
 
     [Header("Auto Save")]
     [SerializeField] private int saveEveryDecisions = 5000;

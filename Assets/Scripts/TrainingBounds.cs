@@ -4,11 +4,11 @@ public class TrainingBounds : MonoBehaviour
 {
     private void OnTriggerEnter(Collider col)
     {
-        KartAgent agent = col.GetComponentInParent<KartAgent>();
+        CustomIABots ai = col.GetComponentInParent<CustomIABots>();
 
-        if (agent != null)
+        if (ai != null)
         {
-            agent.FallOffTrack();
+            ai.FallOffTrack();
         }
     }
 }
