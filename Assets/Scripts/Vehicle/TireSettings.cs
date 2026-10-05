@@ -77,13 +77,15 @@ public class TireSettings
     public float longitudinalRelaxationLength = 0.08f;
 
     [Tooltip("Amortiguación de la goma a baja velocidad, como fracción del amortiguamiento crítico. " +
-             "Evita que el kart quieto se balancee sobre la goma.")]
+             "Evita que el kart quieto se balancee sobre la goma y que, despacio, se sacuda de lado a lado.")]
     [Range(0f, 1f)]
     public float carcassDampingRatio = 0.5f;
 
-    [Tooltip("Por debajo de esta velocidad (m/s) actúa la amortiguación de la goma.")]
+    [Tooltip("Por debajo de esta velocidad (m/s) actúa la amortiguación de la goma; se apaga de a poco hasta llegar a ella. " +
+             "Despacio, la goma se relaja muy lento y queda como un resorte casi sin freno: con menos de ~4 m/s " +
+             "el kart se sacudía de lado a lado (unas 5 veces por segundo) después de cualquier golpe de volante.")]
     [Min(0.01f)]
-    public float lowSpeedDampingSpeed = 1f;
+    public float lowSpeedDampingSpeed = 4f;
 
     [Header("Resistencia a la rodadura")]
     [Tooltip("Coeficiente de rodadura. Slick de kart sobre asfalto: ~0,015.")]

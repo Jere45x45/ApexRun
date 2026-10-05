@@ -45,6 +45,6 @@ MonoBehaviour:
     lateralRelaxationLength: 0.15
     longitudinalRelaxationLength: 0.08
     carcassDampingRatio: 0.5
-    lowSpeedDampingSpeed: 1
+    lowSpeedDampingSpeed: 4
     rollingResistance: 0.015
   wheelInertia: 0.04

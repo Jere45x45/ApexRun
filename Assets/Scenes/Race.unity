@@ -162,7 +162,11 @@ MonoBehaviour:
   modelController: {fileID: 2070030939}
   configurationController: {fileID: 1974165058}
   tireSubsteps: 10
-  steeringSpeed: 120
+  steeringRateLowSpeed: 120
+  steeringRateHighSpeed: 35
+  steeringRateHighSpeedKmh: 90
+  steeringReturnMultiplier: 1.5
+  steeringSmoothTime: 0.06
   limitSteeringToGrip: 1
   gripSteeringMargin: 1
 --- !u!54 &29959572
@@ -2683,7 +2687,7 @@ GameObject:
   - component: {fileID: 989628391}
   m_Layer: 6
   m_Name: MainCamera
-  m_TagString: Untagged
+  m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3506,7 +3510,14 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1371469511}
-  - component: {fileID: 1371469510}
+  - component: {fileID: 1371469519}
+  - component: {fileID: 1371469518}
+  - component: {fileID: 1371469517}
+  - component: {fileID: 1371469516}
+  - component: {fileID: 1371469515}
+  - component: {fileID: 1371469514}
+  - component: {fileID: 1371469513}
+  - component: {fileID: 1371469512}
   m_Layer: 0
   m_Name: camararig
   m_TagString: Untagged
@@ -3514,24 +3525,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1371469510
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1371469509}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 556a26e8ccd39564c9dcaa39729e2ec9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: '::'
-  target: {fileID: 1908999742}
-  positionOffset: {x: 0, y: 2.5, z: -6}
-  positionSmoothSpeed: 8
-  rotationSmoothSpeed: 6
-  lookAtTarget: 1
-  lookAtOffset: {x: 0, y: 1, z: 0}
 --- !u!4 &1371469511
 Transform:
   m_ObjectHideFlags: 0
@@ -3548,6 +3541,218 @@ Transform:
   - {fileID: 989628390}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1371469512
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1371469509}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab31a8603317ec944b10264f073f7651, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TopDownCameraMode
+  displayName: Cenital
+  fieldOfView: 50
+  nearClipPlane: 0.3
+  height: 14
+  heightPerSpeed: 0.3
+  lookAheadTime: 0.6
+  yawSharpness: 3
+  positionSharpness: 4
+--- !u!114 &1371469513
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1371469509}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 608e3707fa800dc4a9e2ffe59fa19a61, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChaseCameraMode
+  displayName: "Persecuci\xF3n"
+  fieldOfView: 62
+  nearClipPlane: 0.1
+  presets:
+  - name: Cerca
+    distance: 3.6
+    height: 1.2
+    lookHeight: 0.35
+    fieldOfView: 62
+  - name: Lejos
+    distance: 5.5
+    height: 1.8
+    lookHeight: 0.5
+    fieldOfView: 58
+  velocityFollow: 0.6
+  yawSharpness: 5
+  heightSharpness: 8
+  lookAhead: 1.5
+  accelerationStretch: 0.03
+  maxStretch: 0.4
+  speedFieldOfView: 4
+  collisionRadius: 0.2
+--- !u!114 &1371469514
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1371469509}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4e528fa83b9cd14bb58c5fc181bfd25, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OnboardCameraMode
+  displayName: Relativa
+  fieldOfView: 60
+  nearClipPlane: 0.03
+  views:
+  - name: Costado
+    localPosition: {x: -1.25, y: 0.35, z: -1.9}
+    localEulerAngles: {x: 6, y: 14, z: 0}
+    fieldOfView: 60
+  - name: Rueda delantera
+    localPosition: {x: -1, y: 0.2, z: 0.9}
+    localEulerAngles: {x: 5, y: 150, z: 0}
+    fieldOfView: 60
+  - name: Al piloto
+    localPosition: {x: 0, y: 0.8, z: 1.2}
+    localEulerAngles: {x: 14, y: 180, z: 0}
+    fieldOfView: 55
+  - name: "Hacia atr\xE1s"
+    localPosition: {x: 0, y: 0.95, z: -0.75}
+    localEulerAngles: {x: 18, y: 180, z: 0}
+    fieldOfView: 65
+--- !u!114 &1371469515
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1371469509}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a9be5c213c8a424380336a85f453370, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrackSideCameraMode
+  displayName: Externa (TV)
+  fieldOfView: 40
+  nearClipPlane: 0.2
+  leadTime: 2.5
+  minLeadDistance: 20
+  sideDistance: {x: 5, y: 9}
+  height: 1.6
+  maxDistance: 45
+  shotSize: 5
+  minFieldOfView: 8
+  maxFieldOfView: 55
+  lookSharpness: 10
+  zoomSharpness: 5
+--- !u!114 &1371469516
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1371469509}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4e528fa83b9cd14bb58c5fc181bfd25, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OnboardCameraMode
+  displayName: Trompa
+  fieldOfView: 65
+  nearClipPlane: 0.03
+  views:
+  - name: Trompa
+    localPosition: {x: 0, y: 0.55, z: 0.55}
+    localEulerAngles: {x: 8, y: 0, z: 0}
+    fieldOfView: 65
+--- !u!114 &1371469517
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1371469509}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1642be0873684114fb3177a8e0a261f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DriverCameraMode
+  displayName: Piloto
+  fieldOfView: 60
+  nearClipPlane: 0.03
+  eyePosition: {x: 0, y: 0.507, z: -0.232}
+  eyePitch: 4.23
+  headMovementPerG: {x: 0.03, y: 0.015, z: 0.04}
+  maxHeadOffset: 0.08
+  horizonLock: 0.5
+  lookIntoTurn: 0.15
+  maxLookIntoTurn: 12
+  lookIntoTurnSharpness: 4
+  maxLookYaw: 140
+  maxLookPitch: 60
+  lookReturnSharpness: 6
+--- !u!114 &1371469518
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1371469509}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a700ad6daf82dc4db091a22fb528674, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OrbitCameraMode
+  displayName: "\xD3rbita"
+  fieldOfView: 60
+  nearClipPlane: 0.1
+  pivotHeight: 0.6
+  defaultDistance: 4.5
+  minDistance: 1.8
+  maxDistance: 15
+  zoomStep: 1.15
+  defaultPitch: 12
+  minPitch: -10
+  maxPitch: 80
+  followSharpness: 3
+  autoCenterDelay: 2
+  autoCenterSharpness: 2
+  collisionRadius: 0.2
+--- !u!114 &1371469519
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1371469509}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b66ce54d61bf0e8499aed41bff41c535, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KartCameraController
+  target: {fileID: 29959572}
+  controlledCamera: {fileID: 989628392}
+  modes:
+  - {fileID: 1371469518}
+  - {fileID: 1371469517}
+  - {fileID: 1371469516}
+  - {fileID: 1371469515}
+  - {fileID: 1371469514}
+  - {fileID: 1371469513}
+  - {fileID: 1371469512}
+  initialMode: 0
+  mouseSensitivity: 0.15
+  stickSensitivity: 180
+  accelerationSmoothTime: 0.08
+  showModeName: 1
+  modeNameDuration: 1.5
 --- !u!1 &1380388508
 GameObject:
   m_ObjectHideFlags: 0
@@ -3896,7 +4101,7 @@ Transform:
   m_GameObject: {fileID: 1525236679}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -1.106}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4883,7 +5088,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2007604720
 Transform:
   m_ObjectHideFlags: 0

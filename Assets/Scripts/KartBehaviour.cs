@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// Kart del juego. Recibe los mandos del jugador o de la IA (SetInputs), arma
@@ -12,6 +13,12 @@ public class KartBehaviour : MonoBehaviour
 {
     // Por debajo de esta velocidad, sin mandos habilitados, el kart queda frenado.
     private const float StandstillSpeed = 1f;
+
+    // Velocidades del eje delantero (m/s) entre las que entra el límite de agarre
+    // del volante. Casi quieto, la dirección de avance no está definida y manda
+    // el tope del volante.
+    private const float GripLimitStartSpeed = 1f;
+    private const float GripLimitFullSpeed = 4f;
 
     [Header("Ruedas")]
     [Tooltip("Un SphereCollider trigger por rueda, en el centro de cada rueda. Orden: FL, FR, RL, RR. " +
@@ -29,13 +36,32 @@ public class KartBehaviour : MonoBehaviour
              "comparada con la inercia de una rueda y necesita pasos más cortos.")]
     [SerializeField, Range(1, 50)] private int tireSubsteps = 10;
 
-    [Header("Ayudas de manejo")]
-    [Tooltip("Qué tan rápido giran las ruedas hacia el ángulo pedido (°/s). " +
-             "Con teclado, A/D es todo o nada: así el volante no salta de golpe.")]
-    [SerializeField, Min(1f)] private float steeringSpeed = 120f;
+    [Header("Volante")]
+    [Tooltip("Velocidad máxima a la que giran las ruedas delanteras con el kart lento (°/s). " +
+             "Con teclado, A/D es todo o nada: esto hace de las manos del piloto.")]
+    [FormerlySerializedAs("steeringSpeed")]
+    [SerializeField, Min(1f)] private float steeringRateLowSpeed = 120f;
 
-    [Tooltip("Limita el volante al ángulo que da el máximo agarre a la velocidad actual. " +
-             "Girar más que eso no dobla más: solo arrastra las ruedas.")]
+    [Tooltip("Velocidad máxima a la que giran las ruedas delanteras con el kart rápido (°/s). " +
+             "A más velocidad, un piloto mueve el volante menos y más despacio.")]
+    [SerializeField, Min(1f)] private float steeringRateHighSpeed = 35f;
+
+    [Tooltip("Velocidad del kart (km/h) desde la que el volante gira a la velocidad de alta.")]
+    [SerializeField, Min(1f)] private float steeringRateHighSpeedKmh = 90f;
+
+    [Tooltip("Cuánto más rápido vuelve el volante al centro que lo que dobla. " +
+             "El avance de la dirección (caster) endereza solas las ruedas al soltar.")]
+    [SerializeField, Range(1f, 3f)] private float steeringReturnMultiplier = 1.5f;
+
+    [Tooltip("Suavizado del volante (s): el volante acelera y frena en vez de arrancar " +
+             "y pararse de golpe. 0 = sin suavizado.")]
+    [SerializeField, Range(0f, 0.3f)] private float steeringSmoothTime = 0.06f;
+
+    [Header("Ayudas de manejo")]
+    [Tooltip("No deja girar las ruedas delanteras más allá del ángulo de máximo agarre, " +
+             "medido respecto de hacia dónde va de verdad el eje delantero. Girar más no " +
+             "dobla más: solo arrastra las ruedas. Como se mide contra la dirección real, " +
+             "también deja contravolantear cuando la cola se va.")]
     [SerializeField] private bool limitSteeringToGrip = true;
 
     [Tooltip("Margen sobre el ángulo de deslizamiento de máximo agarre. 1 = justo en el pico.")]
@@ -54,6 +80,7 @@ public class KartBehaviour : MonoBehaviour
     private KartVehicle vehicle;
     private KartWheelVisual[] wheelVisuals;
     private float currentSteerAngle;
+    private float steerAngleVelocity;
 
     public Kart Kart => kart;
 
@@ -191,7 +218,7 @@ public class KartBehaviour : MonoBehaviour
     /// <summary>
     /// Pasa los mandos a la física:
     /// - Acelerador positivo = motor. Negativo (tecla S) = freno: un kart no tiene marcha atrás.
-    /// - Volante: gira de a poco y, con la ayuda activada, no más allá del máximo agarre.
+    /// - Volante: ver UpdateSteering.
     /// - Sin mandos habilitados (cuenta regresiva, carrera terminada) el kart
     ///   sigue rodando suelto y, ya casi quieto, queda frenado.
     /// </summary>
@@ -212,44 +239,109 @@ public class KartBehaviour : MonoBehaviour
             vehicle.Brake = speed < StandstillSpeed ? 1f : 0f;
         }
 
-        float targetAngle = steering * GetMaxSteerAngle(speed);
+        UpdateSteering(speed, deltaTime);
+    }
 
-        currentSteerAngle = Mathf.MoveTowards(
+    /// <summary>
+    /// Volante, como lo resuelven los simuladores para teclado y joystick:
+    /// 1. El mando (−1 a 1) es una fracción del ángulo útil hacia ese lado
+    ///    (GetSteerLimits): a fondo, la rueda queda en el máximo agarre.
+    /// 2. Las ruedas van hacia ese ángulo con una velocidad máxima que baja con
+    ///    la velocidad del kart y sube al volver al centro.
+    /// 3. Un suavizado críticamente amortiguado (SmoothDamp) hace que el volante
+    ///    acelere y frene, sin arranques ni paradas de golpe.
+    /// </summary>
+    private void UpdateSteering(float speed, float deltaTime)
+    {
+        GetSteerLimits(out float lowerLimit, out float upperLimit);
+
+        float targetAngle = steering >= 0f
+            ? steering * upperLimit
+            : -steering * lowerLimit;
+
+        bool returning = Mathf.Abs(targetAngle) < Mathf.Abs(currentSteerAngle);
+
+        float maxRate = GetSteeringRate(speed);
+
+        if (returning)
+        {
+            maxRate *= steeringReturnMultiplier;
+        }
+
+        currentSteerAngle = Mathf.SmoothDamp(
             currentSteerAngle,
             targetAngle,
-            steeringSpeed * deltaTime
+            ref steerAngleVelocity,
+            steeringSmoothTime,
+            maxRate,
+            deltaTime
         );
 
         vehicle.SteerAngle = currentSteerAngle;
     }
 
     /// <summary>
-    /// Ángulo máximo de volante para la velocidad actual. Con la ayuda activada es
-    /// el ángulo geométrico de la curva más cerrada que permite el agarre
-    /// (radio = v² / (μ·g)) más el ángulo de deslizamiento de máximo agarre del
-    /// neumático. A baja velocidad manda el tope del volante.
+    /// Velocidad máxima del volante (°/s) para la velocidad del kart: pasa de la
+    /// de baja a la de alta en línea recta hasta steeringRateHighSpeedKmh.
     /// </summary>
-    private float GetMaxSteerAngle(float speed)
+    private float GetSteeringRate(float speed)
+    {
+        float t = speed * 3.6f / steeringRateHighSpeedKmh;
+
+        return Mathf.Lerp(steeringRateLowSpeed, steeringRateHighSpeed, t);
+    }
+
+    /// <summary>
+    /// Ángulos de volante útiles hacia cada lado (lower ≤ 0 ≤ upper).
+    /// Sin la ayuda, son el tope del volante.
+    /// Con la ayuda, se mide hacia dónde va de verdad el eje delantero respecto
+    /// del chasis, y se deja girar la rueda hasta el ángulo de deslizamiento de
+    /// máximo agarre a cada lado de esa dirección. Así:
+    /// - Al entrar en la curva, la rueda no pasa del máximo agarre; a medida que
+    ///   el kart rota, el eje va más hacia adentro y el límite se abre solo.
+    /// - Si la cola se va, el eje delantero va hacia el lado contrario y el
+    ///   límite deja contravolantear todo lo necesario.
+    /// </summary>
+    private void GetSteerLimits(out float lower, out float upper)
     {
         float lockAngle = vehicle.Chassis.steering.maxSteerAngle;
 
+        lower = -lockAngle;
+        upper = lockAngle;
+
         if (!limitSteeringToGrip)
-            return lockAngle;
+            return;
 
-        float speedSquared = speed * speed;
+        Vector3 frontVelocity = GetFrontAxleLocalVelocity();
 
-        if (speedSquared < 0.01f)
-            return lockAngle;
+        float weight = Mathf.InverseLerp(GripLimitStartSpeed, GripLimitFullSpeed, frontVelocity.z);
 
-        TireSettings tire = vehicle.Tire;
+        if (weight <= 0f)
+            return;
 
-        float geometricAngle = Mathf.Atan(
-            vehicle.Steering.Wheelbase * tire.lateralFriction * Physics.gravity.magnitude / speedSquared
-        ) * Mathf.Rad2Deg;
+        float travelAngle = Mathf.Atan2(frontVelocity.x, frontVelocity.z) * Mathf.Rad2Deg;
+        float slipAngle = vehicle.Tire.LateralPeakSlipAngle * Mathf.Rad2Deg * gripSteeringMargin;
 
-        float slipAngle = tire.LateralPeakSlipAngle * Mathf.Rad2Deg * gripSteeringMargin;
+        float gripUpper = Mathf.Clamp(travelAngle + slipAngle, 0f, lockAngle);
+        float gripLower = Mathf.Clamp(travelAngle - slipAngle, -lockAngle, 0f);
 
-        return Mathf.Min(lockAngle, geometricAngle + slipAngle);
+        upper = Mathf.Lerp(lockAngle, gripUpper, weight);
+        lower = Mathf.Lerp(-lockAngle, gripLower, weight);
+    }
+
+    /// <summary>
+    /// Velocidad del punto medio del eje delantero, en coordenadas del kart
+    /// (x = hacia la derecha, z = hacia adelante).
+    /// </summary>
+    private Vector3 GetFrontAxleLocalVelocity()
+    {
+        KartWheel left = vehicle.Wheels[KartVehicle.FrontLeft];
+        KartWheel right = vehicle.Wheels[KartVehicle.FrontRight];
+
+        Vector3 localPoint = 0.5f * (left.LocalPosition + right.LocalPosition);
+        Vector3 worldPoint = rb.position + rb.rotation * localPoint;
+
+        return Quaternion.Inverse(rb.rotation) * rb.GetPointVelocity(worldPoint);
     }
 
     public void RefreshKart()
@@ -300,6 +392,7 @@ public class KartBehaviour : MonoBehaviour
 
         vehicle.ResetMotion();
         currentSteerAngle = 0f;
+        steerAngleVelocity = 0f;
     }
 
     private void CreateVehicle()
