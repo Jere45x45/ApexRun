@@ -864,7 +864,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &265828817
 Transform:
   m_ObjectHideFlags: 0
@@ -2953,11 +2953,7 @@ GameObject:
   - component: {fileID: 814944236}
   - component: {fileID: 814944235}
   - component: {fileID: 814944234}
-  - component: {fileID: 814944233}
-  - component: {fileID: 814944232}
-  - component: {fileID: 814944231}
   - component: {fileID: 814944230}
-  - component: {fileID: 814944229}
   - component: {fileID: 814944237}
   - component: {fileID: 814944238}
   - component: {fileID: 814944240}
@@ -2969,22 +2965,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &814944229
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 814944228}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 88b6042bc9a5d4aa58d931eae49442e5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.ML-Agents::Unity.MLAgents.Agent
-  agentParameters:
-    maxStep: 0
-  hasUpgradedFromAgentParameters: 1
-  MaxStep: 0
 --- !u!114 &814944230
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3007,113 +2987,6 @@ MonoBehaviour:
   rearRightMesh: {fileID: 67032234}
   modelController: {fileID: 0}
   configuration: {fileID: 11400000, guid: 791c1c500d6707f49be20556c2d8b7ca, type: 2}
---- !u!114 &814944231
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 814944228}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3a5c9d521e5ef4759a8246a07d52221e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.ML-Agents::Unity.MLAgents.DecisionRequester
-  DecisionPeriod: 5
-  DecisionStep: 0
-  TakeActionsBetweenDecisions: 1
---- !u!114 &814944232
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 814944228}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 123d34ad07c266b4f9f3196673c57892, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::KartAgent
-  agentParameters:
-    maxStep: 0
-  hasUpgradedFromAgentParameters: 1
-  MaxStep: 0
-  bot: {fileID: 814944230}
-  randomizer: {fileID: 814944238}
-  progressPoints:
-  - {fileID: 588917222}
-  - {fileID: 2122339825}
-  - {fileID: 276074393}
-  - {fileID: 1268219921}
-  - {fileID: 2112350321}
-  - {fileID: 1245047846}
-  - {fileID: 307184979}
-  - {fileID: 2089376238}
-  - {fileID: 585277676}
-  - {fileID: 623878568}
-  - {fileID: 1789956886}
-  - {fileID: 1425102995}
-  - {fileID: 406060839}
-  - {fileID: 174634764}
-  - {fileID: 1246664248}
-  - {fileID: 526023305}
-  - {fileID: 1724809441}
-  - {fileID: 1557366444}
-  - {fileID: 1647767275}
-  - {fileID: 2133908411}
-  - {fileID: 422867580}
-  - {fileID: 757231401}
-  - {fileID: 626461064}
-  - {fileID: 1600598192}
-  - {fileID: 917520990}
-  - {fileID: 579165963}
-  - {fileID: 34539693}
-  - {fileID: 15546991}
-  - {fileID: 304136256}
-  - {fileID: 834809115}
-  - {fileID: 657762974}
-  - {fileID: 65157043}
-  - {fileID: 659591736}
-  - {fileID: 1433957123}
-  - {fileID: 1485807533}
-  progressReward: 2
-  finishReward: 20
-  maxSpeed: 30
-  fallPenalty: -5
-  timePenalty: -0.001
-  stuckTime: 3
-  minSpeedToConsiderMoving: 0.5
---- !u!114 &814944233
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 814944228}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5d1c4e0b1822b495aa52bc52839ecb30, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.ML-Agents::Unity.MLAgents.Policies.BehaviorParameters
-  m_BrainParameters:
-    VectorObservationSize: 12
-    NumStackedVectorObservations: 1
-    m_ActionSpec:
-      m_NumContinuousActions: 3
-      BranchSizes: 
-    VectorActionSize: 03000000
-    VectorActionDescriptions: []
-    VectorActionSpaceType: 1
-    hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 5022602860645237092, guid: 0b8c43504a2ea9e43b6adddc9885d435, type: 3}
-  m_InferenceDevice: 0
-  m_BehaviorType: 0
-  m_BehaviorName: ApexBot
-  TeamId: 0
-  m_UseChildSensors: 1
-  m_UseChildActuators: 1
-  m_DeterministicInference: 0
-  m_ObservableAttributeHandling: 0
 --- !u!65 &814944234
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -3235,7 +3108,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7edcba93e127485499108183d5bf5db4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BotLearning
-  learningRate: 0.15
+  learningRate: 0.1
   discount: 0.95
   exploration: 0.2
   saveEveryDecisions: 5000
@@ -3254,12 +3127,49 @@ MonoBehaviour:
   bot: {fileID: 814944230}
   sensor: {fileID: 814944237}
   learning: {fileID: 814944239}
-  progressPoints: []
-  progressReward: 2
+  progressPoints:
+  - {fileID: 588917222}
+  - {fileID: 2122339825}
+  - {fileID: 276074393}
+  - {fileID: 1268219921}
+  - {fileID: 2112350321}
+  - {fileID: 1245047846}
+  - {fileID: 307184979}
+  - {fileID: 2089376238}
+  - {fileID: 585277676}
+  - {fileID: 623878568}
+  - {fileID: 1789956886}
+  - {fileID: 1425102995}
+  - {fileID: 406060839}
+  - {fileID: 174634764}
+  - {fileID: 1246664248}
+  - {fileID: 526023305}
+  - {fileID: 1724809441}
+  - {fileID: 1557366444}
+  - {fileID: 1647767275}
+  - {fileID: 2133908411}
+  - {fileID: 422867580}
+  - {fileID: 757231401}
+  - {fileID: 626461064}
+  - {fileID: 1600598192}
+  - {fileID: 917520990}
+  - {fileID: 579165963}
+  - {fileID: 34539693}
+  - {fileID: 15546991}
+  - {fileID: 304136256}
+  - {fileID: 834809115}
+  - {fileID: 657762974}
+  - {fileID: 65157043}
+  - {fileID: 659591736}
+  - {fileID: 1433957123}
+  - {fileID: 1485807533}
+  progressReward: 5
   finishReward: 20
-  fallPenalty: -5
+  fallPenalty: -20
   movementReward: 0.05
   decisionInterval: 0.1
+  stuckTime: 3
+  minimumSpeed: 0.5
 --- !u!1 &819370396
 GameObject:
   m_ObjectHideFlags: 0
