@@ -213,6 +213,9 @@ public class KartBehaviour : MonoBehaviour
         {
             wheelVisuals[i].UpdatePose(transform, GetWheelModel(i), Time.deltaTime);
         }
+
+        // Volante: gira con las ruedas delanteras.
+        modelController.SetSteeringAngle(vehicle.SteerAngle);
     }
 
     /// <summary>

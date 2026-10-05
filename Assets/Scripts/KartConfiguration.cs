@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 [CreateAssetMenu(
     fileName = "New Kart Configuration",
@@ -14,6 +14,8 @@ public class KartConfiguration : ScriptableObject
     public WheelData wheels;
 
     public AeroKitData aeroKit;
+
+    public SteeringWheelData steeringWheel;
 
     private void OnValidate()
     {
@@ -45,6 +47,14 @@ public class KartConfiguration : ScriptableObject
         {
             Debug.LogWarning(
                 $"{name}: No hay un Aero Kit asignado.",
+                this
+            );
+        }
+
+        if (steeringWheel == null)
+        {
+            Debug.LogWarning(
+                $"{name}: No hay un Volante asignado.",
                 this
             );
         }

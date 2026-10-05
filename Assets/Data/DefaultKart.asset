@@ -16,3 +16,4 @@ MonoBehaviour:
   chassis: {fileID: 11400000, guid: 3e1b32fbd3739bd4ea3354eca24986c6, type: 2}
   wheels: {fileID: 11400000, guid: 30019a89baf2c6145a399879e1eada21, type: 2}
   aeroKit: {fileID: 11400000, guid: c7478851a351c3e409cdc49ed143d8f0, type: 2}
+  steeringWheel: {fileID: 11400000, guid: 546a479c4d953974b843c2a1e30af538, type: 2}

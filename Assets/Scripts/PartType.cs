@@ -1,4 +1,4 @@
-﻿public enum PartType
+public enum PartType
 {
     Engine,
     Chassis,
@@ -6,5 +6,6 @@
     AeroKit,
     Accessory,
     Spoiler,
-    Turbo
+    Turbo,
+    SteeringWheel
 }
