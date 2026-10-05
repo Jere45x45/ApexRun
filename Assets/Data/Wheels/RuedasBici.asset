@@ -28,3 +28,23 @@ MonoBehaviour:
   damperRate: 4500
   suspensionTargetPosition: 0.5
   radius: 0.185
+  tireSettings:
+    radius: 0.185
+    verticalStiffness: 70000
+    verticalDamping: 1200
+    maxDeflection: 0.05
+    bottomOutStiffnessMultiplier: 10
+    lateralFriction: 1.7
+    lateralB: 14
+    lateralC: 1.5
+    lateralE: 0
+    longitudinalFriction: 1.7
+    longitudinalB: 11.5
+    longitudinalC: 1.65
+    longitudinalE: 0
+    lateralRelaxationLength: 0.15
+    longitudinalRelaxationLength: 0.08
+    carcassDampingRatio: 0.5
+    lowSpeedDampingSpeed: 1
+    rollingResistance: 0.015
+  wheelInertia: 0.04

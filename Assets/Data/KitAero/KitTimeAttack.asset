@@ -21,3 +21,8 @@ MonoBehaviour:
   rarity: 0
   downforce: 100
   aerodynamicDrag: 0.02
+  aeroSettings:
+    airDensity: 1.225
+    dragArea: 0.46
+    downforceArea: 0.08
+    centerOfPressure: {x: 0, y: 0.3, z: -0.5}

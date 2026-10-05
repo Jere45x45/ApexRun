@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 [CreateAssetMenu(fileName = "New Wheels", menuName = "Kart/Wheels")]
 public class WheelData : KartPart
@@ -27,6 +27,15 @@ public class WheelData : KartPart
     [Header("Rueda")]
     [Min(0.001f)]
     public float radius = 0.25f;
+
+    [Header("Física nueva (Fase 0)")]
+    [Tooltip("Neumático de la física nueva: radio, rigidez, agarre (Pacejka) y deformación. " +
+             "Cuando Race pase a la física nueva, reemplaza a la suspensión, el radio y las curvas de fricción.")]
+    public TireSettings tireSettings = new TireSettings();
+
+    [Tooltip("Inercia de giro de cada rueda con su llanta (kg·m²).")]
+    [Min(0.001f)]
+    public float wheelInertia = 0.04f;
 
     [Header("Fricción - Delanteras")]
     public WheelFrictionCurve frontForwardFriction = new WheelFrictionCurve
@@ -86,6 +95,10 @@ public class WheelData : KartPart
         stats.frontSidewaysFriction = frontSidewaysFriction;
         stats.rearForwardFriction = rearForwardFriction;
         stats.rearSidewaysFriction = rearSidewaysFriction;
+
+        // Copia: la física no tiene que poder modificar el asset.
+        stats.tire = JsonUtility.FromJson<TireSettings>(JsonUtility.ToJson(tireSettings));
+        stats.wheelInertia = wheelInertia;
     }
 
     public override void Install(RuntimeKartConfiguration configuration)

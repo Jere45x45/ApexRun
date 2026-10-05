@@ -101,17 +101,17 @@ public class RaceTrackLimitsController : MonoBehaviour
         if (kart == null)
             return 0;
 
-        KartPhysics physics =
-            kart.Physics;
+        KartVehicle vehicle =
+            kart.Vehicle;
 
-        if (physics == null)
+        if (vehicle == null)
             return 0;
 
         int invalidWheelCount = 0;
 
         foreach (
-            WheelPhysics wheel
-            in physics.Wheels)
+            KartWheel wheel
+            in vehicle.Wheels)
         {
             if (wheel == null)
                 continue;
@@ -196,11 +196,11 @@ public class RaceTrackLimitsController : MonoBehaviour
         KartBehaviour kart =
             state.Kart;
 
-        if (kart.Physics == null)
+        if (kart.Vehicle == null)
             return;
 
         Rigidbody rb =
-            kart.Physics.Rigidbody;
+            kart.Vehicle.Body;
 
         if (rb == null)
             return;

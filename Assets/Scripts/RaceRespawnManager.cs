@@ -50,6 +50,16 @@ public class RaceRespawnManager : MonoBehaviour
 
         kart.angularVelocity =
             Vector3.zero;
+
+        // La física del kart guarda estado propio (giro de las ruedas,
+        // motor, goma deformada): se pone a cero junto con el Rigidbody.
+        KartBehaviour behaviour =
+            kart.GetComponent<KartBehaviour>();
+
+        if (behaviour != null)
+        {
+            behaviour.ResetMotion();
+        }
     }
 
     private Transform GetRespawnPoint(

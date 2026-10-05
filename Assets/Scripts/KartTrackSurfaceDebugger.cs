@@ -27,20 +27,23 @@ public class KartTrackSurfaceDebugger : MonoBehaviour
         if (kartBehaviour == null)
             return;
 
-        KartPhysics physics = kartBehaviour.Physics;
+        KartVehicle vehicle = kartBehaviour.Vehicle;
 
-        if (physics == null)
+        if (vehicle == null || !vehicle.IsConfigured)
             return;
 
-        UpdateWheel("FL", physics.FrontLeftWheel, ref frontLeftSurface);
-        UpdateWheel("FR", physics.FrontRightWheel, ref frontRightSurface);
-        UpdateWheel("RL", physics.RearLeftWheel, ref rearLeftSurface);
-        UpdateWheel("RR", physics.RearRightWheel, ref rearRightSurface);
+        KartWheel[] wheels = vehicle.Wheels;
+
+        UpdateWheel("FL", wheels[KartVehicle.FrontLeft], vehicle, ref frontLeftSurface);
+        UpdateWheel("FR", wheels[KartVehicle.FrontRight], vehicle, ref frontRightSurface);
+        UpdateWheel("RL", wheels[KartVehicle.RearLeft], vehicle, ref rearLeftSurface);
+        UpdateWheel("RR", wheels[KartVehicle.RearRight], vehicle, ref rearRightSurface);
     }
 
     private void UpdateWheel(
         string wheelName,
-        WheelPhysics wheel,
+        KartWheel wheel,
+        KartVehicle vehicle,
         ref string previousSurface)
     {
         if (wheel == null)
@@ -57,11 +60,11 @@ public class KartTrackSurfaceDebugger : MonoBehaviour
         if (!drawRays)
             return;
 
-        WheelCollider collider = wheel.WheelCollider;
-
-        Vector3 origin = collider.transform.position;
-        Vector3 direction = -collider.transform.up;
-        float length = collider.suspensionDistance + collider.radius;
+        // Del centro de la rueda hacia abajo del kart, el largo del radio.
+        Rigidbody body = vehicle.Body;
+        Vector3 origin = body.position + body.rotation * (wheel.LocalPosition + wheel.GeometryOffset);
+        Vector3 direction = body.rotation * Vector3.down;
+        float length = vehicle.Tire.radius;
 
         Color rayColor;
 
@@ -81,13 +84,10 @@ public class KartTrackSurfaceDebugger : MonoBehaviour
         Debug.DrawRay(origin, direction * length, rayColor);
     }
 
-    private string GetSurfaceName(WheelPhysics wheel)
+    private string GetSurfaceName(KartWheel wheel)
     {
         if (!wheel.IsGrounded)
             return "AIR";
-
-        if (!wheel.HasSurface)
-            return "UNKNOWN";
 
         if (wheel.CurrentSurface == null)
             return "UNKNOWN";
