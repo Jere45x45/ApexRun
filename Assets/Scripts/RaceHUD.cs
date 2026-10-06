@@ -10,25 +10,20 @@ using UnityEngine;
 /// - Velocidad en km/h, abajo a la derecha.
 /// - Aviso arriba al centro: FUERA DE PISTA mientras el kart está afuera de
 ///   los límites, y la penalización cuando se aplica.
-/// Los tiempos los lleva RaceTimingManager, el mismo que usa la pantalla de
-/// resultados, así los dos muestran exactamente lo mismo.
+/// Todo sale de RaceTimingManager (el mismo que usa la pantalla de
+/// resultados), que en los clientes trae lo que publica el servidor. El kart
+/// del jugador lo asigna LocalPlayerKartBinder cuando aparece por red.
 /// </summary>
 public class RaceHUD : MonoBehaviour
 {
     [Header("Carrera")]
     [SerializeField] private RaceTimingManager timingManager;
 
-    [SerializeField] private RaceLapManager lapManager;
-
-    [SerializeField] private RacePositionManager positionManager;
-
-    [Tooltip("Rigidbody del kart del jugador.")]
+    [Tooltip("Rigidbody del kart del jugador. En red lo asigna LocalPlayerKartBinder.")]
     [SerializeField] private Rigidbody playerKart;
 
     [Header("Límites de pista")]
     [SerializeField] private RaceTrackLimitsController trackLimits;
-
-    [SerializeField] private RacePenaltyManager penaltyManager;
 
     [Tooltip("Cuánto se muestra el aviso de penalización (s).")]
     [SerializeField, Min(0f)] private float penaltyMessageDuration = 2f;
@@ -66,34 +61,46 @@ public class RaceHUD : MonoBehaviour
 
     private void OnEnable()
     {
-        if (penaltyManager != null)
-            penaltyManager.PenaltyApplied += HandlePenaltyApplied;
+        if (timingManager != null)
+            timingManager.PenaltyApplied += HandlePenaltyApplied;
     }
 
     private void OnDisable()
     {
-        if (penaltyManager != null)
-            penaltyManager.PenaltyApplied -= HandlePenaltyApplied;
+        if (timingManager != null)
+            timingManager.PenaltyApplied -= HandlePenaltyApplied;
     }
 
     private void Start()
     {
-        if (playerKart == null || lapManager == null || timingManager == null)
+        if (timingManager == null)
         {
-            Debug.LogError("RaceHUD necesita el kart del jugador, el RaceLapManager y el RaceTimingManager.", this);
+            Debug.LogError("RaceHUD necesita el RaceTimingManager.", this);
             enabled = false;
             return;
         }
 
-        playerBehaviour = playerKart.GetComponent<KartBehaviour>();
-
         SetText(raceTimeText, FormatTime(0f));
-        UpdateLapTimes();
-        UpdateWarning();
+        SetPlayerKart(playerKart);
+    }
+
+    /// <summary>Kart del jugador de esta computadora.</summary>
+    public void SetPlayerKart(Rigidbody kart)
+    {
+        playerKart = kart;
+        playerBehaviour = kart != null ? kart.GetComponent<KartBehaviour>() : null;
+
+        // Que se rearme todo con el kart nuevo.
+        shownPosition = shownKartCount = shownLap = shownSpeed = shownWarning = -1;
+        shownPenalty = -1f;
+        shownLastLap = shownBestLap = -2f;
     }
 
     private void Update()
     {
+        if (playerKart == null)
+            return;
+
         UpdateLap();
         UpdatePosition();
         UpdateRaceTime();
@@ -113,8 +120,8 @@ public class RaceHUD : MonoBehaviour
 
     private void UpdateLap()
     {
-        int lap = lapManager.GetCurrentLap(playerKart);
-        bool finished = lapManager.IsFinished(playerKart);
+        int lap = timingManager.GetLap(playerKart);
+        bool finished = timingManager.IsFinished(playerKart);
 
         if (lap == shownLap && finished == shownFinished)
             return;
@@ -122,7 +129,7 @@ public class RaceHUD : MonoBehaviour
         shownLap = lap;
         shownFinished = finished;
 
-        int totalLaps = lapManager.TotalLaps;
+        int totalLaps = timingManager.TotalLaps;
 
         SetText(lapText, finished
             ? "TERMINADO"
@@ -131,11 +138,8 @@ public class RaceHUD : MonoBehaviour
 
     private void UpdatePosition()
     {
-        if (positionManager == null)
-            return;
-
-        int position = positionManager.GetPosition(playerKart);
-        int kartCount = positionManager.KartCount;
+        int position = timingManager.GetPosition(playerKart);
+        int kartCount = timingManager.KartCount;
 
         if (position == shownPosition && kartCount == shownKartCount)
             return;

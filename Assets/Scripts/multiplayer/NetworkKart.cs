@@ -87,10 +87,34 @@ public class NetworkKart : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Owner);
 
+    // Nombre que eligió el jugador en el menú (lo escribe él).
+    private readonly NetworkVariable<FixedString32Bytes> playerName = new NetworkVariable<FixedString32Bytes>(
+        default,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Owner);
+
     /// <summary>Apareció el kart del jugador de esta computadora.</summary>
     public static event Action<NetworkKart> LocalKartSpawned;
 
+    /// <summary>Apareció un kart cualquiera (propio, de otro jugador o bot), en todas las computadoras.</summary>
+    public static event Action<NetworkKart> Spawned;
+
+    /// <summary>Un kart se fue de la partida.</summary>
+    public static event Action<NetworkKart> Despawned;
+
     public KartBehaviour Kart => kart;
+
+    /// <summary>Nombre para mostrar: el que eligió el jugador o, si no hay, su número.</summary>
+    public string DisplayName
+    {
+        get
+        {
+            if (!playerName.Value.IsEmpty)
+                return playerName.Value.ToString().ToUpperInvariant();
+
+            return NetworkObject != null && NetworkObject.IsPlayerObject ? $"JUGADOR {OwnerClientId + 1}" : name;
+        }
+    }
 
     private void Reset()
     {
@@ -107,26 +131,37 @@ public class NetworkKart : NetworkBehaviour
             return;
         }
 
+        // El dueño simula el kart (en el host, también los bots). El teclado
+        // solo maneja el kart del jugador de esta computadora.
         kart.SetSimulated(IsOwner);
 
         if (playerInput != null)
-            playerInput.enabled = IsOwner;
+            playerInput.enabled = IsLocalPlayer;
 
         if (IsOwner)
         {
             loadout.Value = ReadLoadout();
-            LocalKartSpawned?.Invoke(this);
         }
         else
         {
             ApplyLoadout(loadout.Value);
             loadout.OnValueChanged += HandleLoadoutChanged;
         }
+
+        if (IsLocalPlayer && GameSession.Instance != null)
+            playerName.Value = new FixedString32Bytes(GameSession.Instance.LocalPlayerName);
+
+        if (IsLocalPlayer)
+            LocalKartSpawned?.Invoke(this);
+
+        Spawned?.Invoke(this);
     }
 
     public override void OnNetworkDespawn()
     {
         loadout.OnValueChanged -= HandleLoadoutChanged;
+
+        Despawned?.Invoke(this);
     }
 
     private void Update()

@@ -13,8 +13,9 @@ public class RacePositionManager : MonoBehaviour
     [SerializeField]
     private TrackCenterline centerline;
 
-    [SerializeField]
-    private Rigidbody[] raceKarts;
+    // Los registra RaceManager cuando aparecen (solo en el servidor).
+    private readonly List<Rigidbody> raceKarts =
+        new List<Rigidbody>();
 
     private readonly Dictionary<Rigidbody, int>
         positionByKart =
@@ -30,6 +31,20 @@ public class RacePositionManager : MonoBehaviour
 
     public int KartCount =>
         positionByKart.Count;
+
+    public void RegisterKart(
+        Rigidbody kart)
+    {
+        if (kart != null && !raceKarts.Contains(kart))
+            raceKarts.Add(kart);
+    }
+
+    public void UnregisterKart(
+        Rigidbody kart)
+    {
+        raceKarts.Remove(kart);
+        positionByKart.Remove(kart);
+    }
 
     private void OnEnable()
     {
@@ -51,6 +66,10 @@ public class RacePositionManager : MonoBehaviour
 
     private void Update()
     {
+        // Las posiciones las calcula el servidor; los clientes las leen en RaceTimingManager.
+        if (NetworkRole.IsClientOnly)
+            return;
+
         UpdatePositions();
     }
 
@@ -85,8 +104,7 @@ public class RacePositionManager : MonoBehaviour
             return;
         }
 
-        if (raceKarts == null ||
-            raceKarts.Length == 0)
+        if (raceKarts.Count == 0)
         {
             return;
         }

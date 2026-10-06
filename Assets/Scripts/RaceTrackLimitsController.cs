@@ -206,7 +206,8 @@ public class RaceTrackLimitsController : MonoBehaviour
         if (rb == null)
             return;
 
-        penaltyManager.AddPenalty(
+        // Se mide en la computadora que simula el kart; la aplica el servidor.
+        penaltyManager.RequestPenalty(
             rb,
             penaltySeconds
         );

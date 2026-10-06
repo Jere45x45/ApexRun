@@ -35,6 +35,10 @@ public class RaceCheckpointManager : MonoBehaviour
         if (kart == null)
             return;
 
+        // Las vueltas las cuenta el servidor (el host).
+        if (NetworkRole.IsClientOnly)
+            return;
+
         if (checkpointIndex < 0 ||
             checkpointIndex >= CheckpointCount)
         {

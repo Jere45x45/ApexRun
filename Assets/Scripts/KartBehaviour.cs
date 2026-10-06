@@ -192,9 +192,10 @@ public class KartBehaviour : MonoBehaviour
             CreateVehicle();
         }
 
+        // Los mandos arrancan apagados (inputEnabled vale false) y los habilita
+        // la carrera. No se apagan acá: en red, la carrera puede haberlos
+        // habilitado antes de que corra este Start.
         RefreshKart();
-
-        SetInputEnabled(false);
     }
 
     public void SetInputs(float throttle, float steering, bool brake)

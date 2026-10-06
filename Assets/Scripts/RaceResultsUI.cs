@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -12,14 +13,16 @@ using UnityEngine.UI;
 /// - Tabla con posición, piloto, tiempo, penalización, tiempo final y mejor
 ///   vuelta. Los que siguen corriendo aparecen abajo como "EN CARRERA" y la
 ///   tabla se actualiza cuando terminan.
-/// - Botones Reintentar (vuelve a cargar esta escena) y Menú (escena de inicio).
+/// - Reintentar: el host vuelve a cargar la carrera para todos (los clientes
+///   no lo ven: esperan al host).
+/// - Menú: se sale de la partida y vuelve a la escena de inicio.
 /// </summary>
 public class RaceResultsUI : MonoBehaviour
 {
     [Header("Carrera")]
     [SerializeField] private RaceTimingManager timingManager;
 
-    [Tooltip("Rigidbody del kart del jugador.")]
+    [Tooltip("Rigidbody del kart del jugador. En red lo asigna LocalPlayerKartBinder.")]
     [SerializeField] private Rigidbody playerKart;
 
     [Header("Pantalla")]
@@ -79,11 +82,17 @@ public class RaceResultsUI : MonoBehaviour
 
     private void Start()
     {
-        if (timingManager == null || playerKart == null || panel == null || tableText == null)
+        if (timingManager == null || panel == null || tableText == null)
         {
-            Debug.LogError("RaceResultsUI necesita el RaceTimingManager, el kart del jugador, el panel y el texto de la tabla.", this);
+            Debug.LogError("RaceResultsUI necesita el RaceTimingManager, el panel y el texto de la tabla.", this);
             enabled = false;
         }
+    }
+
+    /// <summary>Kart del jugador de esta computadora.</summary>
+    public void SetPlayerKart(Rigidbody kart)
+    {
+        playerKart = kart;
     }
 
     private void Update()
@@ -105,7 +114,7 @@ public class RaceResultsUI : MonoBehaviour
 
     private void HandleKartFinished(Rigidbody kart)
     {
-        if (kart == playerKart && showAt < 0f)
+        if (kart != null && kart == playerKart && showAt < 0f)
             showAt = Time.time + showDelay;
     }
 
@@ -119,12 +128,18 @@ public class RaceResultsUI : MonoBehaviour
                 hidden.SetActive(false);
         }
 
+        // Reintentar es del host: vuelve a cargar la carrera para todos.
+        if (retryButton != null)
+            retryButton.gameObject.SetActive(NetworkRole.IsAuthority);
+
         panel.SetActive(true);
         RefreshTable();
 
         // Para manejar los botones con joystick o teclado.
-        if (retryButton != null && EventSystem.current != null)
-            EventSystem.current.SetSelectedGameObject(retryButton.gameObject);
+        Button first = retryButton != null && retryButton.gameObject.activeSelf ? retryButton : menuButton;
+
+        if (first != null && EventSystem.current != null)
+            EventSystem.current.SetSelectedGameObject(first.gameObject);
     }
 
     private void RefreshTable()
@@ -147,7 +162,7 @@ public class RaceResultsUI : MonoBehaviour
             }
 
             builder.Append(result.Position).Append(".º");
-            builder.Append("<pos=10%>").Append(isPlayer ? "VOS" : result.Kart.name.ToUpperInvariant());
+            builder.Append("<pos=10%>").Append(isPlayer ? "VOS" : GetDisplayName(result.Kart));
 
             if (result.Finished)
             {
@@ -174,13 +189,45 @@ public class RaceResultsUI : MonoBehaviour
             titleText.text = playerPosition > 0 ? $"TERMINASTE {playerPosition}.º" : "RESULTADOS";
     }
 
+    private static string GetDisplayName(Rigidbody kart)
+    {
+        NetworkKart networkKart = kart.GetComponent<NetworkKart>();
+        return networkKart != null ? networkKart.DisplayName : kart.name.ToUpperInvariant();
+    }
+
     private void Retry()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        NetworkManager manager = NetworkManager.Singleton;
+        string scene = SceneManager.GetActiveScene().name;
+
+        if (manager != null && manager.IsListening)
+        {
+            if (manager.IsServer)
+                manager.SceneManager.LoadScene(scene, LoadSceneMode.Single);
+
+            return;
+        }
+
+        SceneManager.LoadScene(scene);
     }
 
     private void GoToMenu()
     {
+        // Se sale de la partida: el menú arranca sin red.
+        if (GameSession.Instance != null)
+        {
+            GameSession.Instance.LeaveToMenu();
+            return;
+        }
+
+        NetworkManager manager = NetworkManager.Singleton;
+
+        if (manager != null)
+        {
+            manager.Shutdown();
+            Destroy(manager.gameObject);
+        }
+
         SceneManager.LoadScene(menuSceneName);
     }
 

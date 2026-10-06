@@ -29,6 +29,10 @@ public class RacePenaltyZone : MonoBehaviour
         if (penaltyManager == null)
             return;
 
+        // La zona la juzga el servidor (el host).
+        if (NetworkRole.IsClientOnly)
+            return;
+
         if (!penaltyManager.IsRegistered(kartRigidbody))
             return;
 
