@@ -45,13 +45,13 @@ public class RacePenaltyManager : MonoBehaviour
 
         RegisterKart(kartRigidbody);
 
+        penaltyTimeByKart[kartRigidbody] += seconds;
+
         Debug.Log(
             $"[PENALTY] {kartRigidbody.name} recibió +{seconds:F1}s. " +
             $"Penalización total: {penaltyTimeByKart[kartRigidbody]:F1}s",
             kartRigidbody
         );
-
-        penaltyTimeByKart[kartRigidbody] += seconds;
 
         PenaltyApplied?.Invoke(kartRigidbody, seconds);
     }

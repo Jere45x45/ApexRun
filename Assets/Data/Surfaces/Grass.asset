@@ -15,3 +15,4 @@ MonoBehaviour:
   surfaceName: Grass
   validForTrack: 0
   gripMultiplier: 0.55
+  rollingResistanceMultiplier: 5

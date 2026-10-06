@@ -94,7 +94,12 @@ public class KartAxle
             dampingSum += damping * radius * radius;
             dampingVelocitySum += damping * radius * wheel.LongitudinalVelocity;
 
-            rollingTorque += tire.rollingResistance * wheel.VerticalLoad * radius;
+            // En pasto o tierra la rueda se hunde y arrastra más que en asfalto.
+            float surfaceRolling = wheel.CurrentSurface != null
+                ? Mathf.Max(0f, wheel.CurrentSurface.RollingResistanceMultiplier)
+                : 1f;
+
+            rollingTorque += tire.rollingResistance * surfaceRolling * wheel.VerticalLoad * radius;
         }
 
         // Integración del giro. La amortiguación de la goma se trata en forma
