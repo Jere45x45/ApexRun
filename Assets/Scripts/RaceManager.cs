@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class RaceManager : MonoBehaviour
@@ -45,6 +46,10 @@ public class RaceManager : MonoBehaviour
 
     public float CountdownTimer =>
         countdownTimer;
+
+    /// <summary>Los karts que corren esta carrera.</summary>
+    public IReadOnlyList<KartBehaviour> RaceKarts =>
+        raceKarts ?? Array.Empty<KartBehaviour>();
 
     public event Action<RaceState>
         StateChanged;
@@ -235,6 +240,18 @@ public class RaceManager : MonoBehaviour
     {
         if (kart == null)
             return;
+
+        // El que termina deja de manejar y frena solo (ver KartBehaviour),
+        // mientras los demás siguen corriendo.
+        KartBehaviour behaviour =
+            kart.GetComponent<KartBehaviour>();
+
+        if (behaviour != null)
+        {
+            behaviour.SetInputEnabled(
+                false
+            );
+        }
 
         finishedKarts++;
 

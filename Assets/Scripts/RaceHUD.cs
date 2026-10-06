@@ -10,14 +10,13 @@ using UnityEngine;
 /// - Velocidad en km/h, abajo a la derecha.
 /// - Aviso arriba al centro: FUERA DE PISTA mientras el kart está afuera de
 ///   los límites, y la penalización cuando se aplica.
-/// El tiempo arranca con la largada (RaceManager.RaceStarted) y se detiene
-/// cuando el jugador termina. Cada vuelta se mide al cambiar de vuelta en
-/// RaceLapManager.
+/// Los tiempos los lleva RaceTimingManager, el mismo que usa la pantalla de
+/// resultados, así los dos muestran exactamente lo mismo.
 /// </summary>
 public class RaceHUD : MonoBehaviour
 {
     [Header("Carrera")]
-    [SerializeField] private RaceManager raceManager;
+    [SerializeField] private RaceTimingManager timingManager;
 
     [SerializeField] private RaceLapManager lapManager;
 
@@ -50,14 +49,6 @@ public class RaceHUD : MonoBehaviour
 
     [SerializeField] private TMP_Text warningText;
 
-    // Tiempos en segundos (Time.time). -1 = todavía no pasó.
-    private float raceStartTime = -1f;
-    private float lapStartTime;
-    private float finishTime = -1f;
-    private float lastLapTime = -1f;
-    private float bestLapTime = -1f;
-    private int currentLap = 1;
-
     private KartBehaviour playerBehaviour;
     private float penaltyMessageUntil = -1f;
     private float lastPenaltySeconds;
@@ -69,31 +60,27 @@ public class RaceHUD : MonoBehaviour
     private bool shownFinished;
     private int shownSpeed = -1;
     private float shownPenalty = -1f;
+    private float shownLastLap = -2f;
+    private float shownBestLap = -2f;
     private int shownWarning = -1;
 
     private void OnEnable()
     {
-        if (raceManager != null)
-            raceManager.RaceStarted += HandleRaceStarted;
-
         if (penaltyManager != null)
             penaltyManager.PenaltyApplied += HandlePenaltyApplied;
     }
 
     private void OnDisable()
     {
-        if (raceManager != null)
-            raceManager.RaceStarted -= HandleRaceStarted;
-
         if (penaltyManager != null)
             penaltyManager.PenaltyApplied -= HandlePenaltyApplied;
     }
 
     private void Start()
     {
-        if (playerKart == null || lapManager == null)
+        if (playerKart == null || lapManager == null || timingManager == null)
         {
-            Debug.LogError("RaceHUD necesita el kart del jugador y el RaceLapManager.", this);
+            Debug.LogError("RaceHUD necesita el kart del jugador, el RaceLapManager y el RaceTimingManager.", this);
             enabled = false;
             return;
         }
@@ -101,7 +88,7 @@ public class RaceHUD : MonoBehaviour
         playerBehaviour = playerKart.GetComponent<KartBehaviour>();
 
         SetText(raceTimeText, FormatTime(0f));
-        UpdateLapTimesText();
+        UpdateLapTimes();
         UpdateWarning();
     }
 
@@ -110,16 +97,9 @@ public class RaceHUD : MonoBehaviour
         UpdateLap();
         UpdatePosition();
         UpdateRaceTime();
+        UpdateLapTimes();
         UpdateSpeed();
-        UpdatePenalty();
         UpdateWarning();
-    }
-
-    private void HandleRaceStarted()
-    {
-        raceStartTime = Time.time;
-        lapStartTime = raceStartTime;
-        currentLap = lapManager.GetCurrentLap(playerKart);
     }
 
     private void HandlePenaltyApplied(Rigidbody kart, float seconds)
@@ -131,26 +111,10 @@ public class RaceHUD : MonoBehaviour
         penaltyMessageUntil = Time.time + penaltyMessageDuration;
     }
 
-    /// <summary>Detecta el cambio de vuelta y el final para medir los tiempos de vuelta.</summary>
     private void UpdateLap()
     {
         int lap = lapManager.GetCurrentLap(playerKart);
         bool finished = lapManager.IsFinished(playerKart);
-
-        if (raceStartTime >= 0f && finishTime < 0f)
-        {
-            if (lap > currentLap)
-            {
-                RegisterLap();
-                currentLap = lap;
-            }
-
-            if (finished)
-            {
-                RegisterLap();
-                finishTime = Time.time;
-            }
-        }
 
         if (lap == shownLap && finished == shownFinished)
             return;
@@ -163,17 +127,6 @@ public class RaceHUD : MonoBehaviour
         SetText(lapText, finished
             ? "TERMINADO"
             : $"VUELTA {Mathf.Min(lap, totalLaps)}/{totalLaps}");
-    }
-
-    private void RegisterLap()
-    {
-        lastLapTime = Time.time - lapStartTime;
-        lapStartTime = Time.time;
-
-        if (bestLapTime < 0f || lastLapTime < bestLapTime)
-            bestLapTime = lastLapTime;
-
-        UpdateLapTimesText();
     }
 
     private void UpdatePosition()
@@ -197,12 +150,35 @@ public class RaceHUD : MonoBehaviour
 
     private void UpdateRaceTime()
     {
-        if (raceStartTime < 0f)
+        if (!timingManager.HasStarted)
             return;
 
-        float end = finishTime >= 0f ? finishTime : Time.time;
+        SetText(raceTimeText, FormatTime(timingManager.GetRaceTime(playerKart)));
+    }
 
-        SetText(raceTimeText, FormatTime(end - raceStartTime));
+    /// <summary>Última vuelta, mejor vuelta y penalización: solo se rearma si algo cambió.</summary>
+    private void UpdateLapTimes()
+    {
+        float lastLap = timingManager.GetLastLap(playerKart);
+        float bestLap = timingManager.GetBestLap(playerKart);
+        float penalty = timingManager.GetPenalty(playerKart);
+
+        if (lastLap == shownLastLap && bestLap == shownBestLap && Mathf.Approximately(penalty, shownPenalty))
+            return;
+
+        shownLastLap = lastLap;
+        shownBestLap = bestLap;
+        shownPenalty = penalty;
+
+        string last = lastLap >= 0f ? FormatTime(lastLap) : "--:--.---";
+        string best = bestLap >= 0f ? FormatTime(bestLap) : "--:--.---";
+
+        string text = $"ÚLTIMA {last}\nMEJOR  {best}";
+
+        if (penalty > 0f)
+            text += "\n<color=#FF5A4A>PENALIZACIÓN +" + FormatSeconds(penalty) + " s</color>";
+
+        SetText(lapTimesText, text);
     }
 
     private void UpdateSpeed()
@@ -215,18 +191,6 @@ public class RaceHUD : MonoBehaviour
         shownSpeed = speed;
 
         SetText(speedText, $"{speed}<size=40%> km/h</size>");
-    }
-
-    private void UpdatePenalty()
-    {
-        float penalty = penaltyManager != null ? penaltyManager.GetPenaltyTime(playerKart) : 0f;
-
-        if (Mathf.Approximately(penalty, shownPenalty))
-            return;
-
-        shownPenalty = penalty;
-
-        UpdateLapTimesText();
     }
 
     /// <summary>
@@ -256,19 +220,6 @@ public class RaceHUD : MonoBehaviour
             SetText(warningText, "<color=#FFC23D>FUERA DE PISTA</color>");
         else
             SetText(warningText, "");
-    }
-
-    private void UpdateLapTimesText()
-    {
-        string last = lastLapTime >= 0f ? FormatTime(lastLapTime) : "--:--.---";
-        string best = bestLapTime >= 0f ? FormatTime(bestLapTime) : "--:--.---";
-
-        string text = $"ÚLTIMA {last}\nMEJOR  {best}";
-
-        if (shownPenalty > 0f)
-            text += "\n<color=#FF5A4A>PENALIZACIÓN +" + FormatSeconds(shownPenalty) + " s</color>";
-
-        SetText(lapTimesText, text);
     }
 
     /// <summary>Formato de carrera: m:ss.mmm, siempre con punto decimal.</summary>

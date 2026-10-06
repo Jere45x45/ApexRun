@@ -1179,7 +1179,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 946873774}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1726649151}
+        m_TargetAssemblyTypeName: SceneLoader, Assembly-CSharp
+        m_MethodName: LoadScene
+        m_Mode: 5
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: Race
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &946873774
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2320,6 +2332,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1726649149}
   - component: {fileID: 1726649150}
+  - component: {fileID: 1726649151}
   m_Layer: 0
   m_Name: MenuManager
   m_TagString: Untagged
@@ -2364,6 +2377,18 @@ MonoBehaviour:
   - type: 3
     panel: {fileID: 1999179611}
   startPanel: 0
+--- !u!114 &1726649151
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1726649148}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79e32b6d3750d4c4a9242659e925eb98, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SceneLoader
 --- !u!1 &1783435928
 GameObject:
   m_ObjectHideFlags: 0

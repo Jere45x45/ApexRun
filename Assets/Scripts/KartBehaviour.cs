@@ -67,6 +67,11 @@ public class KartBehaviour : MonoBehaviour
     [Tooltip("Margen sobre el ángulo de deslizamiento de máximo agarre. 1 = justo en el pico.")]
     [SerializeField, Range(0.5f, 2f)] private float gripSteeringMargin = 1f;
 
+    [Header("Sin mandos")]
+    [Tooltip("Freno (0 a 1) mientras el kart no tiene mandos habilitados y todavía se mueve, " +
+             "por ejemplo después de cruzar la meta. 0 = rueda suelto.")]
+    [SerializeField, Range(0f, 1f)] private float noInputBrake = 0.25f;
+
     private Kart kart;
 
     private float throttle;
@@ -82,12 +87,43 @@ public class KartBehaviour : MonoBehaviour
     private float currentSteerAngle;
     private float steerAngleVelocity;
 
+    // Kart de otro jugador (multiplayer): la física corre en su computadora y
+    // acá solo se muestra. Estos valores llegan por red (ver NetworkKart).
+    private bool isSimulated = true;
+    private float remoteRpm;
+    private float remoteThrottle;
+    private float remoteSteerAngle;
+    private float remoteForwardSpeed;
+    private Vector3 lastRemotePosition;
+    private bool hasRemotePosition;
+    private float[] wheelRadii = new float[0];
+
     public Kart Kart => kart;
 
     /// <summary>La física del kart. Null si el kart solo muestra el modelo.</summary>
     public KartVehicle Vehicle => vehicle;
 
     public bool InputEnabled => inputEnabled;
+
+    /// <summary>
+    /// True si la física de este kart corre en esta computadora (un jugador, o
+    /// el kart propio en multiplayer). False en los karts de los demás jugadores.
+    /// </summary>
+    public bool IsSimulated => isSimulated;
+
+    /// <summary>True si hay datos del motor para mostrar o hacer sonar.</summary>
+    public bool HasEngineState => isSimulated ? vehicle != null && vehicle.IsConfigured : kart != null;
+
+    public float EngineRpm => isSimulated
+        ? (vehicle != null && vehicle.IsConfigured ? vehicle.Engine.Rpm : 0f)
+        : remoteRpm;
+
+    public float EngineThrottle => isSimulated
+        ? (vehicle != null && vehicle.IsConfigured ? vehicle.Engine.Throttle : 0f)
+        : remoteThrottle;
+
+    /// <summary>Ángulo de las ruedas delanteras (°).</summary>
+    public float SteerAngle => isSimulated ? currentSteerAngle : remoteSteerAngle;
 
     private void OnEnable()
     {
@@ -191,9 +227,32 @@ public class KartBehaviour : MonoBehaviour
         braking = false;
     }
 
+    /// <summary>
+    /// Local (true): este kart corre su física acá. Remoto (false): solo se
+    /// muestra; la posición la pone la red y el resto llega con SetRemoteState.
+    /// </summary>
+    public void SetSimulated(bool simulated)
+    {
+        isSimulated = simulated;
+        hasRemotePosition = false;
+
+        if (!simulated)
+        {
+            SetInputEnabled(false);
+        }
+    }
+
+    /// <summary>Estado de un kart remoto: rpm y acelerador (para el sonido) y ángulo de las ruedas.</summary>
+    public void SetRemoteState(float rpm, float throttle, float steerAngle)
+    {
+        remoteRpm = rpm;
+        remoteThrottle = throttle;
+        remoteSteerAngle = steerAngle;
+    }
+
     private void FixedUpdate()
     {
-        if (kart == null || vehicle == null)
+        if (kart == null || vehicle == null || !isSimulated)
             return;
 
         float deltaTime = Time.fixedDeltaTime;
@@ -208,14 +267,21 @@ public class KartBehaviour : MonoBehaviour
         if (vehicle == null || modelController == null)
             return;
 
-        // Ruedas visuales: con la pose interpolada del Transform, una vez por frame.
-        for (int i = 0; i < wheelVisuals.Length; i++)
+        if (isSimulated)
         {
-            wheelVisuals[i].UpdatePose(transform, GetWheelModel(i), Time.deltaTime);
+            // Ruedas visuales: con la pose interpolada del Transform, una vez por frame.
+            for (int i = 0; i < wheelVisuals.Length; i++)
+            {
+                wheelVisuals[i].UpdatePose(transform, GetWheelModel(i), Time.deltaTime);
+            }
+        }
+        else
+        {
+            UpdateRemoteWheels(Time.deltaTime);
         }
 
         // Volante: gira con las ruedas delanteras.
-        modelController.SetSteeringAngle(vehicle.SteerAngle);
+        modelController.SetSteeringAngle(SteerAngle);
     }
 
     /// <summary>
@@ -223,7 +289,7 @@ public class KartBehaviour : MonoBehaviour
     /// - Acelerador positivo = motor. Negativo (tecla S) = freno: un kart no tiene marcha atrás.
     /// - Volante: ver UpdateSteering.
     /// - Sin mandos habilitados (cuenta regresiva, carrera terminada) el kart
-    ///   sigue rodando suelto y, ya casi quieto, queda frenado.
+    ///   frena suave (noInputBrake) y, ya casi quieto, queda frenado.
     /// </summary>
     private void ApplyInputs(float deltaTime)
     {
@@ -239,7 +305,7 @@ public class KartBehaviour : MonoBehaviour
         else
         {
             vehicle.Throttle = 0f;
-            vehicle.Brake = speed < StandstillSpeed ? 1f : 0f;
+            vehicle.Brake = speed < StandstillSpeed ? 1f : noInputBrake;
         }
 
         UpdateSteering(speed, deltaTime);
@@ -398,15 +464,52 @@ public class KartBehaviour : MonoBehaviour
         steerAngleVelocity = 0f;
     }
 
+    /// <summary>
+    /// Ruedas de un kart remoto: acá no corre su física, así que giran según
+    /// cuánto avanzó el kart desde el frame anterior, y las delanteras doblan
+    /// con el ángulo que manda el dueño.
+    /// </summary>
+    private void UpdateRemoteWheels(float deltaTime)
+    {
+        Vector3 position = transform.position;
+
+        if (deltaTime > 0f && hasRemotePosition)
+        {
+            Vector3 travel = position - lastRemotePosition;
+            remoteForwardSpeed = Vector3.Dot(travel, transform.forward) / deltaTime;
+        }
+
+        lastRemotePosition = position;
+        hasRemotePosition = true;
+
+        for (int i = 0; i < wheelVisuals.Length; i++)
+        {
+            bool front = i == KartVehicle.FrontLeft || i == KartVehicle.FrontRight;
+            float radius = Mathf.Max(0.05f, wheelRadii[i]);
+
+            wheelVisuals[i].UpdatePose(
+                transform,
+                GetWheelModel(i),
+                deltaTime,
+                remoteForwardSpeed / radius,
+                front ? remoteSteerAngle : 0f
+            );
+        }
+    }
+
     private void CreateVehicle()
     {
         vehicle = new KartVehicle(rb, wheelColliders);
         wheelVisuals = new KartWheelVisual[vehicle.Wheels.Length];
+        wheelRadii = new float[vehicle.Wheels.Length];
 
         for (int i = 0; i < vehicle.Wheels.Length; i++)
         {
             KartWheel wheel = vehicle.Wheels[i];
             wheelVisuals[i] = new KartWheelVisual(wheel, wheel.LocalPosition.x < 0f);
+
+            Vector3 scale = wheelColliders[i].transform.lossyScale;
+            wheelRadii[i] = wheelColliders[i].radius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z));
         }
     }
 

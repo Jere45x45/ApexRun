@@ -27,6 +27,13 @@ public class RaceLapManager : MonoBehaviour
     public event Action<Rigidbody>
         KartFinished;
 
+    /// <summary>
+    /// Se dispara cada vez que un kart cruza la meta completando una vuelta,
+    /// también en la última (antes de KartFinished).
+    /// </summary>
+    public event Action<Rigidbody>
+        LapCompleted;
+
     private void OnEnable()
     {
         if (checkpointManager != null)
@@ -158,6 +165,10 @@ public class RaceLapManager : MonoBehaviour
     {
         int currentLap =
             GetCurrentLap(kart);
+
+        LapCompleted?.Invoke(
+            kart
+        );
 
         if (currentLap >= totalLaps)
         {

@@ -131,6 +131,11 @@ public class RaceTrackLimitsController : MonoBehaviour
     public bool IsOutsideTrackLimits(
         KartBehaviour kart)
     {
+        // Solo se juzga mientras el piloto maneja: ni en la cuenta regresiva
+        // ni después de cruzar la meta.
+        if (kart == null || !kart.InputEnabled)
+            return false;
+
         return GetInvalidWheelCount(kart) >=
                minimumInvalidWheelsForPenalty;
     }
@@ -147,12 +152,8 @@ public class RaceTrackLimitsController : MonoBehaviour
         KartBehaviour kart =
             state.Kart;
 
-        int invalidWheelCount =
-            GetInvalidWheelCount(kart);
-
         bool outsideTrackLimits =
-            invalidWheelCount >=
-            minimumInvalidWheelsForPenalty;
+            IsOutsideTrackLimits(kart);
 
         if (!outsideTrackLimits)
         {

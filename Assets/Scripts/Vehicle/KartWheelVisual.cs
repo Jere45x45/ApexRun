@@ -29,11 +29,20 @@ public class KartWheelVisual
     /// <summary>Acomoda el modelo. Si no hay modelo, solo sigue contando el giro.</summary>
     public void UpdatePose(Transform kart, Transform visual, float deltaTime)
     {
+        UpdatePose(kart, visual, deltaTime, wheel.AngularVelocity, wheel.SteerAngle);
+    }
+
+    /// <summary>
+    /// Igual, pero con el giro (rad/s) y la dirección (°) dados de afuera: lo usa
+    /// un kart remoto, que no corre la física de sus ruedas.
+    /// </summary>
+    public void UpdatePose(Transform kart, Transform visual, float deltaTime, float angularVelocity, float steerAngle)
+    {
         if (kart == null)
             throw new ArgumentNullException(nameof(kart));
 
         // Girando hacia adelante, el frente de la rueda baja: rotación positiva en x.
-        spinAngle = Mathf.Repeat(spinAngle + wheel.AngularVelocity * Mathf.Rad2Deg * deltaTime, 360f);
+        spinAngle = Mathf.Repeat(spinAngle + angularVelocity * Mathf.Rad2Deg * deltaTime, 360f);
 
         if (visual == null)
             return;
@@ -42,7 +51,7 @@ public class KartWheelVisual
 
         Quaternion rotation =
             kart.rotation *
-            Quaternion.Euler(0f, wheel.SteerAngle, 0f) *
+            Quaternion.Euler(0f, steerAngle, 0f) *
             Quaternion.Euler(spinAngle, 0f, 0f) *
             modelRotation;
 
