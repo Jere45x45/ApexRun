@@ -10,6 +10,10 @@ using UnityEngine;
 ///   (cerca del punto de su último checkpoint o de la largada).
 /// - Velocidad: si en el último segundo anduvo más rápido de lo que puede un
 ///   kart.
+/// - Reloj: si el reloj del dueño se adelanta respecto del servidor (así un
+///   movimiento rápido parecería lento).
+/// Mide con las posiciones que manda el dueño y el momento en que las simuló
+/// (KartNetworkTransform), así las trabas de red o del servidor no cuentan.
 /// Cada falta es una advertencia. Con varias en poco tiempo, el servidor lo
 /// saca de la partida y le dice por qué.
 /// No revisa los karts del host (el suyo y los bots): esos los simula el
@@ -20,14 +24,17 @@ public class KartMovementValidator : MonoBehaviour
     [SerializeField] private RaceRespawnManager respawnManager;
 
     [Header("Límites")]
-    [Tooltip("Velocidad máxima posible (km/h), promediada en un segundo. Con margen: el kart más rápido llega a unos 190 km/h y, después de un corte de red, las copias se ponen al día un poco más rápido.")]
+    [Tooltip("Velocidad máxima posible (km/h), promediada en un segundo. Con margen: el kart más rápido llega a unos 190 km/h.")]
     [SerializeField, Min(1f)] private float maxSpeedKmh = 250f;
 
-    [Tooltip("Movimiento de más entre dos muestras (m), además de lo que se recorre a la velocidad máxima en ese tiempo, que se considera un salto.")]
+    [Tooltip("Movimiento de más entre dos posiciones (m), además de lo que se recorre a la velocidad máxima en ese tiempo, que se considera un salto.")]
     [SerializeField, Min(1f)] private float jumpDistance = 30f;
 
     [Tooltip("Distancia al punto de respawn (m) para aceptar un salto como respawn.")]
     [SerializeField, Min(0.1f)] private float respawnTolerance = 4f;
+
+    [Tooltip("Cuánto puede adelantarse el reloj del dueño (s) en una ventana de 10 s, respecto de lo más adelantado que estuvo antes. Las trabas de red lo atrasan, nunca lo adelantan.")]
+    [SerializeField, Min(0.2f)] private float maxClockGain = 1.5f;
 
     [Header("Sanción")]
     [Tooltip("Faltas para sacar al jugador de la partida.")]
@@ -36,18 +43,20 @@ public class KartMovementValidator : MonoBehaviour
     [Tooltip("Las faltas más viejas que esto (s) no cuentan.")]
     [SerializeField, Min(1f)] private float strikeWindow = 30f;
 
-    private const float SampleInterval = 0.1f;
-    private const float SpeedWindow = 1f;
+    private const double SpeedWindow = 1.0;
+    private const double ClockWindow = 10.0;
 
-    // Si el servidor se traba más que esto (carga, editor, ventana en segundo
-    // plano), las copias se ponen al día de golpe y parecería que saltan: se
-    // deja de medir un rato.
+    // Si el servidor se traba (carga, editor, la computadora del host ocupada),
+    // lo que mandaron los jugadores se le junta y llega todo de golpe, a veces
+    // con paquetes perdidos: no se puede medir bien. Se deja de medir un rato.
     private const float HitchTime = 0.25f;
-    private const float HitchGrace = 2f;
+    private const double HitchGrace = 2.0;
+
+    private double resumeAt;
 
     private struct Sample
     {
-        public float Time;
+        public double Time;
         public Vector3 Position;
     }
 
@@ -57,13 +66,18 @@ public class KartMovementValidator : MonoBehaviour
         public Rigidbody Body;
         public readonly Queue<Sample> Samples = new Queue<Sample>();
         public readonly Queue<float> Strikes = new Queue<float>();
+        public bool HasLast;
+        public Sample Last;
         public bool Kicked;
+
+        // Reloj: diferencia entre el reloj del dueño y el del servidor. Lo más
+        // adelantado de la ventana actual y de todas las anteriores.
+        public double WindowStart;
+        public double WindowMaxOffset = double.MinValue;
+        public double MaxOffset = double.MinValue;
     }
 
-    private readonly List<KartTrack> tracks = new List<KartTrack>();
-
-    private float nextSample;
-    private float resumeAt;
+    private readonly Dictionary<KartNetworkTransform, KartTrack> tracks = new Dictionary<KartNetworkTransform, KartTrack>();
 
     private void OnEnable()
     {
@@ -75,6 +89,14 @@ public class KartMovementValidator : MonoBehaviour
     {
         NetworkKart.Spawned -= HandleKartSpawned;
         NetworkKart.Despawned -= HandleKartDespawned;
+
+        foreach (KartNetworkTransform source in tracks.Keys)
+        {
+            if (source != null)
+                source.OwnerStateReceived -= HandleOwnerState;
+        }
+
+        tracks.Clear();
     }
 
     private void Start()
@@ -87,98 +109,125 @@ public class KartMovementValidator : MonoBehaviour
         }
     }
 
-    private void Update()
+    private void HandleOwnerState(KartNetworkTransform source, Vector3 position, double ownerTime, bool teleport)
     {
         NetworkManager manager = NetworkManager.Singleton;
 
-        if (manager == null || !manager.IsServer)
+        if (manager == null || !manager.IsServer || !tracks.TryGetValue(source, out KartTrack track) || track.Kicked)
             return;
 
-        // Tiempo real: Time.time no avanza más de 0,33 s por frame, y después
-        // de una traba mediría menos tiempo del que pasó.
-        float now = Time.unscaledTime;
+        double now = Time.realtimeSinceStartupAsDouble;
 
         if (Time.unscaledDeltaTime > HitchTime)
             resumeAt = now + HitchGrace;
 
         if (now < resumeAt)
         {
-            foreach (KartTrack track in tracks)
-                track.Samples.Clear();
-
+            // Se vuelve a empezar a medir después de la traba.
+            track.HasLast = false;
+            track.Samples.Clear();
+            track.WindowMaxOffset = double.MinValue;
             return;
         }
 
-        if (now < nextSample)
+        // El reloj del dueño no va para atrás (por si llega algo desordenado).
+        if (track.HasLast)
+            ownerTime = System.Math.Max(ownerTime, track.Last.Time);
+
+        if (CheckClock(track, manager, ownerTime))
             return;
 
-        nextSample = now + SampleInterval;
+        Sample sample = new Sample { Time = ownerTime, Position = position };
 
-        for (int i = tracks.Count - 1; i >= 0; i--)
+        if (!track.HasLast)
         {
-            KartTrack track = tracks[i];
-
-            if (track.Kart == null || track.Body == null)
-            {
-                tracks.RemoveAt(i);
-                continue;
-            }
-
-            Check(track, manager, now);
-        }
-    }
-
-    private void Check(KartTrack track, NetworkManager manager, float now)
-    {
-        if (track.Kicked)
+            track.HasLast = true;
+            track.Last = sample;
+            track.Samples.Enqueue(sample);
             return;
-
-        Vector3 position = track.Body.position;
-
-        if (track.Samples.Count > 0)
-        {
-            Sample last = LastSample(track);
-            float step = Vector3.Distance(last.Position, position);
-
-            // Lo que pudo recorrer desde la muestra anterior, más el margen.
-            float allowed = jumpDistance + maxSpeedKmh / 3.6f * (now - last.Time);
-
-            if (step > allowed)
-            {
-                track.Samples.Clear();
-
-                if (respawnManager == null || !respawnManager.IsRespawnPosition(track.Body, position, respawnTolerance))
-                    AddStrike(track, manager, now, $"salto de {step:F0} m en {now - last.Time:F2} s, de {last.Position:F0} a {position:F0}");
-
-                track.Samples.Enqueue(new Sample { Time = now, Position = position });
-                return;
-            }
         }
 
-        track.Samples.Enqueue(new Sample { Time = now, Position = position });
+        Sample last = track.Last;
+        track.Last = sample;
+
+        double elapsed = ownerTime - last.Time;
+        float step = Vector3.Distance(last.Position, position);
+
+        // Lo que pudo recorrer desde la posición anterior, más el margen.
+        float allowed = jumpDistance + maxSpeedKmh / 3.6f * (float)elapsed;
+
+        if (teleport || step > allowed)
+        {
+            track.Samples.Clear();
+            track.Samples.Enqueue(sample);
+
+            if (step > allowed && (respawnManager == null || !respawnManager.IsRespawnPosition(track.Body, position, respawnTolerance)))
+                AddStrike(track, manager, $"salto de {step:F0} m en {elapsed:F2} s, de {last.Position:F0} a {position:F0}");
+
+            return;
+        }
+
+        track.Samples.Enqueue(sample);
 
         // Velocidad promedio del último segundo.
-        while (track.Samples.Count > 1 && now - track.Samples.Peek().Time > SpeedWindow)
+        while (track.Samples.Count > 1 && ownerTime - track.Samples.Peek().Time > SpeedWindow)
             track.Samples.Dequeue();
 
         Sample oldest = track.Samples.Peek();
-        float elapsed = now - oldest.Time;
+        double window = ownerTime - oldest.Time;
 
-        if (elapsed < SpeedWindow * 0.9f)
+        if (window < SpeedWindow * 0.9)
             return;
 
-        float speedKmh = Vector3.Distance(oldest.Position, position) / elapsed * 3.6f;
+        float speedKmh = Vector3.Distance(oldest.Position, position) / (float)window * 3.6f;
 
         if (speedKmh > maxSpeedKmh)
         {
             track.Samples.Clear();
-            track.Samples.Enqueue(new Sample { Time = now, Position = position });
-            AddStrike(track, manager, now, $"velocidad de {speedKmh:F0} km/h en {elapsed:F2} s, de {oldest.Position:F0} a {position:F0}");
+            track.Samples.Enqueue(sample);
+            AddStrike(track, manager, $"velocidad de {speedKmh:F0} km/h");
         }
     }
 
-    private void AddStrike(KartTrack track, NetworkManager manager, float now, string reason)
+    /// <summary>
+    /// Reloj del dueño: la diferencia con el reloj del servidor solo baja
+    /// cuando algo llega tarde (red, servidor trabado). Si sube de golpe, el
+    /// dueño está inventando tiempo. Se compara lo más adelantado de cada
+    /// ventana de 10 s con lo más adelantado de antes. Devuelve true si hubo
+    /// falta.
+    /// </summary>
+    private bool CheckClock(KartTrack track, NetworkManager manager, double ownerTime)
     {
+        double now = Time.realtimeSinceStartupAsDouble;
+        double offset = ownerTime - now;
+
+        if (track.WindowMaxOffset == double.MinValue)
+            track.WindowStart = now;
+
+        track.WindowMaxOffset = System.Math.Max(track.WindowMaxOffset, offset);
+
+        if (now - track.WindowStart < ClockWindow)
+            return false;
+
+        double windowMax = track.WindowMaxOffset;
+        double previousMax = track.MaxOffset;
+
+        track.WindowMaxOffset = double.MinValue;
+        track.MaxOffset = System.Math.Max(previousMax, windowMax);
+
+        if (previousMax == double.MinValue || windowMax - previousMax <= maxClockGain)
+            return false;
+
+        track.Samples.Clear();
+        track.HasLast = false;
+        AddStrike(track, manager, $"reloj adelantado {windowMax - previousMax:F1} s");
+        return true;
+    }
+
+    private void AddStrike(KartTrack track, NetworkManager manager, string reason)
+    {
+        float now = Time.unscaledTime;
+
         while (track.Strikes.Count > 0 && now - track.Strikes.Peek() > strikeWindow)
             track.Strikes.Dequeue();
 
@@ -192,17 +241,7 @@ public class KartMovementValidator : MonoBehaviour
             return;
 
         track.Kicked = true;
-        manager.DisconnectClient(clientId, "Te sacaron de la partida: el kart se movió de una forma imposible (" + reason + ").");
-    }
-
-    private static Sample LastSample(KartTrack track)
-    {
-        Sample last = default;
-
-        foreach (Sample sample in track.Samples)
-            last = sample;
-
-        return last;
+        manager.DisconnectClient(clientId, "Te sacaron de la partida: el kart se movió de una forma imposible.");
     }
 
     private void HandleKartSpawned(NetworkKart kart)
@@ -213,21 +252,33 @@ public class KartMovementValidator : MonoBehaviour
         if (kart == null || manager == null || !manager.IsServer || kart.OwnerClientId == NetworkManager.ServerClientId)
             return;
 
-        foreach (KartTrack track in tracks)
+        KartNetworkTransform source = kart.GetComponent<KartNetworkTransform>();
+
+        if (source == null)
         {
-            if (track.Kart == kart)
-                return;
+            Debug.LogError("KartMovementValidator necesita un KartNetworkTransform en el kart.", kart);
+            return;
         }
 
-        tracks.Add(new KartTrack
+        if (tracks.ContainsKey(source))
+            return;
+
+        tracks.Add(source, new KartTrack
         {
             Kart = kart,
             Body = kart.GetComponent<Rigidbody>()
         });
+
+        source.OwnerStateReceived += HandleOwnerState;
     }
 
     private void HandleKartDespawned(NetworkKart kart)
     {
-        tracks.RemoveAll(track => track.Kart == kart);
+        KartNetworkTransform source = kart != null ? kart.GetComponent<KartNetworkTransform>() : null;
+
+        if (source == null || !tracks.Remove(source))
+            return;
+
+        source.OwnerStateReceived -= HandleOwnerState;
     }
 }

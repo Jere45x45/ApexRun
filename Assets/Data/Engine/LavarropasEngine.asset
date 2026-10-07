@@ -12,15 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bcb6c684bab5ce748aec75dd58f86a3e, type: 3}
   m_Name: LavarropasEngine
   m_EditorClassIdentifier: Assembly-CSharp::EngineData
-  partID: 
-  partName: 
-  description: 
+  partID: engine_lavarropas
+  partName: Engine Lavarropas
+  description: Motor de lavarropas
   icon: {fileID: 0}
   modelPrefab: {fileID: 919132149155446097, guid: 7535a5a4f538ce847a31bbe14d8ce5e4,
     type: 3}
   rarity: 0
-  motorTorque: 4500
-  maxSpeed: 120
+  motorTorque: 3000
+  maxSpeed: 80
   engineSettings:
     torqueCurve:
       serializedVersion: 2
