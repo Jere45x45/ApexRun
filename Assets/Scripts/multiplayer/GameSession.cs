@@ -81,10 +81,14 @@ public class GameSession : MonoBehaviour
     // ───────────── Un jugador ─────────────
 
     /// <summary>Arranca un host local (sin internet) y va al Catálogo.</summary>
-    public void StartSinglePlayer()
+    public void StartSinglePlayer(string playerName = null)
     {
-        if (IsBusy)
+        // Ya arrancó (por ejemplo, un doble clic en el botón).
+        if (IsBusy || (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening))
             return;
+
+        if (playerName != null)
+            LocalPlayerName = CleanName(playerName);
 
         NetworkManager manager = EnsureNetworkManager();
         UnityTransport transport = manager.GetComponent<UnityTransport>();
@@ -338,7 +342,17 @@ public class GameSession : MonoBehaviour
         if (leaving)
             return;
 
-        LeaveToMenu(wasHost ? null : "Se perdió la conexión con la partida.");
+        if (wasHost)
+        {
+            LeaveToMenu();
+            return;
+        }
+
+        // Si el servidor lo sacó, dice por qué (por ejemplo, el anti-trampa).
+        NetworkManager manager = NetworkManager.Singleton;
+        string reason = manager != null ? manager.DisconnectReason : null;
+
+        LeaveToMenu(string.IsNullOrEmpty(reason) ? "Se perdió la conexión con la partida." : reason);
     }
 
     private void SubscribeSession(ISession session)

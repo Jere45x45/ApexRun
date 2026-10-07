@@ -123,10 +123,8 @@ public class KartCameraController : MonoBehaviour
             Debug.LogError("KartCameraController no encontró una Camera.", this);
         }
 
-        if (target == null)
-        {
-            Debug.LogError("KartCameraController no tiene un kart (Rigidbody) asignado.", this);
-        }
+        // Sin kart todavía es normal: en la carrera en red lo asigna
+        // LocalPlayerKartBinder (SetTarget) cuando aparece el kart del jugador.
 
         SelectMode(Mathf.Clamp(initialMode, 0, Mathf.Max(0, modes.Length - 1)));
     }

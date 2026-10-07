@@ -16,6 +16,12 @@ public class CatalogController : MonoBehaviour
     public KartConfigurationController ConfigurationController =>
         configurationController;
 
+    private void Start()
+    {
+        // El kart del Catálogo arranca con lo que el jugador eligió la última vez.
+        KartLoadoutStore.Apply(configurationController, catalog);
+    }
+
     public IEnumerable<KartPart> GetParts(PartType type)
     {
         if (catalog == null)
@@ -77,6 +83,9 @@ public class CatalogController : MonoBehaviour
         }
 
         configurationController.InstallPart(part);
+
+        // Lo elegido pasa a la carrera y queda guardado para la próxima vez.
+        KartLoadoutStore.Save(configurationController);
     }
 
     public KartPart GetInstalledPart(PartType type)

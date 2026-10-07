@@ -107,7 +107,9 @@ public class SessionMenuUI : MonoBehaviour
     private void HandleSinglePlayer()
     {
         SetStatus(null);
-        Session.StartSinglePlayer();
+
+        // El nombre guardado (el campo se carga de PlayerPrefs en Start).
+        Session.StartSinglePlayer(nameInput.text);
     }
 
     private async void HandleCreate()

@@ -95,6 +95,70 @@ public class RaceRespawnManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// True si la posición es un lugar donde este kart pudo reaparecer: el
+    /// punto de su último checkpoint, el del anterior (el servidor puede ir un
+    /// paso adelante de la computadora que hizo el respawn) o el de la
+    /// largada. Lo usa el anti-trampa (KartMovementValidator).
+    /// </summary>
+    public bool IsRespawnPosition(
+        Rigidbody kart,
+        Vector3 position,
+        float tolerance)
+    {
+        float sqrTolerance =
+            tolerance * tolerance;
+
+        if (IsNearRespawnPoint(startRespawnPoint, position, sqrTolerance))
+            return true;
+
+        if (kart == null || checkpointManager == null)
+            return false;
+
+        int lastCheckpoint =
+            timingManager != null
+                ? timingManager.GetLastCheckpoint(kart)
+                : checkpointManager.GetLastCheckpoint(kart);
+
+        int count =
+            checkpointManager.CheckpointCount;
+
+        if (lastCheckpoint < 0 || count == 0)
+            return false;
+
+        for (int back = 0; back <= 1; back++)
+        {
+            int index =
+                ((lastCheckpoint - back) % count + count) % count;
+
+            RaceCheckpoint checkpoint =
+                checkpointManager.GetCheckpoint(index);
+
+            if (checkpoint != null &&
+                IsNearRespawnPoint(checkpoint.RespawnPoint, position, sqrTolerance))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool IsNearRespawnPoint(
+        Transform point,
+        Vector3 position,
+        float sqrTolerance)
+    {
+        if (point == null)
+            return false;
+
+        Vector3 respawnPosition =
+            point.position +
+            point.up * verticalOffset;
+
+        return (respawnPosition - position).sqrMagnitude <= sqrTolerance;
+    }
+
     private Transform GetRespawnPoint(
         Rigidbody kart)
     {

@@ -8,8 +8,9 @@ using UnityEngine;
 /// con la física de siempre, y en las demás computadoras se ve una copia:
 /// - Posición y rotación: NetworkTransform + NetworkRigidbody con autoridad del
 ///   dueño. En las copias el Rigidbody queda cinemático e interpolado.
-/// - Piezas: el dueño publica los partID de su configuración y cada
-///   computadora arma el mismo kart con el PartCatalog.
+/// - Piezas: el dueño instala las que eligió en el Catálogo
+///   (KartLoadoutStore), publica sus partID y cada computadora arma el mismo
+///   kart con el PartCatalog.
 /// - Motor y volante: el dueño publica rpm, acelerador y ángulo de las ruedas,
 ///   para el sonido y las ruedas de las copias.
 /// </summary>
@@ -140,6 +141,10 @@ public class NetworkKart : NetworkBehaviour
 
         if (IsOwner)
         {
+            // El jugador corre con las piezas que eligió en el Catálogo.
+            if (IsLocalPlayer)
+                KartLoadoutStore.Apply(configurationController, catalog);
+
             loadout.Value = ReadLoadout();
         }
         else
