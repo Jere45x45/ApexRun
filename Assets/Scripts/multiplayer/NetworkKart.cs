@@ -11,8 +11,11 @@ using UnityEngine;
 /// - Piezas: el dueño instala las que eligió en el Catálogo
 ///   (KartLoadoutStore), publica sus partID y cada computadora arma el mismo
 ///   kart con el PartCatalog.
-/// - Motor y volante: el dueño publica rpm, acelerador y ángulo de las ruedas,
-///   para el sonido y las ruedas de las copias.
+/// - Motor, volante y velocidad: el dueño publica rpm, acelerador, ángulo de
+///   las ruedas (para el sonido y las ruedas de las copias) y la velocidad
+///   del kart (para los choques en red).
+/// - Choques: la computadora que resuelve un choque le manda al dueño del otro
+///   kart su parte del golpe (SendHit), pasando por el servidor, que lo valida.
 /// </summary>
 [RequireComponent(typeof(KartBehaviour))]
 public class NetworkKart : NetworkBehaviour
@@ -64,17 +67,24 @@ public class NetworkKart : NetworkBehaviour
         public ushort Rpm;          // rpm, de a 10
         public byte Throttle;       // 0 a 255
         public short SteerAngle;    // décimas de grado
+        public short VelocityX;     // cm/s
+        public short VelocityY;
+        public short VelocityZ;
 
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
             serializer.SerializeValue(ref Rpm);
             serializer.SerializeValue(ref Throttle);
             serializer.SerializeValue(ref SteerAngle);
+            serializer.SerializeValue(ref VelocityX);
+            serializer.SerializeValue(ref VelocityY);
+            serializer.SerializeValue(ref VelocityZ);
         }
 
         public bool Equals(DriveState other)
         {
-            return Rpm == other.Rpm && Throttle == other.Throttle && SteerAngle == other.SteerAngle;
+            return Rpm == other.Rpm && Throttle == other.Throttle && SteerAngle == other.SteerAngle &&
+                VelocityX == other.VelocityX && VelocityY == other.VelocityY && VelocityZ == other.VelocityZ;
         }
     }
 
@@ -103,7 +113,21 @@ public class NetworkKart : NetworkBehaviour
     /// <summary>Un kart se fue de la partida.</summary>
     public static event Action<NetworkKart> Despawned;
 
+    // Golpe más fuerte que se acepta de otra computadora: frenar en seco un
+    // kart a 150 km/h (N·s por kg de masa).
+    private const float MaxHitSpeedChange = 42f;
+
+    // Distancia máxima entre los karts para aceptar un golpe (m).
+    private const float MaxHitDistance = 6f;
+
     public KartBehaviour Kart => kart;
+
+    /// <summary>
+    /// Velocidad del kart según su dueño (m/s). En las copias es la que manda
+    /// el dueño: la real de su física, no la que se deduce de las posiciones
+    /// (que incluyen los empujones para separar karts superpuestos).
+    /// </summary>
+    public Vector3 OwnerVelocity { get; private set; }
 
     /// <summary>Nombre para mostrar: el que eligió el jugador o, si no hay, su número.</summary>
     public string DisplayName
@@ -169,6 +193,55 @@ public class NetworkKart : NetworkBehaviour
         Despawned?.Invoke(this);
     }
 
+    /// <summary>
+    /// Otra computadora chocó contra este kart y le manda su parte del golpe:
+    /// impulso en el mundo y punto en coordenadas de este kart. Pasa por el
+    /// servidor, que lo valida, y llega al dueño (KartRemoteContacts).
+    /// </summary>
+    public void SendHit(Vector3 impulse, Vector3 localPoint)
+    {
+        if (IsSpawned)
+            HitServerRpc(impulse, localPoint);
+    }
+
+    [Rpc(SendTo.Server, RequireOwnership = false)]
+    private void HitServerRpc(Vector3 impulse, Vector3 localPoint, RpcParams rpcParams = default)
+    {
+        ulong sender = rpcParams.Receive.SenderClientId;
+
+        // Solo vale si el que lo manda tiene un kart al lado de este.
+        if (sender == OwnerClientId || !HasKartNear(sender))
+            return;
+
+        Rigidbody body = kart.GetComponent<Rigidbody>();
+        float maxImpulse = (body != null ? body.mass : 150f) * MaxHitSpeedChange;
+
+        HitOwnerRpc(Vector3.ClampMagnitude(impulse, maxImpulse), Vector3.ClampMagnitude(localPoint, 3f));
+    }
+
+    [Rpc(SendTo.Owner)]
+    private void HitOwnerRpc(Vector3 impulse, Vector3 localPoint)
+    {
+        KartRemoteContacts contacts = GetComponent<KartRemoteContacts>();
+
+        if (contacts != null)
+            contacts.ReceiveHit(impulse, localPoint);
+    }
+
+    private bool HasKartNear(ulong clientId)
+    {
+        foreach (NetworkKart other in FindObjectsByType<NetworkKart>(FindObjectsSortMode.None))
+        {
+            if (other != this && other.IsSpawned && other.OwnerClientId == clientId &&
+                (other.transform.position - transform.position).sqrMagnitude <= MaxHitDistance * MaxHitDistance)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private void Update()
     {
         if (!IsSpawned || kart == null)
@@ -182,14 +255,20 @@ public class NetworkKart : NetworkBehaviour
 
     private void PublishDriveState()
     {
-        if (!kart.HasEngineState)
-            return;
+        Rigidbody body = kart.GetComponent<Rigidbody>();
+        Vector3 velocity = body != null ? body.linearVelocity : Vector3.zero;
+        bool engine = kart.HasEngineState;
+
+        OwnerVelocity = velocity;
 
         DriveState state = new DriveState
         {
-            Rpm = (ushort)Mathf.Clamp(Mathf.RoundToInt(kart.EngineRpm / 10f), 0, ushort.MaxValue),
-            Throttle = (byte)Mathf.RoundToInt(Mathf.Clamp01(kart.EngineThrottle) * 255f),
-            SteerAngle = (short)Mathf.Clamp(Mathf.RoundToInt(kart.SteerAngle * 10f), short.MinValue, short.MaxValue)
+            Rpm = engine ? (ushort)Mathf.Clamp(Mathf.RoundToInt(kart.EngineRpm / 10f), 0, ushort.MaxValue) : (ushort)0,
+            Throttle = engine ? (byte)Mathf.RoundToInt(Mathf.Clamp01(kart.EngineThrottle) * 255f) : (byte)0,
+            SteerAngle = (short)Mathf.Clamp(Mathf.RoundToInt(kart.SteerAngle * 10f), short.MinValue, short.MaxValue),
+            VelocityX = ToCentimeters(velocity.x),
+            VelocityY = ToCentimeters(velocity.y),
+            VelocityZ = ToCentimeters(velocity.z)
         };
 
         if (!state.Equals(driveState.Value))
@@ -201,6 +280,13 @@ public class NetworkKart : NetworkBehaviour
         DriveState state = driveState.Value;
 
         kart.SetRemoteState(state.Rpm * 10f, state.Throttle / 255f, state.SteerAngle / 10f);
+
+        OwnerVelocity = new Vector3(state.VelocityX, state.VelocityY, state.VelocityZ) * 0.01f;
+    }
+
+    private static short ToCentimeters(float metersPerSecond)
+    {
+        return (short)Mathf.Clamp(Mathf.RoundToInt(metersPerSecond * 100f), short.MinValue, short.MaxValue);
     }
 
     private Loadout ReadLoadout()

@@ -6,16 +6,20 @@ using UnityEngine;
 /// Choques entre karts de distintas computadoras.
 /// Cada computadora simula solo sus karts; los de los demás son copias que no
 /// se mueven con los golpes. Chocar contra una copia sería como chocar contra
-/// una pared: uno rebota el doble y el otro ni se entera.
-/// Por eso el kart propio no choca físicamente con las copias. En cambio:
-/// - Cada paso de física busca contacto con las copias, puestas donde está
-///   el otro kart ahora (lo último que mandó su dueño, adelantado por la
+/// una pared: uno rebota el doble y el otro ni se entera. Por eso el kart
+/// propio no choca físicamente con las copias. En cambio:
+/// - Cada paso de física busca contacto con las copias, puestas donde está el
+///   otro kart ahora (lo último que mandó su dueño, adelantado por la
 ///   latencia), no donde se lo ve.
-/// - Si hay contacto, al kart propio le aplica su parte del golpe, como entre
-///   dos karts de igual masa, y lo saca de la mitad de la superposición.
-/// La computadora del otro hace lo mismo con el suyo, así los dos salen
-/// empujados. Entre karts que corren en la misma computadora (el host y los
-/// bots) sigue chocando la física de siempre.
+/// - De cada par de karts resuelve el choque uno solo, siempre el mismo (el de
+///   NetworkObjectId más bajo): calcula el golpe entre los dos con las
+///   velocidades de antes del choque, se aplica su parte y le manda al otro
+///   la suya por red (NetworkKart.SendHit, que valida el servidor). Si lo
+///   resolvieran los dos, el segundo usaría la velocidad que el primero ya
+///   cambió y el golpe quedaría mal repartido.
+/// - Los dos corrigen su mitad de la superposición.
+/// Entre karts que corren en la misma computadora (el host y los bots) sigue
+/// chocando la física de siempre.
 /// </summary>
 [RequireComponent(typeof(KartBehaviour))]
 public class KartRemoteContacts : MonoBehaviour
@@ -58,21 +62,29 @@ public class KartRemoteContacts : MonoBehaviour
         public KartNetworkTransform Network;
         public Collider[] Hull;
 
-        // Golpe que se le dio al otro kart y que su computadora todavía no
-        // confirmó: cambio de velocidad que le toca, velocidad que mandaba su
-        // dueño en ese momento, y hasta cuándo se recuerda.
+        // Golpe que se le mandó al otro kart y que todavía no se ve en lo que
+        // manda su dueño: cambio de velocidad que le toca, velocidad que
+        // mandaba en ese momento, y hasta cuándo se recuerda.
         public Vector3 HitVelocity;
         public Vector3 VelocityAtHit;
+        public float HitTime;
         public float HitUntil;
     }
 
     private readonly List<Remote> remotes = new List<Remote>();
+
+    private NetworkKart networkKart;
 
     private void Reset()
     {
         kart = GetComponent<KartBehaviour>();
         body = GetComponent<Rigidbody>();
         hull = FindHull(gameObject);
+    }
+
+    private void Awake()
+    {
+        networkKart = GetComponent<NetworkKart>();
     }
 
     private void OnEnable()
@@ -97,6 +109,24 @@ public class KartRemoteContacts : MonoBehaviour
             if (other.IsSpawned)
                 HandleKartSpawned(other);
         }
+    }
+
+    /// <summary>
+    /// Golpe que manda la computadora del otro kart (lo trae NetworkKart):
+    /// impulso en el mundo y punto en coordenadas de este kart.
+    /// </summary>
+    public void ReceiveHit(Vector3 impulse, Vector3 localPoint)
+    {
+        if (!kart.IsSimulated)
+            return;
+
+        Vector3 point = body.position + body.rotation * localPoint;
+        Vector3 up = body.transform.up;
+
+        // A la altura del centro de masa, igual que el golpe propio.
+        point -= up * Vector3.Dot(point - body.worldCenterOfMass, up);
+
+        body.AddForceAtPosition(impulse, point, ForceMode.Impulse);
     }
 
     private void HandleKartSpawned(NetworkKart spawned)
@@ -183,8 +213,14 @@ public class KartRemoteContacts : MonoBehaviour
     /// <summary>Busca contacto con la copia puesta donde está el otro kart ahora y, si hay, lo resuelve.</summary>
     private void ResolveContact(Remote remote)
     {
-        Vector3 remoteVelocity = remote.Network.OwnerVelocity + GetPendingHit(remote);
+        Vector3 pendingHit = GetPendingHit(remote);
+        Vector3 remoteVelocity = remote.Kart.OwnerVelocity + pendingHit;
         Vector3 predictedPosition = remote.Network.OwnerPosition + remoteVelocity * GetPrediction(remote);
+
+        // Desde el golpe, el otro kart ya se viene moviendo con la velocidad
+        // que se le dio, aunque su dueño todavía no lo haya mandado.
+        if (pendingHit != Vector3.zero)
+            predictedPosition += pendingHit * (Time.time - remote.HitTime);
 
         if ((predictedPosition - body.position).sqrMagnitude > CheckDistance * CheckDistance)
             return;
@@ -242,26 +278,39 @@ public class KartRemoteContacts : MonoBehaviour
 
         normal.Normalize();
 
+        // Con mucha superposición, la salida más corta puede quedar del otro
+        // lado: el golpe siempre separa, del otro kart hacia el propio.
+        if (Vector3.Dot(normal, body.worldCenterOfMass - predictedPosition) < 0f)
+            normal = -normal;
+
         // El golpe se aplica a la altura del centro de masa: hace girar al kart
         // (un toque de costado lo desvía) pero no lo levanta ni lo vuelca.
         point -= up * Vector3.Dot(point - body.worldCenterOfMass, up);
 
-        float impulse = ApplyImpulse(normal, point, remoteVelocity, remote.Body.mass);
-
-        // El otro kart recibe el golpe contrario en su computadora, pero acá
-        // recién se va a ver cuando llegue su próxima velocidad. Hasta
-        // entonces se lo considera ya golpeado: si no, cada paso lo vería
-        // quieto y el kart propio se seguiría frenando contra él.
-        if (impulse > 0f)
+        if (IsResolver(remote))
         {
-            if (Time.time >= remote.HitUntil)
-            {
-                remote.HitVelocity = Vector3.zero;
-                remote.VelocityAtHit = remote.Network.OwnerVelocity;
-            }
+            float impulse = ApplyImpulse(normal, point, remoteVelocity, remote.Body.mass);
 
-            remote.HitVelocity -= normal * impulse / Mathf.Max(1f, remote.Body.mass);
-            remote.HitUntil = Time.time + MaxHitMemory;
+            if (impulse > 0f)
+            {
+                // Al otro le toca el golpe contrario: se lo manda a su
+                // computadora, con el punto en coordenadas de su kart.
+                Vector3 localPoint = Quaternion.Inverse(remote.Body.rotation) * (point - predictedPosition);
+                remote.Kart.SendHit(-normal * impulse, localPoint);
+
+                // Acá recién se va a ver cuando llegue su próxima velocidad.
+                // Hasta entonces se lo considera ya golpeado: si no, cada
+                // paso lo vería igual que antes y se lo volvería a golpear.
+                if (Time.time >= remote.HitUntil)
+                {
+                    remote.HitVelocity = Vector3.zero;
+                    remote.VelocityAtHit = remote.Kart.OwnerVelocity;
+                    remote.HitTime = Time.time;
+                }
+
+                remote.HitVelocity -= normal * impulse / Mathf.Max(1f, remote.Body.mass);
+                remote.HitUntil = Time.time + MaxHitMemory;
+            }
         }
 
         float correction = Mathf.Min((deepest - overlapSlop) * overlapCorrection, maxCorrectionPerStep);
@@ -270,9 +319,15 @@ public class KartRemoteContacts : MonoBehaviour
             body.position += normal * correction;
     }
 
+    /// <summary>De cada par de karts resuelve el choque siempre el mismo: el de NetworkObjectId más bajo.</summary>
+    private bool IsResolver(Remote remote)
+    {
+        return networkKart != null && networkKart.NetworkObjectId < remote.Kart.NetworkObjectId;
+    }
+
     /// <summary>
-    /// Golpe entre dos cuerpos de la masa de cada uno, sin la rotación del
-    /// otro (esa la resuelve su computadora): al kart propio le toca su parte.
+    /// Golpe entre los dos karts (la rotación del otro la resuelve su
+    /// computadora): aplica la parte del kart propio y devuelve el impulso.
     /// </summary>
     private float ApplyImpulse(Vector3 normal, Vector3 point, Vector3 remoteVelocity, float remoteMass)
     {
@@ -299,9 +354,9 @@ public class KartRemoteContacts : MonoBehaviour
     }
 
     /// <summary>
-    /// Golpe dado al otro kart que todavía no se ve en lo que manda su dueño.
-    /// Se olvida cuando su velocidad ya cambió en esa dirección (llegó la
-    /// confirmación) o después de MaxHitMemory.
+    /// Golpe mandado al otro kart que todavía no se ve en lo que manda su
+    /// dueño. Se olvida cuando su velocidad ya cambió en esa dirección o
+    /// después de MaxHitMemory.
     /// </summary>
     private static Vector3 GetPendingHit(Remote remote)
     {
@@ -314,7 +369,7 @@ public class KartRemoteContacts : MonoBehaviour
             return Vector3.zero;
 
         Vector3 direction = remote.HitVelocity / expected;
-        float received = Vector3.Dot(remote.Network.OwnerVelocity - remote.VelocityAtHit, direction);
+        float received = Vector3.Dot(remote.Kart.OwnerVelocity - remote.VelocityAtHit, direction);
 
         if (received >= expected * 0.7f)
         {
