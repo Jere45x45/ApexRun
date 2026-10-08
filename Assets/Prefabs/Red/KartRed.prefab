@@ -124,6 +124,7 @@ GameObject:
   - component: {fileID: 2694565690424929570}
   - component: {fileID: 1475179307869758415}
   - component: {fileID: 5500287128892511253}
+  - component: {fileID: 3684216999669853167}
   m_Layer: 0
   m_Name: KartRed
   m_TagString: Untagged
@@ -367,6 +368,31 @@ MonoBehaviour:
   configurationController: {fileID: 7228678026319939368}
   catalog: {fileID: 11400000, guid: 7e1f2cc49d52469479892d21ba2aa279, type: 2}
   playerInput: {fileID: 7955980074788983492}
+--- !u!114 &3684216999669853167
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2802739453247863719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a8130932d1f847499933629a6aa2ec9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KartRemoteContacts
+  kart: {fileID: 120240854046394885}
+  body: {fileID: 5308325793877818942}
+  hull:
+  - {fileID: 7918078447707552062}
+  - {fileID: 8842509823204112197}
+  - {fileID: 2132069297049197651}
+  - {fileID: 5053913818847540038}
+  - {fileID: 3918444387743524313}
+  - {fileID: 8555532536121616148}
+  restitution: 0
+  overlapCorrection: 0.5
+  overlapSlop: 0.01
+  maxPrediction: 0.25
 --- !u!1 &2823503327116068364
 GameObject:
   m_ObjectHideFlags: 0

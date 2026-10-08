@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92f86fc8aed07fc4883068ca75e8bb66, type: 3}
   m_Name: KitAeroKartPro
   m_EditorClassIdentifier: Assembly-CSharp::AeroKitData
-  partID: 
-  partName: 
+  partID: kitaero_pro
+  partName: Kit Aero Pro
   description: 
   icon: {fileID: 0}
   modelPrefab: {fileID: 919132149155446097, guid: bf2cbaeb166255e40b0b0c98bd8dd337,
