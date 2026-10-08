@@ -13,8 +13,11 @@ MonoBehaviour:
   m_Name: RuedasHondaMeanMower
   m_EditorClassIdentifier: Assembly-CSharp::WheelData
   partID: wheels_honda-mean-mower
-  partName: Ruedas Honda Mean Mower
+  partName: Ruedas Mean Mover
   description: 
+  effects:
+  - "+ Velocidad m\xE1xima"
+  - "- Aceleraci\xF3n"
   icon: {fileID: 0}
   modelPrefab: {fileID: 919132149155446097, guid: f3aaa4956b65c35418ab615ba47da7e1,
     type: 3}

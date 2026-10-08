@@ -15,6 +15,9 @@ MonoBehaviour:
   partID: wheels_bici
   partName: Ruedas Bici
   description: 
+  effects:
+  - "+ Velocidad m\xE1xima"
+  - "- Aceleraci\xF3n"
   icon: {fileID: 0}
   modelPrefab: {fileID: 919132149155446097, guid: 3b3f1f8b418476e48baa7197155c401c,
     type: 3}

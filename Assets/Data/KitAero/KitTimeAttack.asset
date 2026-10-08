@@ -15,6 +15,9 @@ MonoBehaviour:
   partID: kitaero_timeattack
   partName: Kit Aero Time Attack
   description: 
+  effects:
+  - "+ Velocidad m\xE1xima"
+  - '- Agarre en curva'
   icon: {fileID: 0}
   modelPrefab: {fileID: 919132149155446097, guid: 60cafe77ccbeaeb4793fbd2665493010,
     type: 3}

@@ -15,6 +15,9 @@ MonoBehaviour:
   partID: kitaero_pro
   partName: Kit Aero Pro
   description: 
+  effects:
+  - + Agarre en curva
+  - "- Velocidad m\xE1xima"
   icon: {fileID: 0}
   modelPrefab: {fileID: 919132149155446097, guid: bf2cbaeb166255e40b0b0c98bd8dd337,
     type: 3}

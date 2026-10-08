@@ -3964,6 +3964,7 @@ MonoBehaviour:
   maxSpeedKmh: 250
   jumpDistance: 30
   respawnTolerance: 4
+  maxClockGain: 1.5
   maxStrikes: 3
   strikeWindow: 30
 --- !u!1 &1148278497
@@ -4412,7 +4413,7 @@ GameObject:
   - component: {fileID: 1371469513}
   - component: {fileID: 1371469512}
   m_Layer: 0
-  m_Name: camararig
+  m_Name: CamaraRig
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

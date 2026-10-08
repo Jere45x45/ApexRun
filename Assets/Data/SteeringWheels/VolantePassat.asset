@@ -15,6 +15,8 @@ MonoBehaviour:
   partID: steeringwheel_passat
   partName: Volante Passat
   description: Volante de auto de calle.
+  effects:
+  - "Solo est\xE9tico"
   icon: {fileID: 0}
   modelPrefab: {fileID: 919132149155446097, guid: 91246fd01309bc9448173493a3b2ceeb,
     type: 3}

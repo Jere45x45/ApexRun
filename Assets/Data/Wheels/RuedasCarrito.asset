@@ -15,6 +15,9 @@ MonoBehaviour:
   partID: wheels_carrito
   partName: Ruedas Carrito
   description: 
+  effects:
+  - "+ Aceleraci\xF3n"
+  - "- Velocidad m\xE1xima"
   icon: {fileID: 0}
   modelPrefab: {fileID: 919132149155446097, guid: eea648b0df1f48143ab557adec838bef,
     type: 3}
