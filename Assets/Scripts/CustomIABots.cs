@@ -251,6 +251,7 @@ public class CustomIABots : MonoBehaviour
         Debug.Log("R APRETADA → NUEVO EPISODIO");
 
         ResetBot();
+
     }
     }
 }
