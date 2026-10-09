@@ -19,6 +19,10 @@ public class KartRaySensor : MonoBehaviour
     [Header("Track")]
     [SerializeField] private LayerMask trackLayer;
 
+    /// <summary>
+    /// 9 sensores (3 filas a distintas distancias × izquierda, centro y
+    /// derecha): 1 si debajo hay pista, 0 si no.
+    /// </summary>
     public float[] GetTrackSensors()
     {
         float[] values = new float[9];
@@ -80,11 +84,9 @@ public class KartRaySensor : MonoBehaviour
                 trackLayer))
             {
 
-                values[i] =
-                    1f - (hit.distance / rayLength);
-
-                values[i] =
-                    Mathf.Clamp01(values[i]);
+                // Hay pista o no hay: la distancia del rayo solo cambiaba con
+                // las subidas y bajadas, y eso no le dice nada útil al bot.
+                values[i] = 1f;
 
                 Debug.DrawLine(
                     start,
