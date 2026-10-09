@@ -75,7 +75,9 @@ public class BotLearning : MonoBehaviour
     {
         if (Instance != null && Instance != this)
         {
-            Destroy(gameObject);
+            // Solo sobra este componente: no se borra el objeto (podría ser un bot).
+            Debug.LogWarning("Hay más de un BotLearning en la escena: se usa el primero.", this);
+            Destroy(this);
             return;
         }
 

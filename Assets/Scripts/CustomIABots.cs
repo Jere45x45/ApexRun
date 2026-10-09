@@ -1,7 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// Bot que aprende la pista con Q-learning (BotLearning).
+/// Bot que aprende la pista con Q-learning (BotLearning). Maneja el mismo
+/// kart que los jugadores (KartBehaviour, la física nueva) con SetInputs.
 /// Cada decisión (decisionInterval) mira los sensores de pista, elige
 /// izquierda / derecho / derecha y recibe una recompensa por lo que pasó desde
 /// la decisión anterior:
@@ -14,7 +15,7 @@ using UnityEngine;
 public class CustomIABots : MonoBehaviour
 {
     [Header("Kart")]
-    [SerializeField] private BotBehaviour bot;
+    [SerializeField] private KartBehaviour kart;
     [SerializeField] private KartRaySensor sensor;
     [SerializeField] private BotLearning learning;
 
@@ -69,8 +70,8 @@ public class CustomIABots : MonoBehaviour
 
     private void Awake()
     {
-        if (bot == null)
-            bot = GetComponent<BotBehaviour>();
+        if (kart == null)
+            kart = GetComponent<KartBehaviour>();
 
         if (sensor == null)
             sensor = GetComponent<KartRaySensor>();
@@ -79,6 +80,12 @@ public class CustomIABots : MonoBehaviour
 
         startPosition = transform.position;
         startRotation = transform.rotation;
+    }
+
+    private void Start()
+    {
+        // En la carrera los mandos los habilita la largada; acá entrena solo.
+        kart.SetInputEnabled(true);
     }
 
     private void FixedUpdate()
@@ -152,7 +159,7 @@ public class CustomIABots : MonoBehaviour
 
         int action = learning.ChooseAction(observation);
 
-        bot.SetInputs(
+        kart.SetInputs(
             1f,
             action - 1f, // 0 = izquierda (-1), 1 = derecho (0), 2 = derecha (+1)
             false
@@ -214,13 +221,17 @@ public class CustomIABots : MonoBehaviour
     {
         resetting = true;
 
-        bot.SetInputs(0f, 0f, true);
+        kart.SetInputs(0f, 0f, true);
+
+        rb.position = startPosition;
+        rb.rotation = startRotation;
+        transform.SetPositionAndRotation(startPosition, startRotation);
 
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
 
-        transform.position = startPosition;
-        transform.rotation = startRotation;
+        // La física nueva guarda estado propio (motor, giro de ruedas): a cero también.
+        kart.ResetMotion();
 
         currentProgress = 0;
 
@@ -237,10 +248,10 @@ public class CustomIABots : MonoBehaviour
         resetting = false;
         lastDistance = DistanceToNextPoint();
 
-        if (bot == null)
+        if (kart == null)
             return;
 
-        bot.SetInputs(1f, 0f, false);
+        kart.SetInputs(1f, 0f, false);
     }
 
     private void OnTriggerEnter(Collider other)

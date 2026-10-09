@@ -1,13 +1,30 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Le pone al bot piezas al azar del catálogo (motor, ruedas, kit aero y
+/// volante). El chasis es fijo, como en la carrera.
+/// </summary>
 public class BotRandomizer : MonoBehaviour
 {
     [Header("Catalog")]
     [SerializeField] private PartCatalog catalog;
 
     [Header("Kart")]
-    [SerializeField] private BotBehaviour bot;
+    [SerializeField] private KartConfigurationController configuration;
+
+    private static readonly PartType[] RandomTypes =
+    {
+        PartType.Engine,
+        PartType.Wheels,
+        PartType.AeroKit,
+        PartType.SteeringWheel
+    };
+
+    private void Reset()
+    {
+        configuration = GetComponentInChildren<KartConfigurationController>();
+    }
 
     public void RandomizeKart()
     {
@@ -17,50 +34,27 @@ public class BotRandomizer : MonoBehaviour
             return;
         }
 
-        if (bot == null)
+        if (configuration == null)
         {
-            Debug.LogError("BotRandomizer: falta asignar el BotBehaviour.", this);
+            Debug.LogError("BotRandomizer: falta asignar el KartConfigurationController.", this);
             return;
         }
 
-        List<KartPart> engines = GetParts(PartType.Engine);
-        List<KartPart> chassis = GetParts(PartType.Chassis);
-        List<KartPart> wheels = GetParts(PartType.Wheels);
-        List<KartPart> aeroKits = GetParts(PartType.AeroKit);
+        List<string> installed = new List<string>();
 
-        if (engines.Count == 0 || chassis.Count == 0 || wheels.Count == 0 || aeroKits.Count == 0)
+        foreach (PartType type in RandomTypes)
         {
-            Debug.LogError
-            (
-                "BotRandomizer: falta al menos una pieza de algún tipo.",
-                this
-            );
+            List<KartPart> parts = GetParts(type);
 
-            return;
+            if (parts.Count == 0)
+                continue;
+
+            KartPart part = parts[Random.Range(0, parts.Count)];
+            configuration.InstallPart(part);
+            installed.Add(type + "=" + part.name);
         }
 
-        EngineData engine = engines[Random.Range(0, engines.Count)] as EngineData;
-
-        ChassisData chassisPart = chassis[Random.Range(0, chassis.Count)] as ChassisData;
-
-        WheelData wheelsPart = wheels[Random.Range(0, wheels.Count)] as WheelData;
-
-        AeroKitData aeroKit = aeroKits[Random.Range(0, aeroKits.Count)] as AeroKitData;
-
-        bot.SetRandomConfiguration(
-            engine,
-            chassisPart,
-            wheelsPart,
-            aeroKit
-        );
-
-        Debug.Log(
-            $"Bot randomizado: " +
-            $"Engine={engine.name}, " +
-            $"Chassis={chassisPart.name}, " +
-            $"Wheels={wheelsPart.name}, " +
-            $"Aero={aeroKit.name}"
-        );
+        Debug.Log("Bot randomizado: " + string.Join(", ", installed));
     }
 
     private List<KartPart> GetParts(PartType type)
