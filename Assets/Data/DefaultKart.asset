@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8f2887a06f85f5438e5ce20dcb17556, type: 3}
   m_Name: DefaultKart
   m_EditorClassIdentifier: 
-  engine: {fileID: 11400000, guid: 8d7d99dc7db16a14c8bb358783460598, type: 2}
+  engine: {fileID: 11400000, guid: 77dfbe3d75035a947acbb89be642411e, type: 2}
   chassis: {fileID: 11400000, guid: 3e1b32fbd3739bd4ea3354eca24986c6, type: 2}
   wheels: {fileID: 11400000, guid: 30019a89baf2c6145a399879e1eada21, type: 2}
   aeroKit: {fileID: 11400000, guid: c7478851a351c3e409cdc49ed143d8f0, type: 2}
+  steeringWheel: {fileID: 11400000, guid: 546a479c4d953974b843c2a1e30af538, type: 2}

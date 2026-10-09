@@ -1,0 +1,2 @@
+Warning: [PENALTY] El jugador 1 intentó penalizar un kart ajeno (Kart_Jugador0).
+Log: [PENALTY] Kart_Jugador1 recibió +1,5s. Penalización total: 7,5s

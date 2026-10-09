@@ -3,7 +3,27 @@ guid: 3b3f1f8b418476e48baa7197155c401c
 ModelImporter:
   serializedVersion: 24300
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Llanta.002
+    second: {fileID: 2100000, guid: 5bd810c0e78d22745b58544743bb6fed, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material.009
+    second: {fileID: 2100000, guid: d8bca18f230e232489b1e97ea06a3cd3, type: 2}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: RuedasBiciNormalMap
+    second: {fileID: 2800000, guid: c875020ccf7fdb941a00a3236fd1b967, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: RuedasBiciTexture
+    second: {fileID: 2800000, guid: bd1bba734eb691c4da4732b2c384b69b, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0

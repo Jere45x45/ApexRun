@@ -1,0 +1,74 @@
+using System;
+using Unity.Netcode.Components;
+using UnityEngine;
+
+/// <summary>
+/// NetworkTransform del kart: el de Netcode, más lo último que mandó el dueño
+/// sin interpolar (posición y cuándo llegó), en las computadoras que ven una
+/// copia del kart.
+/// - El anti-trampa (KartMovementValidator, en el servidor) mide con eso y no
+///   con la copia interpolada: después de una traba de red, la copia se queda
+///   quieta y se pone al día de golpe, y parecería que el kart saltó.
+/// - Los choques en red (KartRemoteContacts) lo usan para saber dónde está el
+///   kart ahora, y no dónde se lo ve (la copia va atrasada).
+/// </summary>
+public class KartNetworkTransform : NetworkTransform
+{
+    /// <summary>
+    /// Solo en el servidor, para karts que mueve otra computadora: posición
+    /// del dueño, tiempo de red en que la simuló (s) y si fue un teleport.
+    /// </summary>
+    public event Action<KartNetworkTransform, Vector3, double, bool> OwnerStateReceived;
+
+    // Llegan solo los ejes que cambiaron: se arma la posición completa acá.
+    private Vector3 ownerPosition;
+    private float receivedAt;
+
+    /// <summary>True si ya llegó algún estado del dueño (solo en las copias).</summary>
+    public bool HasOwnerState { get; private set; }
+
+    /// <summary>Última posición que mandó el dueño, sin interpolar.</summary>
+    public Vector3 OwnerPosition => ownerPosition;
+
+    /// <summary>Hace cuánto llegó el último estado del dueño (s).</summary>
+    public float OwnerStateAge => Time.time - receivedAt;
+
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+
+        ownerPosition = transform.position;
+        HasOwnerState = false;
+    }
+
+    protected override void OnNetworkTransformStateUpdated(ref NetworkTransformState oldState, ref NetworkTransformState newState)
+    {
+        base.OnNetworkTransformStateUpdated(ref oldState, ref newState);
+
+        if (CanCommitToTransform)
+            return;
+
+        bool teleport = newState.IsTeleportingNextFrame;
+
+        if (!teleport && !newState.HasPositionChange)
+            return;
+
+        Vector3 received = newState.GetPosition();
+
+        if (teleport || newState.HasPositionX)
+            ownerPosition.x = received.x;
+
+        if (teleport || newState.HasPositionY)
+            ownerPosition.y = received.y;
+
+        if (teleport || newState.HasPositionZ)
+            ownerPosition.z = received.z;
+
+        double time = newState.GetNetworkTick() / (double)NetworkManager.NetworkConfig.TickRate;
+        receivedAt = Time.time;
+        HasOwnerState = true;
+
+        if (IsServer)
+            OwnerStateReceived?.Invoke(this, ownerPosition, time, teleport);
+    }
+}

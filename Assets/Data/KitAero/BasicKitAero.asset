@@ -15,9 +15,16 @@ MonoBehaviour:
   partID: kitaero_basic
   partName: Basic Kit Aero
   description: 
+  effects:
+  - Equilibrado
   icon: {fileID: 0}
-  modelPrefab: {fileID: 919132149155446097, guid: b21b6471d01f8734aa68aa14303da54b,
+  modelPrefab: {fileID: 919132149155446097, guid: bb46cf7c8cb8af24cad5f81ff6ada706,
     type: 3}
   rarity: 0
   downforce: 100
   aerodynamicDrag: 0.02
+  aeroSettings:
+    airDensity: 1.225
+    dragArea: 0.46
+    downforceArea: 0.08
+    centerOfPressure: {x: 0, y: 0.3, z: -0.5}

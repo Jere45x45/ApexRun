@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 [CreateAssetMenu(fileName = "New Chassis", menuName = "Kart/Chassis")]
 public class ChassisData : KartPart
@@ -12,6 +12,11 @@ public class ChassisData : KartPart
     public float drag = 0.05f;
     public float angularDrag = 0.5f;
 
+    [Header("Física nueva (Fase 0)")]
+    [Tooltip("Masa, inercia, bastidor, eje trasero, frenos y dirección de la física nueva. " +
+             "Cuando Race pase a la física nueva, reemplaza a mass, centerOfMass, drag y angularDrag.")]
+    public ChassisSettings chassisSettings = new ChassisSettings();
+
     public override PartType PartType => PartType.Chassis;
 
     public override void Apply(KartStats stats)
@@ -20,6 +25,9 @@ public class ChassisData : KartPart
         stats.centerOfMass = centerOfMass;
         stats.drag = drag;
         stats.angularDrag = angularDrag;
+
+        // Copia: la física no tiene que poder modificar el asset.
+        stats.chassis = JsonUtility.FromJson<ChassisSettings>(JsonUtility.ToJson(chassisSettings));
     }
 
     public override void Install(RuntimeKartConfiguration configuration)

@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e447e2f64356611458a2e04831429c61, type: 3}
+  m_Name: VolantePassat
+  m_EditorClassIdentifier: Assembly-CSharp::SteeringWheelData
+  partID: steeringwheel_passat
+  partName: Volante Passat
+  description: Volante de auto de calle.
+  effects:
+  - "Solo est\xE9tico"
+  icon: {fileID: 0}
+  modelPrefab: {fileID: 919132149155446097, guid: 91246fd01309bc9448173493a3b2ceeb,
+    type: 3}
+  rarity: 0
+  hubPosition: {x: 0, y: 0.312, z: -0.164}
+  tilt: 27

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 public class RuntimeKartConfiguration
 {
@@ -10,6 +10,8 @@ public class RuntimeKartConfiguration
 
     public AeroKitData AeroKit { get; private set; }
 
+    public SteeringWheelData SteeringWheel { get; private set; }
+
     public RuntimeKartConfiguration(KartConfiguration baseConfiguration)
     {
         if (baseConfiguration == null)
@@ -19,6 +21,7 @@ public class RuntimeKartConfiguration
         Chassis = baseConfiguration.chassis;
         Wheels = baseConfiguration.wheels;
         AeroKit = baseConfiguration.aeroKit;
+        SteeringWheel = baseConfiguration.steeringWheel;
     }
 
     public void InstallEngine(EngineData engine)
@@ -53,6 +56,14 @@ public class RuntimeKartConfiguration
         AeroKit = aeroKit;
     }
 
+    public void InstallSteeringWheel(SteeringWheelData steeringWheel)
+    {
+        if (steeringWheel == null)
+            throw new ArgumentNullException(nameof(steeringWheel));
+
+        SteeringWheel = steeringWheel;
+    }
+
     public KartPart GetInstalledPart(PartType type)
     {
         switch (type)
@@ -68,6 +79,9 @@ public class RuntimeKartConfiguration
 
             case PartType.AeroKit:
                 return AeroKit;
+
+            case PartType.SteeringWheel:
+                return SteeringWheel;
 
             default:
                 return null;

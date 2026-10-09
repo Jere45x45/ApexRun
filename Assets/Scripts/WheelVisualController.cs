@@ -2,42 +2,66 @@
 
 public class WheelVisualController
 {
-    private readonly WheelCollider frontLeftWheel;
-    private readonly WheelCollider frontRightWheel;
-    private readonly WheelCollider rearLeftWheel;
-    private readonly WheelCollider rearRightWheel;
+    private readonly WheelPhysics frontLeftWheel;
+    private readonly WheelPhysics frontRightWheel;
+    private readonly WheelPhysics rearLeftWheel;
+    private readonly WheelPhysics rearRightWheel;
 
-    private readonly Transform frontLeftMesh;
-    private readonly Transform frontRightMesh;
-    private readonly Transform rearLeftMesh;
-    private readonly Transform rearRightMesh;
+    private readonly ModelSlot frontLeftModelSlot;
+    private readonly ModelSlot frontRightModelSlot;
+    private readonly ModelSlot rearLeftModelSlot;
+    private readonly ModelSlot rearRightModelSlot;
 
-    public WheelVisualController(KartPhysics physics)
+    private static readonly Quaternion LeftWheelRotationOffset =
+        Quaternion.Euler(0f, 180f, 0f);
+
+    public WheelVisualController(
+        KartPhysics physics,
+        ModelSlot frontLeftModelSlot,
+        ModelSlot frontRightModelSlot,
+        ModelSlot rearLeftModelSlot,
+        ModelSlot rearRightModelSlot)
     {
         frontLeftWheel = physics.FrontLeftWheel;
         frontRightWheel = physics.FrontRightWheel;
         rearLeftWheel = physics.RearLeftWheel;
         rearRightWheel = physics.RearRightWheel;
-        
-        frontLeftMesh = physics.FrontLeftMesh;
-        frontRightMesh = physics.FrontRightMesh;
-        rearLeftMesh = physics.RearLeftMesh;
-        rearRightMesh = physics.RearRightMesh;
+
+        this.frontLeftModelSlot = frontLeftModelSlot;
+        this.frontRightModelSlot = frontRightModelSlot;
+        this.rearLeftModelSlot = rearLeftModelSlot;
+        this.rearRightModelSlot = rearRightModelSlot;
     }
 
     public void UpdateVisuals()
     {
-        UpdateWheel(frontLeftWheel, frontLeftMesh);
-        UpdateWheel(frontRightWheel, frontRightMesh);
-        UpdateWheel(rearLeftWheel, rearLeftMesh);
-        UpdateWheel(rearRightWheel, rearRightMesh);
+        UpdateWheel(frontLeftWheel, frontLeftModelSlot, LeftWheelRotationOffset);
+        UpdateWheel(frontRightWheel, frontRightModelSlot, Quaternion.identity);
+        UpdateWheel(rearLeftWheel, rearLeftModelSlot, LeftWheelRotationOffset);
+        UpdateWheel(rearRightWheel, rearRightModelSlot, Quaternion.identity);
     }
 
-    private void UpdateWheel(WheelCollider wheel, Transform mesh)
+    private void UpdateWheel(
+        WheelPhysics wheel,
+        ModelSlot modelSlot,
+        Quaternion rotationOffset)
     {
-        wheel.GetWorldPose(out Vector3 position, out Quaternion rotation);
+        if (wheel == null || modelSlot == null)
+            return;
 
-        mesh.position = position;
-        mesh.rotation = rotation;
+        GameObject visual = modelSlot.CurrentInstance;
+
+        if (visual == null)
+            return;
+
+        wheel.GetVisualPose(
+            out Vector3 position,
+            out Quaternion rotation
+        );
+
+        visual.transform.SetPositionAndRotation(
+            position,
+            rotation * rotationOffset
+        );
     }
 }

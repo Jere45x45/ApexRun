@@ -1,40 +1,106 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public class KartPhysics
 {
     public Rigidbody Rigidbody { get; }
 
-    public WheelCollider FrontLeftWheel { get; }
-    public WheelCollider FrontRightWheel { get; }
-    public WheelCollider RearLeftWheel { get; }
-    public WheelCollider RearRightWheel { get; }
+    public WheelPhysics FrontLeftWheel { get; }
+    public WheelPhysics FrontRightWheel { get; }
+    public WheelPhysics RearLeftWheel { get; }
+    public WheelPhysics RearRightWheel { get; }
 
-    public Transform FrontLeftMesh { get; }
-    public Transform FrontRightMesh { get; }
-    public Transform RearLeftMesh { get; }
-    public Transform RearRightMesh { get; }
+    public WheelPhysics[] Wheels { get; }
 
     public KartPhysics(
         Rigidbody rigidbody,
-        WheelCollider frontLeft,
-        WheelCollider frontRight,
-        WheelCollider rearLeft,
-        WheelCollider rearRight,
-        Transform frontLeftMesh,
-        Transform frontRightMesh,
-        Transform rearLeftMesh,
-        Transform rearRightMesh)
+        WheelCollider frontLeftCollider,
+        WheelCollider frontRightCollider,
+        WheelCollider rearLeftCollider,
+        WheelCollider rearRightCollider)
     {
+        if (rigidbody == null)
+            throw new ArgumentNullException(nameof(rigidbody));
+
+        if (frontLeftCollider == null)
+            throw new ArgumentNullException(nameof(frontLeftCollider));
+
+        if (frontRightCollider == null)
+            throw new ArgumentNullException(nameof(frontRightCollider));
+
+        if (rearLeftCollider == null)
+            throw new ArgumentNullException(nameof(rearLeftCollider));
+
+        if (rearRightCollider == null)
+            throw new ArgumentNullException(nameof(rearRightCollider));
+
         Rigidbody = rigidbody;
 
-        FrontLeftWheel = frontLeft;
-        FrontRightWheel = frontRight;
-        RearLeftWheel = rearLeft;
-        RearRightWheel = rearRight;
+        FrontLeftWheel = new WheelPhysics(rigidbody, frontLeftCollider);
+        FrontRightWheel = new WheelPhysics(rigidbody, frontRightCollider);
+        RearLeftWheel = new WheelPhysics(rigidbody, rearLeftCollider);
+        RearRightWheel = new WheelPhysics(rigidbody, rearRightCollider);
 
-        FrontLeftMesh = frontLeftMesh;
-        FrontRightMesh = frontRightMesh;
-        RearLeftMesh = rearLeftMesh;
-        RearRightMesh = rearRightMesh;
+        Wheels = new[]
+        {
+            FrontLeftWheel,
+            FrontRightWheel,
+            RearLeftWheel,
+            RearRightWheel
+        };
+    }
+
+    public void Configure(KartStats stats)
+    {
+        if (stats == null)
+            throw new ArgumentNullException(nameof(stats));
+
+        FrontLeftWheel.Configure(
+            stats.wheelRadius,
+            stats.suspensionDistance,
+            stats.springRate,
+            stats.damperRate,
+            stats.suspensionTargetPosition,
+            stats.frontForwardFriction,
+            stats.frontSidewaysFriction
+        );
+
+        FrontRightWheel.Configure(
+            stats.wheelRadius,
+            stats.suspensionDistance,
+            stats.springRate,
+            stats.damperRate,
+            stats.suspensionTargetPosition,
+            stats.frontForwardFriction,
+            stats.frontSidewaysFriction
+        );
+
+        RearLeftWheel.Configure(
+            stats.wheelRadius,
+            stats.suspensionDistance,
+            stats.springRate,
+            stats.damperRate,
+            stats.suspensionTargetPosition,
+            stats.rearForwardFriction,
+            stats.rearSidewaysFriction
+        );
+
+        RearRightWheel.Configure(
+            stats.wheelRadius,
+            stats.suspensionDistance,
+            stats.springRate,
+            stats.damperRate,
+            stats.suspensionTargetPosition,
+            stats.rearForwardFriction,
+            stats.rearSidewaysFriction
+        );
+    }
+
+    public void UpdateWheels(float deltaTime)
+    {
+        FrontLeftWheel.Update(deltaTime);
+        FrontRightWheel.Update(deltaTime);
+        RearLeftWheel.Update(deltaTime);
+        RearRightWheel.Update(deltaTime);
     }
 }

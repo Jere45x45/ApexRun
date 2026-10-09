@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 public static class KartBuilder
 {
@@ -31,6 +31,11 @@ public static class KartBuilder
         if (configuration.AeroKit != null)
         {
             configuration.AeroKit.Apply(stats);
+        }
+
+        if (configuration.SteeringWheel != null)
+        {
+            configuration.SteeringWheel.Apply(stats);
         }
 
         return stats;

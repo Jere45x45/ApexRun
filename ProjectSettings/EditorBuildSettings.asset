@@ -4,7 +4,19 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/Inicio.unity
+    guid: 4b849803a2291cb4095c6c9ed98c97e0
+  - enabled: 1
+    path: Assets/Scenes/Catalog.unity
+    guid: 2780efc846ec67240b6006511298d095
+  - enabled: 1
+    path: Assets/Scenes/Race.unity
+    guid: b2afb2066ecab7d449b893b3676ea9d1
+  - enabled: 1
+    path: Assets/Scenes/Pruebas/PruebaRed.unity
+    guid: 3508a46abd56bc24ea7b3563f5ceff07
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f,
       type: 2}

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -15,6 +16,17 @@ public class CatalogController : MonoBehaviour
 
     public KartConfigurationController ConfigurationController =>
         configurationController;
+
+    /// <summary>Cambiaron las piezas instaladas en el kart del Catálogo.</summary>
+    public event Action LoadoutChanged;
+
+    private void Start()
+    {
+        // El kart del Catálogo arranca con lo que el jugador eligió la última vez.
+        KartLoadoutStore.Apply(configurationController, catalog);
+
+        LoadoutChanged?.Invoke();
+    }
 
     public IEnumerable<KartPart> GetParts(PartType type)
     {
@@ -77,6 +89,11 @@ public class CatalogController : MonoBehaviour
         }
 
         configurationController.InstallPart(part);
+
+        // Lo elegido pasa a la carrera y queda guardado para la próxima vez.
+        KartLoadoutStore.Save(configurationController);
+
+        LoadoutChanged?.Invoke();
     }
 
     public KartPart GetInstalledPart(PartType type)

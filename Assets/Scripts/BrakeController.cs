@@ -2,26 +2,52 @@
 
 public class BrakeController
 {
-    private readonly WheelCollider frontLeftWheel;
-    private readonly WheelCollider frontRightWheel;
-    private readonly WheelCollider rearLeftWheel;
-    private readonly WheelCollider rearRightWheel;
-    
+    private readonly WheelPhysics frontLeftWheel;
+    private readonly WheelPhysics frontRightWheel;
+    private readonly WheelPhysics rearLeftWheel;
+    private readonly WheelPhysics rearRightWheel;
+
     public BrakeController(KartPhysics physics)
     {
-        frontLeftWheel = physics.FrontLeftWheel;
-        frontRightWheel = physics.FrontRightWheel;
-        rearLeftWheel = physics.RearLeftWheel;
-        rearRightWheel = physics.RearRightWheel;
+        frontLeftWheel =
+            physics.FrontLeftWheel;
+
+        frontRightWheel =
+            physics.FrontRightWheel;
+
+        rearLeftWheel =
+            physics.RearLeftWheel;
+
+        rearRightWheel =
+            physics.RearRightWheel;
     }
 
-    public void UpdateBrakes(bool braking, KartStats stats)
+    public void UpdateBrakes(
+        bool braking,
+        KartStats stats)
     {
-        float brakeTorque = braking ? stats.brakeTorque : 0f;
+        if (stats == null)
+            return;
 
-        frontLeftWheel.brakeTorque = brakeTorque;
-        frontRightWheel.brakeTorque = brakeTorque;
-        rearLeftWheel.brakeTorque = brakeTorque;
-        rearRightWheel.brakeTorque = brakeTorque;
+        float brakeTorque =
+            braking
+                ? stats.brakeTorque
+                : 0f;
+
+        frontLeftWheel.SetBrakeTorque(
+            brakeTorque
+        );
+
+        frontRightWheel.SetBrakeTorque(
+            brakeTorque
+        );
+
+        rearLeftWheel.SetBrakeTorque(
+            brakeTorque
+        );
+
+        rearRightWheel.SetBrakeTorque(
+            brakeTorque
+        );
     }
 }
