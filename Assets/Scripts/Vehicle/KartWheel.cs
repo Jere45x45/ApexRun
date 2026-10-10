@@ -209,6 +209,11 @@ public class KartWheel
             if (ground.attachedRigidbody == body)
                 continue;
 
+            // Capas que no chocan entre sí (Physics → Layer Collision Matrix), por
+            // ejemplo los bots de entrenamiento: tampoco se apoyan uno sobre otro.
+            if (Physics.GetIgnoreLayerCollision(body.gameObject.layer, ground.gameObject.layer))
+                continue;
+
             bool touching = Physics.ComputePenetration(
                 tireCollider,
                 center,
