@@ -1,0 +1,65 @@
+{
+    "ApexBot": {
+        "checkpoints": [
+            {
+                "steps": 2010,
+                "file_path": "results\\ApexKartoki\\ApexBot\\ApexBot-2010.onnx",
+                "reward": -2.476028014873636,
+                "creation_time": 1790615962.0625315,
+                "auxillary_file_paths": [
+                    "results\\ApexKartoki\\ApexBot\\ApexBot-2010.pt"
+                ]
+            },
+            {
+                "steps": 6437,
+                "file_path": "results\\ApexKartoki\\ApexBot\\ApexBot-6437.onnx",
+                "reward": -2.9748136191300945,
+                "creation_time": 1790785628.9588125,
+                "auxillary_file_paths": [
+                    "results\\ApexKartoki\\ApexBot\\ApexBot-6437.pt"
+                ]
+            },
+            {
+                "steps": 41523,
+                "file_path": "results\\ApexKartoki\\ApexBot\\ApexBot-41523.onnx",
+                "reward": 0.9087536070081923,
+                "creation_time": 1790787769.0468254,
+                "auxillary_file_paths": [
+                    "results\\ApexKartoki\\ApexBot\\ApexBot-41523.pt"
+                ]
+            },
+            {
+                "steps": 52394,
+                "file_path": "results\\ApexKartoki\\ApexBot\\ApexBot-52394.onnx",
+                "reward": 1.9676648179690044,
+                "creation_time": 1790788574.1953824,
+                "auxillary_file_paths": [
+                    "results\\ApexKartoki\\ApexBot\\ApexBot-52394.pt"
+                ]
+            },
+            {
+                "steps": 55956,
+                "file_path": "results\\ApexKartoki\\ApexBot\\ApexBot-55956.onnx",
+                "reward": 1.694833666086197,
+                "creation_time": 1790789112.1799824,
+                "auxillary_file_paths": [
+                    "results\\ApexKartoki\\ApexBot\\ApexBot-55956.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 55956,
+            "file_path": "results\\ApexKartoki\\ApexBot.onnx",
+            "reward": 1.694833666086197,
+            "creation_time": 1790789112.1799824,
+            "auxillary_file_paths": [
+                "results\\ApexKartoki\\ApexBot\\ApexBot-55956.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.1.0",
+        "torch_version": "2.2.2+cpu"
+    }
+}
