@@ -5215,6 +5215,68 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1543388104}
   m_CullTransparentMesh: 1
+--- !u!1 &1558198772
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1558198774}
+  - component: {fileID: 1558198773}
+  m_Layer: 0
+  m_Name: Clima
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1558198773
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1558198772}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6634f0d976382284aaffd19871cc920e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RainEffect
+  dropMaterial: {fileID: 10308, guid: 0000000000000000f000000000000000, type: 0}
+  maxDropsPerSecond: 4500
+  dropSpeed: 20
+  areaSize: {x: 36, y: 1, z: 36}
+  areaOffset: {x: 0, y: 14, z: 8}
+  dropColor: {r: 0.82, g: 0.86, b: 0.92, a: 0.6}
+  dropWidth: 0.05
+  streakLength: 0.06
+  fullOvercastAt: 0.5
+  sunIntensity: 0.35
+  sunTint: {r: 0.75, g: 0.8, b: 0.9, a: 1}
+  shadowStrength: 0.25
+  ambientIntensity: 0.6
+  skyExposure: 0.3
+  skyTint: {r: 0.36, g: 0.38, b: 0.41, a: 1}
+  fogDensity: 0.006
+  fogColor: {r: 0.52, g: 0.55, b: 0.6, a: 1}
+  smoothing: 0.5
+--- !u!4 &1558198774
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1558198772}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1589316641
 GameObject:
   m_ObjectHideFlags: 0
@@ -5859,6 +5921,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1807600803}
   - component: {fileID: 1807600804}
+  - component: {fileID: 1807600805}
+  - component: {fileID: 1807600806}
   m_Layer: 0
   m_Name: RaceSystems
   m_TagString: Untagged
@@ -5920,6 +5984,45 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
+--- !u!114 &1807600805
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1807600802}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b5201045fd73bd438def6c7235bebbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RaceWeather
+  ShowTopMostFoldoutHeaderGroup: 1
+  raceManager: {fileID: 380512989}
+  lapManager: {fileID: 248337712}
+  dryWeight: 45
+  rainWeight: 15
+  rainStopsWeight: 20
+  rainStartsWeight: 20
+  rainIntensityRange: {x: 0.6, y: 1}
+  rainRampTime: 20
+  wettingTime: 40
+  dryingTime: 90
+  extraDelayRange: {x: 0, y: 30}
+  singleLapChangeTime: {x: 30, y: 70}
+--- !u!114 &1807600806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1807600802}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b2f5e6527e8dc549999d64a30590073, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RaceSetupSync
+  ShowTopMostFoldoutHeaderGroup: 1
+  lapManager: {fileID: 248337712}
 --- !u!1 &1835785122
 GameObject:
   m_ObjectHideFlags: 0
@@ -7930,3 +8033,4 @@ SceneRoots:
   - {fileID: 1882873573}
   - {fileID: 1608089985}
   - {fileID: 1147469653}
+  - {fileID: 1558198774}
