@@ -8,8 +8,9 @@ using UnityEngine.UI;
 ///   confirmar arranca la partida local y va al Catálogo.
 /// - Multijugador: nombre del jugador, Crear partida (primero la configuración
 ///   de la carrera; después muestra el código para pasarles a los demás) o
-///   Unirse con código. En la sala se ve quién entró; el anfitrión aprieta
-///   Empezar y van todos al Catálogo.
+///   Unirse (JoinServerMenuUI: con el código o eligiendo de la lista de
+///   servidores). En la sala se ve quién entró; el anfitrión aprieta Empezar
+///   y van todos al Catálogo.
 /// - Abajo, un mensaje de estado (conectando, errores, conexión perdida).
 /// </summary>
 public class SessionMenuUI : MonoBehaviour
@@ -18,6 +19,9 @@ public class SessionMenuUI : MonoBehaviour
 
     [Tooltip("Configuración de la carrera. Sin ella, Un jugador y Crear partida arrancan directo.")]
     [SerializeField] private RaceSetupMenuUI raceSetup;
+
+    [Tooltip("Pantalla para unirse (código y lista de servidores). Sin ella, Unirse abre la caja del código.")]
+    [SerializeField] private JoinServerMenuUI joinServer;
 
     [Header("Menú principal")]
     [SerializeField] private Button singlePlayerButton;
@@ -81,7 +85,15 @@ public class SessionMenuUI : MonoBehaviour
             else
                 HandleCreate();
         });
-        joinButton.onClick.AddListener(() => ShowJoinBox(true));
+        joinButton.onClick.AddListener(() =>
+        {
+            SaveName();
+
+            if (joinServer != null)
+                joinServer.Open();
+            else
+                ShowJoinBox(true);
+        });
         backButton.onClick.AddListener(() => menuManager.Show(MenuPanel.Main));
         joinConfirmButton.onClick.AddListener(HandleJoin);
         joinCancelButton.onClick.AddListener(() => ShowJoinBox(false));
@@ -129,6 +141,34 @@ public class SessionMenuUI : MonoBehaviour
 
     /// <summary>La configuración de la carrera confirmó Crear servidor.</summary>
     public void CreateFromSetup() => HandleCreate();
+
+    /// <summary>La pantalla de Unirse eligió entrar con un código.</summary>
+    public async void JoinByCode(string code)
+    {
+        SetStatus("Uniéndose...");
+
+        string error = await Session.JoinSessionAsync(code, nameInput.text);
+
+        SetStatus(error);
+        Refresh();
+    }
+
+    /// <summary>La pantalla de Unirse eligió una partida de la lista.</summary>
+    public async void JoinById(string sessionId)
+    {
+        SetStatus("Uniéndose...");
+
+        string error = await Session.JoinSessionByIdAsync(sessionId, nameInput.text);
+
+        SetStatus(error);
+        Refresh();
+    }
+
+    /// <summary>Nombre que escribió el jugador (para buscar partidas con su cuenta).</summary>
+    public string PlayerName => nameInput.text;
+
+    /// <summary>Muestra un mensaje abajo (null lo borra).</summary>
+    public void ShowStatus(string message) => SetStatus(message);
 
     private void HandleSinglePlayer()
     {
