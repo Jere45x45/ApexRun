@@ -15,6 +15,12 @@ using UnityEngine;
 ///   propio, y en el host también los bots) y los apaga cuando ese kart
 ///   termina.
 /// Un jugador es lo mismo con un host local y un solo kart.
+///
+/// Pausa (solo en un jugador, ver RacePauseMenu): la hora del servidor sigue
+/// corriendo aunque el juego esté pausado, así que la carrera usa su propio
+/// reloj (Now) que se queda quieto en la pausa. Al reanudar, la largada (y
+/// con ella el cronómetro y la cuenta regresiva) se corre lo que duró la
+/// pausa, así el tiempo pausado no cuenta.
 /// </summary>
 public class RaceManager : NetworkBehaviour
 {
@@ -58,6 +64,9 @@ public class RaceManager : NetworkBehaviour
     // Servidor: jugadores con la carrera cargada y su kart listo.
     private readonly HashSet<ulong> readyClients = new HashSet<ulong>();
 
+    // Hora del servidor en que se pausó, o -1 si no está en pausa.
+    private double pausedAt = -1.0;
+
     private RaceState currentState = RaceState.Waiting;
     private float countdownTimer;
     private float waitingSince;
@@ -72,6 +81,20 @@ public class RaceManager : NetworkBehaviour
 
     /// <summary>Hora del servidor en que se larga.</summary>
     public double StartServerTime => startServerTime.Value;
+
+    /// <summary>True mientras la carrera está en pausa.</summary>
+    public bool IsPaused => pausedAt >= 0.0;
+
+    /// <summary>
+    /// Hora de la carrera: la del servidor, pero quieta mientras está en pausa.
+    /// Se compara con StartServerTime (cronómetro, vueltas, cuenta regresiva).
+    /// </summary>
+    public double Now => IsPaused ? pausedAt : ServerNow;
+
+    private double ServerNow => NetworkManager != null && NetworkManager.IsListening ? NetworkManager.ServerTime.Time : Time.timeAsDouble;
+
+    /// <summary>Al reanudar: cuántos segundos duró la pausa (para correr los tiempos guardados).</summary>
+    public event Action<double> ClockShifted;
 
     public event Action<RaceState> StateChanged;
 
@@ -146,7 +169,7 @@ public class RaceManager : NetworkBehaviour
 
         if (currentState == RaceState.Countdown)
         {
-            countdownTimer = Mathf.Max(0f, (float)(startServerTime.Value - NetworkManager.ServerTime.Time));
+            countdownTimer = Mathf.Max(0f, (float)(startServerTime.Value - Now));
 
             if (countdownTimer <= 0f)
                 StartRaceLocally();
@@ -162,6 +185,30 @@ public class RaceManager : NetworkBehaviour
         networkState.Value = RaceState.Countdown;
 
         ApplyNetworkState(RaceState.Countdown);
+    }
+
+    /// <summary>Congela el reloj de la carrera. Solo el servidor (lo usa la pausa de un jugador).</summary>
+    public void PauseClock()
+    {
+        if (!IsServer || IsPaused)
+            return;
+
+        pausedAt = ServerNow;
+    }
+
+    /// <summary>Vuelve a andar el reloj: la largada se corre lo que duró la pausa.</summary>
+    public void ResumeClock()
+    {
+        if (!IsServer || !IsPaused)
+            return;
+
+        double pausedFor = Math.Max(0.0, ServerNow - pausedAt);
+        pausedAt = -1.0;
+
+        if (currentState == RaceState.Countdown || currentState == RaceState.Racing)
+            startServerTime.Value += pausedFor;
+
+        ClockShifted?.Invoke(pausedFor);
     }
 
     /// <summary>Termina la carrera para todos. Solo el servidor.</summary>
