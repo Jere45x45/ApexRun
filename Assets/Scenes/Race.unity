@@ -5243,7 +5243,62 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6634f0d976382284aaffd19871cc920e, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RainEffect
+  m_EditorClassIdentifier: Assembly-CSharp::WeatherVisuals
+  morning:
+    sunElevation: 22
+    sunYawOffset: -70
+    sunColor: {r: 1, g: 0.9, b: 0.78, a: 1}
+    sunIntensity: 0.95
+    skyExposure: 1.15
+    skyTint: {r: 0.5, g: 0.52, b: 0.56, a: 1}
+    ambient: 1
+    fogColor: {r: 0.75, g: 0.76, b: 0.78, a: 1}
+    dropBrightness: 1
+  noon:
+    sunElevation: 50
+    sunYawOffset: 0
+    sunColor: {r: 1, g: 0.957, b: 0.839, a: 1}
+    sunIntensity: 1
+    skyExposure: 1.3
+    skyTint: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    ambient: 1
+    fogColor: {r: 0.62, g: 0.66, b: 0.72, a: 1}
+    dropBrightness: 1
+  sunset:
+    sunElevation: 7
+    sunYawOffset: 70
+    sunColor: {r: 1, g: 0.55, b: 0.3, a: 1}
+    sunIntensity: 0.85
+    skyExposure: 1.05
+    skyTint: {r: 0.55, g: 0.45, b: 0.4, a: 1}
+    ambient: 1
+    fogColor: {r: 0.62, g: 0.5, b: 0.45, a: 1}
+    dropBrightness: 0.8
+  night:
+    sunElevation: 40
+    sunYawOffset: 150
+    sunColor: {r: 0.55, g: 0.65, b: 0.95, a: 1}
+    sunIntensity: 0.28
+    skyExposure: 0.07
+    skyTint: {r: 0.2, g: 0.25, b: 0.4, a: 1}
+    ambient: 3
+    fogColor: {r: 0.08, g: 0.1, b: 0.15, a: 1}
+    dropBrightness: 0.35
+  fullOvercastAt: 0.5
+  cloudyCover: 0.8
+  rainyDayCover: 0.35
+  overcastSun: 0.35
+  overcastShadows: 0.25
+  overcastAmbient: 0.65
+  overcastSky: 0.35
+  overcastSkyTint: {r: 0.36, g: 0.38, b: 0.41, a: 1}
+  lightFogDensity: 0.008
+  denseFogDensity: 0.02
+  rainHaze: 0.006
+  stormDarkness: 0.6
+  lightningInterval: {x: 5, y: 14}
+  lightningSun: 2.5
+  lightningAmbient: 1.2
   dropMaterial: {fileID: 10308, guid: 0000000000000000f000000000000000, type: 0}
   maxDropsPerSecond: 4500
   dropSpeed: 20
@@ -5252,15 +5307,6 @@ MonoBehaviour:
   dropColor: {r: 0.82, g: 0.86, b: 0.92, a: 0.6}
   dropWidth: 0.05
   streakLength: 0.06
-  fullOvercastAt: 0.5
-  sunIntensity: 0.35
-  sunTint: {r: 0.75, g: 0.8, b: 0.9, a: 1}
-  shadowStrength: 0.25
-  ambientIntensity: 0.6
-  skyExposure: 0.3
-  skyTint: {r: 0.36, g: 0.38, b: 0.41, a: 1}
-  fogDensity: 0.006
-  fogColor: {r: 0.52, g: 0.55, b: 0.6, a: 1}
   smoothing: 0.5
 --- !u!4 &1558198774
 Transform:
@@ -5999,10 +6045,19 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   raceManager: {fileID: 380512989}
   lapManager: {fileID: 248337712}
-  dryWeight: 45
+  clearWeight: 30
+  cloudyWeight: 20
   rainWeight: 15
+  stormWeight: 6
   rainStopsWeight: 20
   rainStartsWeight: 20
+  morningWeight: 25
+  noonWeight: 35
+  sunsetWeight: 25
+  nightWeight: 15
+  noFogWeight: 70
+  lightFogWeight: 20
+  denseFogWeight: 10
   rainIntensityRange: {x: 0.6, y: 1}
   rainRampTime: 20
   wettingTime: 40

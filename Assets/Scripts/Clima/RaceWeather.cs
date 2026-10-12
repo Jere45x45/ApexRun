@@ -3,18 +3,23 @@ using UnityEngine;
 
 /// <summary>
 /// Clima de la carrera. Lo decide el servidor y lo reciben todos, así cada
-/// computadora ve la misma lluvia y maneja con la misma pista mojada.
+/// computadora ve el mismo cielo y maneja con la misma pista mojada.
 ///
-/// - Al aparecer, el servidor arma el guion: el que eligió el anfitrión en el
-///   menú (WeatherChoiceStore) o uno al azar según los pesos.
+/// - Al aparecer, el servidor arma el guion con lo que eligió el anfitrión en
+///   el menú (WeatherChoiceStore), sorteando lo que esté "al azar" según los
+///   pesos: el cielo (despejado, nublado, lluvia, tormenta, lluvia que para,
+///   se larga a llover), la hora (mañana, mediodía, atardecer, noche) y la
+///   niebla (sin, leve, densa). La hora y la niebla no cambian en la carrera.
 /// - "Lluvia que para" y "Se larga a llover" cambian una sola vez: después de
 ///   que el primero completa una vuelta sorteada (entre la 1 y la anteúltima)
 ///   y unos segundos más. En una carrera de una vuelta, a los segundos de largar.
 /// - La lluvia sube y baja de a poco (rainRampTime). La pista se moja con la
 ///   lluvia (wettingTime) y se seca más despacio cuando para (dryingTime).
-/// - Publica la lluvia y la humedad de la pista (0 a 1). En cada computadora
-///   las pasa a TrackConditions: KartWheel saca el agarre de ahí y
-///   RainEffect dibuja la lluvia.
+/// - La tormenta es lluvia fuerte (1) toda la carrera; los relámpagos los
+///   dibuja cada computadora (WeatherVisuals).
+/// - Publica el cielo, la hora, la niebla, la lluvia y la humedad de la pista.
+///   En cada computadora los pasa a TrackConditions: KartWheel saca el agarre
+///   de ahí y WeatherVisuals dibuja el cielo, la luz, la niebla y la lluvia.
 /// </summary>
 public class RaceWeather : NetworkBehaviour
 {
@@ -24,11 +29,24 @@ public class RaceWeather : NetworkBehaviour
     [SerializeField] private RaceManager raceManager;
     [SerializeField] private RaceLapManager lapManager;
 
-    [Header("Al azar: probabilidad de cada clima (pesos)")]
-    [SerializeField, Min(0f)] private float dryWeight = 45f;
-    [SerializeField, Min(0f)] private float rainWeight = 15f;
-    [SerializeField, Min(0f)] private float rainStopsWeight = 20f;
-    [SerializeField, Min(0f)] private float rainStartsWeight = 20f;
+    [Header("Al azar: probabilidad de cada cielo (pesos)")]
+    [SerializeField, Min(0f)] private float clearWeight = 30f;
+    [SerializeField, Min(0f)] private float cloudyWeight = 20f;
+    [SerializeField, Min(0f)] private float rainWeight = 12f;
+    [SerializeField, Min(0f)] private float stormWeight = 6f;
+    [SerializeField, Min(0f)] private float rainStopsWeight = 16f;
+    [SerializeField, Min(0f)] private float rainStartsWeight = 16f;
+
+    [Header("Al azar: probabilidad de cada hora (pesos)")]
+    [SerializeField, Min(0f)] private float morningWeight = 25f;
+    [SerializeField, Min(0f)] private float noonWeight = 35f;
+    [SerializeField, Min(0f)] private float sunsetWeight = 25f;
+    [SerializeField, Min(0f)] private float nightWeight = 15f;
+
+    [Header("Al azar: probabilidad de niebla (pesos)")]
+    [SerializeField, Min(0f)] private float noFogWeight = 70f;
+    [SerializeField, Min(0f)] private float lightFogWeight = 20f;
+    [SerializeField, Min(0f)] private float denseFogWeight = 10f;
 
     [Header("Lluvia")]
     [Tooltip("Qué tan fuerte llueve: se sortea entre estos dos valores (1 = lluvia fuerte).")]
@@ -53,7 +71,11 @@ public class RaceWeather : NetworkBehaviour
     private const float PublishInterval = 0.25f;
 
     private readonly NetworkVariable<WeatherScenario> scenario =
-        new NetworkVariable<WeatherScenario>(WeatherScenario.Dry);
+        new NetworkVariable<WeatherScenario>(WeatherScenario.Clear);
+
+    private readonly NetworkVariable<TimeOfDay> timeOfDay = new NetworkVariable<TimeOfDay>(TimeOfDay.Noon);
+
+    private readonly NetworkVariable<FogLevel> fog = new NetworkVariable<FogLevel>(FogLevel.None);
 
     private readonly NetworkVariable<float> rain = new NetworkVariable<float>(0f);
 
@@ -76,6 +98,10 @@ public class RaceWeather : NetworkBehaviour
     private float nextPublish;
 
     public WeatherScenario Scenario => scenario.Value;
+
+    public TimeOfDay TimeOfDay => timeOfDay.Value;
+
+    public FogLevel Fog => fog.Value;
 
     /// <summary>Cuánto llueve ahora (0 a 1).</summary>
     public float Rain => TrackConditions.Rain;
@@ -120,12 +146,26 @@ public class RaceWeather : NetworkBehaviour
         WeatherChoice choice = WeatherChoiceStore.Current;
 
         WeatherScenario chosen = choice == WeatherChoice.Random
-            ? PickRandom()
+            ? (WeatherScenario)Pick(clearWeight, cloudyWeight, rainWeight, stormWeight, rainStopsWeight, rainStartsWeight)
             : (WeatherScenario)((int)choice - 1);
 
-        intensity = Random.Range(rainIntensityRange.x, rainIntensityRange.y);
+        TimeOfDayChoice timeChoice = WeatherChoiceStore.Time;
 
-        bool startsRaining = chosen == WeatherScenario.Rain || chosen == WeatherScenario.RainStops;
+        TimeOfDay chosenTime = timeChoice == TimeOfDayChoice.Random
+            ? (TimeOfDay)Pick(morningWeight, noonWeight, sunsetWeight, nightWeight)
+            : (TimeOfDay)((int)timeChoice - 1);
+
+        FogChoice fogChoice = WeatherChoiceStore.Fog;
+
+        FogLevel chosenFog = fogChoice == FogChoice.Random
+            ? (FogLevel)Pick(noFogWeight, lightFogWeight, denseFogWeight)
+            : (FogLevel)((int)fogChoice - 1);
+
+        // La tormenta siempre llueve fuerte.
+        intensity = chosen == WeatherScenario.Storm ? 1f : Random.Range(rainIntensityRange.x, rainIntensityRange.y);
+
+        bool startsRaining = chosen == WeatherScenario.Rain || chosen == WeatherScenario.Storm ||
+                             chosen == WeatherScenario.RainStops;
 
         rainNow = rainTarget = startsRaining ? intensity : 0f;
         wetNow = startsRaining ? 1f : 0f;
@@ -147,6 +187,8 @@ public class RaceWeather : NetworkBehaviour
             lapManager.LapCompleted += HandleLapCompleted;
 
         scenario.Value = chosen;
+        timeOfDay.Value = chosenTime;
+        fog.Value = chosenFog;
         Publish();
 
         string when = chosen == WeatherScenario.RainStops || chosen == WeatherScenario.RainStarts
@@ -155,23 +197,34 @@ public class RaceWeather : NetworkBehaviour
                 : $" (cambia a los {changeDelay:0} s de la largada)"
             : "";
 
-        Debug.Log($"CLIMA: {WeatherChoiceStore.Label(chosen)}, elegido: {WeatherChoiceStore.Label(choice)}, " +
+        Debug.Log($"CLIMA: {WeatherChoiceStore.Label(chosen)}, {WeatherChoiceStore.Label(chosenTime)}, " +
+                  $"{WeatherChoiceStore.Label(chosenFog)} (elegido: {WeatherChoiceStore.Label(choice)} / " +
+                  $"{WeatherChoiceStore.Label(timeChoice)} / {WeatherChoiceStore.Label(fogChoice)}), " +
                   $"fuerza de la lluvia {intensity:0.00}{when}.", this);
     }
 
-    private WeatherScenario PickRandom()
+    /// <summary>Sortea una opción según sus pesos (devuelve el índice).</summary>
+    private static int Pick(params float[] weights)
     {
-        float total = dryWeight + rainWeight + rainStopsWeight + rainStartsWeight;
+        float total = 0f;
+
+        foreach (float weight in weights)
+            total += weight;
 
         if (total <= 0f)
-            return WeatherScenario.Dry;
+            return 0;
 
         float pick = Random.value * total;
 
-        if ((pick -= dryWeight) < 0f) return WeatherScenario.Dry;
-        if ((pick -= rainWeight) < 0f) return WeatherScenario.Rain;
-        if ((pick -= rainStopsWeight) < 0f) return WeatherScenario.RainStops;
-        return WeatherScenario.RainStarts;
+        for (int i = 0; i < weights.Length; i++)
+        {
+            pick -= weights[i];
+
+            if (pick < 0f)
+                return i;
+        }
+
+        return weights.Length - 1;
     }
 
     private void HandleLapCompleted(Rigidbody kart)
@@ -248,6 +301,10 @@ public class RaceWeather : NetworkBehaviour
         // El servidor usa sus valores al instante; los demás, los que publica.
         TrackConditions.Rain = IsServer ? rainNow : rain.Value;
         TrackConditions.Wetness = IsServer ? wetNow : wetness.Value;
+        TrackConditions.Scenario = scenario.Value;
+        TrackConditions.TimeOfDay = timeOfDay.Value;
+        TrackConditions.Fog = fog.Value;
+        TrackConditions.Active = true;
     }
 
     // ---------- Para probar (clic derecho en el componente, en Play, en el host) ----------

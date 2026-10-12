@@ -6,7 +6,9 @@ using UnityEngine.UI;
 /// Pantalla de configuración de la carrera del menú de Inicio. La abren
 /// Un jugador y Crear servidor; el que crea la partida decide:
 /// - Vueltas (de 1 a 10), con − y +.
-/// - Clima (WeatherChoiceStore), con &lt; y &gt;.
+/// - Clima (despejado, nublado, lluvia, tormenta...), Hora (mañana,
+///   mediodía, atardecer, noche) y Niebla (sin, leve, densa), con &lt; y &gt;.
+///   Cada una puede quedar AL AZAR (WeatherChoiceStore).
 /// - Bots y Pista se ven pero todavía no se pueden cambiar.
 /// Lo elegido queda guardado (RaceSetupStore, WeatherChoiceStore) y lo
 /// aplican en la carrera RaceSetupSync y RaceWeather.
@@ -29,6 +31,16 @@ public class RaceSetupMenuUI : MonoBehaviour
     [SerializeField] private Button weatherNext;
     [SerializeField] private TMP_Text weatherValue;
 
+    [Header("Hora")]
+    [SerializeField] private Button timePrevious;
+    [SerializeField] private Button timeNext;
+    [SerializeField] private TMP_Text timeValue;
+
+    [Header("Niebla")]
+    [SerializeField] private Button fogPrevious;
+    [SerializeField] private Button fogNext;
+    [SerializeField] private TMP_Text fogValue;
+
     [Header("Abajo")]
     [SerializeField] private Button confirmButton;
     [SerializeField] private TMP_Text confirmText;
@@ -41,8 +53,14 @@ public class RaceSetupMenuUI : MonoBehaviour
         lapsMinus.onClick.AddListener(() => ChangeLaps(-1));
         lapsPlus.onClick.AddListener(() => ChangeLaps(+1));
 
-        weatherPrevious.onClick.AddListener(() => ChangeWeather(false));
-        weatherNext.onClick.AddListener(() => ChangeWeather(true));
+        weatherPrevious.onClick.AddListener(() => ChangeWeather(-1));
+        weatherNext.onClick.AddListener(() => ChangeWeather(+1));
+
+        timePrevious.onClick.AddListener(() => ChangeTime(-1));
+        timeNext.onClick.AddListener(() => ChangeTime(+1));
+
+        fogPrevious.onClick.AddListener(() => ChangeFog(-1));
+        fogNext.onClick.AddListener(() => ChangeFog(+1));
 
         confirmButton.onClick.AddListener(Confirm);
         backButton.onClick.AddListener(Back);
@@ -62,10 +80,21 @@ public class RaceSetupMenuUI : MonoBehaviour
         Refresh();
     }
 
-    private void ChangeWeather(bool next)
+    private void ChangeWeather(int direction)
     {
-        WeatherChoice current = WeatherChoiceStore.Current;
-        WeatherChoiceStore.Current = next ? WeatherChoiceStore.Next(current) : WeatherChoiceStore.Previous(current);
+        WeatherChoiceStore.Current = WeatherChoiceStore.Step(WeatherChoiceStore.Current, direction);
+        Refresh();
+    }
+
+    private void ChangeTime(int direction)
+    {
+        WeatherChoiceStore.Time = WeatherChoiceStore.Step(WeatherChoiceStore.Time, direction);
+        Refresh();
+    }
+
+    private void ChangeFog(int direction)
+    {
+        WeatherChoiceStore.Fog = WeatherChoiceStore.Step(WeatherChoiceStore.Fog, direction);
         Refresh();
     }
 
@@ -105,5 +134,7 @@ public class RaceSetupMenuUI : MonoBehaviour
         lapsPlus.interactable = laps < RaceSetupStore.MaxLaps;
 
         weatherValue.text = WeatherChoiceStore.Label(WeatherChoiceStore.Current);
+        timeValue.text = WeatherChoiceStore.Label(WeatherChoiceStore.Time);
+        fogValue.text = WeatherChoiceStore.Label(WeatherChoiceStore.Fog);
     }
 }

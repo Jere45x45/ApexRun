@@ -132,7 +132,7 @@ public class GameSession : MonoBehaviour
                 SessionProperties = new Dictionary<string, SessionProperty>
                 {
                     [LapsProperty] = new SessionProperty(RaceSetupStore.Laps.ToString(), VisibilityPropertyOptions.Public, PropertyIndex.None),
-                    [WeatherProperty] = new SessionProperty(WeatherChoiceStore.Label(WeatherChoiceStore.Current), VisibilityPropertyOptions.Public, PropertyIndex.None)
+                    [WeatherProperty] = new SessionProperty(WeatherChoiceStore.Summary(), VisibilityPropertyOptions.Public, PropertyIndex.None)
                 }
             }
             .WithRelayNetwork()
