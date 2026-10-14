@@ -14,6 +14,16 @@ public class MenuManager : MonoBehaviour
         Show(startPanel);
     }
 
+    /// <summary>Cierra el juego (botón Exit). En el editor, sale de Play.</summary>
+    public void QuitGame()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
+    }
+
     public void Show(MenuPanel panelType)
     {
         foreach (UIPanel panel in panels)
