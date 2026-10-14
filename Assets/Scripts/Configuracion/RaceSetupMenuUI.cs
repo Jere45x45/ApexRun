@@ -9,6 +9,8 @@ using UnityEngine.UI;
 /// - Clima (despejado, nublado, lluvia, tormenta...), Hora (mañana,
 ///   mediodía, atardecer, noche) y Niebla (sin, leve, densa), con &lt; y &gt;.
 ///   Cada una puede quedar AL AZAR (WeatherChoiceStore).
+/// - Partida (solo al crear un servidor): PÚBLICA aparece en la lista de
+///   servidores; PRIVADA no, y se entra solo con el código (RaceSetupStore).
 /// - Bots y Pista se ven pero todavía no se pueden cambiar.
 /// Lo elegido queda guardado (RaceSetupStore, WeatherChoiceStore) y lo
 /// aplican en la carrera RaceSetupSync y RaceWeather.
@@ -41,6 +43,13 @@ public class RaceSetupMenuUI : MonoBehaviour
     [SerializeField] private Button fogNext;
     [SerializeField] private TMP_Text fogValue;
 
+    [Header("Partida (solo Crear servidor)")]
+    [Tooltip("Fila entera: se muestra solo al crear un servidor.")]
+    [SerializeField] private GameObject visibilityRow;
+    [SerializeField] private Button visibilityPrevious;
+    [SerializeField] private Button visibilityNext;
+    [SerializeField] private TMP_Text visibilityValue;
+
     [Header("Abajo")]
     [SerializeField] private Button confirmButton;
     [SerializeField] private TMP_Text confirmText;
@@ -61,6 +70,12 @@ public class RaceSetupMenuUI : MonoBehaviour
 
         fogPrevious.onClick.AddListener(() => ChangeFog(-1));
         fogNext.onClick.AddListener(() => ChangeFog(+1));
+
+        if (visibilityPrevious != null)
+            visibilityPrevious.onClick.AddListener(ToggleVisibility);
+
+        if (visibilityNext != null)
+            visibilityNext.onClick.AddListener(ToggleVisibility);
 
         confirmButton.onClick.AddListener(Confirm);
         backButton.onClick.AddListener(Back);
@@ -95,6 +110,13 @@ public class RaceSetupMenuUI : MonoBehaviour
     private void ChangeFog(int direction)
     {
         WeatherChoiceStore.Fog = WeatherChoiceStore.Step(WeatherChoiceStore.Fog, direction);
+        Refresh();
+    }
+
+    /// <summary>Pública ⇄ privada (solo hay dos, así que &lt; y &gt; hacen lo mismo).</summary>
+    private void ToggleVisibility()
+    {
+        RaceSetupStore.PrivateServer = !RaceSetupStore.PrivateServer;
         Refresh();
     }
 
@@ -136,5 +158,11 @@ public class RaceSetupMenuUI : MonoBehaviour
         weatherValue.text = WeatherChoiceStore.Label(WeatherChoiceStore.Current);
         timeValue.text = WeatherChoiceStore.Label(WeatherChoiceStore.Time);
         fogValue.text = WeatherChoiceStore.Label(WeatherChoiceStore.Fog);
+
+        if (visibilityRow != null)
+            visibilityRow.SetActive(multiplayer);
+
+        if (visibilityValue != null)
+            visibilityValue.text = RaceSetupStore.PrivateServer ? "PRIVADA" : "PÚBLICA";
     }
 }

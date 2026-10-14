@@ -116,9 +116,11 @@ public class GameSession : MonoBehaviour
     // ───────────── Multijugador ─────────────
 
     /// <summary>
-    /// Crea una partida pública por Relay, con el nombre del anfitrión y la
+    /// Crea una partida por Relay, con el nombre del anfitrión y la
     /// configuración elegida (vueltas y clima) para mostrar en la lista de
-    /// servidores. Devuelve null si salió bien, o el error para mostrar.
+    /// servidores. Si el anfitrión la eligió privada (RaceSetupStore.PrivateServer),
+    /// no aparece en la lista y se entra solo con el código.
+    /// Devuelve null si salió bien, o el error para mostrar.
     /// </summary>
     public async Task<string> CreateSessionAsync(string playerName)
     {
@@ -128,7 +130,7 @@ public class GameSession : MonoBehaviour
             {
                 Name = LocalPlayerName,
                 MaxPlayers = maxPlayers,
-                IsPrivate = false,
+                IsPrivate = RaceSetupStore.PrivateServer,
                 SessionProperties = new Dictionary<string, SessionProperty>
                 {
                     [LapsProperty] = new SessionProperty(RaceSetupStore.Laps.ToString(), VisibilityPropertyOptions.Public, PropertyIndex.None),

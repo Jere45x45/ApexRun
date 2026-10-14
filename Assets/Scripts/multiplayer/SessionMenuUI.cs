@@ -49,6 +49,9 @@ public class SessionMenuUI : MonoBehaviour
 
     [SerializeField] private TMP_Text codeText;
 
+    [Tooltip("Título de la sala: dice si la partida es pública o privada (opcional).")]
+    [SerializeField] private TMP_Text lobbyTitleText;
+
     [SerializeField] private Button copyCodeButton;
 
     [SerializeField] private TMP_Text playersText;
@@ -246,6 +249,9 @@ public class SessionMenuUI : MonoBehaviour
         joinBox.SetActive(false);
 
         codeText.text = "CÓDIGO  <b>" + Session.Session.Code + "</b>";
+
+        if (lobbyTitleText != null)
+            lobbyTitleText.text = Session.Session.IsPrivate ? "SALA PRIVADA" : "SALA PÚBLICA";
 
         var names = Session.GetPlayerNames();
         playersText.text = "JUGADORES (" + names.Count + "/" + Session.Session.MaxPlayers + ")\n• " + string.Join("\n• ", names);
