@@ -114,7 +114,10 @@ public class RaceTimingManager : NetworkBehaviour
     private void OnEnable()
     {
         if (raceManager != null)
+        {
             raceManager.RaceStarted += HandleRaceStarted;
+            raceManager.ClockShifted += HandleClockShifted;
+        }
 
         if (lapManager != null)
         {
@@ -129,7 +132,10 @@ public class RaceTimingManager : NetworkBehaviour
     private void OnDisable()
     {
         if (raceManager != null)
+        {
             raceManager.RaceStarted -= HandleRaceStarted;
+            raceManager.ClockShifted -= HandleClockShifted;
+        }
 
         if (lapManager != null)
         {
@@ -302,7 +308,9 @@ public class RaceTimingManager : NetworkBehaviour
         return GetPosition(a.Kart).CompareTo(GetPosition(b.Kart));
     }
 
-    private double ServerNow => NetworkManager != null && NetworkManager.IsListening ? NetworkManager.ServerTime.Time : Time.timeAsDouble;
+    // El reloj de la carrera (queda quieto en la pausa, ver RaceManager.Now).
+    private double ServerNow => raceManager != null ? raceManager.Now
+        : NetworkManager != null && NetworkManager.IsListening ? NetworkManager.ServerTime.Time : Time.timeAsDouble;
 
     private float GetFinishTime(Rigidbody kart)
     {
@@ -347,6 +355,16 @@ public class RaceTimingManager : NetworkBehaviour
     {
         if (IsAuthority)
             timings.Clear();
+    }
+
+    /// <summary>Después de una pausa: la vuelta en curso de cada kart no cuenta el tiempo pausado.</summary>
+    private void HandleClockShifted(double seconds)
+    {
+        if (!IsAuthority)
+            return;
+
+        foreach (KartTiming timing in timings.Values)
+            timing.LapStart += seconds;
     }
 
     private void HandleLapCompleted(Rigidbody kart)

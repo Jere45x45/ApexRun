@@ -4,15 +4,24 @@ using UnityEngine.UI;
 
 /// <summary>
 /// Menú de Inicio conectado a GameSession:
-/// - Un jugador: arranca la partida local y va al Catálogo.
-/// - Multijugador: nombre del jugador, Crear partida (muestra el código para
-///   pasarles a los demás) o Unirse con código. En la sala se ve quién entró;
-///   el anfitrión aprieta Empezar y van todos al Catálogo.
+/// - Un jugador: abre la configuración de la carrera (RaceSetupMenuUI); al
+///   confirmar arranca la partida local y va al Catálogo.
+/// - Multijugador: nombre del jugador, Crear partida (primero la configuración
+///   de la carrera; después muestra el código para pasarles a los demás) o
+///   Unirse (JoinServerMenuUI: con el código o eligiendo de la lista de
+///   servidores). En la sala se ve quién entró; el anfitrión aprieta Empezar
+///   y van todos al Catálogo.
 /// - Abajo, un mensaje de estado (conectando, errores, conexión perdida).
 /// </summary>
 public class SessionMenuUI : MonoBehaviour
 {
     [SerializeField] private MenuManager menuManager;
+
+    [Tooltip("Configuración de la carrera. Sin ella, Un jugador y Crear partida arrancan directo.")]
+    [SerializeField] private RaceSetupMenuUI raceSetup;
+
+    [Tooltip("Pantalla para unirse (código y lista de servidores). Sin ella, Unirse abre la caja del código.")]
+    [SerializeField] private JoinServerMenuUI joinServer;
 
     [Header("Menú principal")]
     [SerializeField] private Button singlePlayerButton;
@@ -59,9 +68,32 @@ public class SessionMenuUI : MonoBehaviour
 
     private void Awake()
     {
-        singlePlayerButton.onClick.AddListener(HandleSinglePlayer);
-        createButton.onClick.AddListener(HandleCreate);
-        joinButton.onClick.AddListener(() => ShowJoinBox(true));
+        singlePlayerButton.onClick.AddListener(() =>
+        {
+            if (raceSetup != null)
+                raceSetup.Open(false);
+            else
+                HandleSinglePlayer();
+        });
+
+        createButton.onClick.AddListener(() =>
+        {
+            SaveName();
+
+            if (raceSetup != null)
+                raceSetup.Open(true);
+            else
+                HandleCreate();
+        });
+        joinButton.onClick.AddListener(() =>
+        {
+            SaveName();
+
+            if (joinServer != null)
+                joinServer.Open();
+            else
+                ShowJoinBox(true);
+        });
         backButton.onClick.AddListener(() => menuManager.Show(MenuPanel.Main));
         joinConfirmButton.onClick.AddListener(HandleJoin);
         joinCancelButton.onClick.AddListener(() => ShowJoinBox(false));
@@ -103,6 +135,40 @@ public class SessionMenuUI : MonoBehaviour
 
         Refresh();
     }
+
+    /// <summary>La configuración de la carrera confirmó Un jugador.</summary>
+    public void StartSinglePlayerFromSetup() => HandleSinglePlayer();
+
+    /// <summary>La configuración de la carrera confirmó Crear servidor.</summary>
+    public void CreateFromSetup() => HandleCreate();
+
+    /// <summary>La pantalla de Unirse eligió entrar con un código.</summary>
+    public async void JoinByCode(string code)
+    {
+        SetStatus("Uniéndose...");
+
+        string error = await Session.JoinSessionAsync(code, nameInput.text);
+
+        SetStatus(error);
+        Refresh();
+    }
+
+    /// <summary>La pantalla de Unirse eligió una partida de la lista.</summary>
+    public async void JoinById(string sessionId)
+    {
+        SetStatus("Uniéndose...");
+
+        string error = await Session.JoinSessionByIdAsync(sessionId, nameInput.text);
+
+        SetStatus(error);
+        Refresh();
+    }
+
+    /// <summary>Nombre que escribió el jugador (para buscar partidas con su cuenta).</summary>
+    public string PlayerName => nameInput.text;
+
+    /// <summary>Muestra un mensaje abajo (null lo borra).</summary>
+    public void ShowStatus(string message) => SetStatus(message);
 
     private void HandleSinglePlayer()
     {

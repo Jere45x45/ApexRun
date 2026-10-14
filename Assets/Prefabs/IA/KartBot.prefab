@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1001 &2128535145642306736
+--- !u!1001 &543027414722350969
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -201,41 +201,41 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2802739453247863719, guid: b0686dc4810f9ac4d99fe5f7e2c1ac5e,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6011475511805809505}
+      addedObject: {fileID: 5276308467204025345}
     - targetCorrespondingSourceObject: {fileID: 2802739453247863719, guid: b0686dc4810f9ac4d99fe5f7e2c1ac5e,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 5057839723159672231}
+      addedObject: {fileID: 6801662915178367890}
     - targetCorrespondingSourceObject: {fileID: 2802739453247863719, guid: b0686dc4810f9ac4d99fe5f7e2c1ac5e,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 465519148984331911}
+      addedObject: {fileID: 8442840109051572248}
   m_SourcePrefab: {fileID: 100100000, guid: b0686dc4810f9ac4d99fe5f7e2c1ac5e, type: 3}
---- !u!114 &2026968397083666101 stripped
+--- !u!114 &441940886461334908 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 120240854046394885, guid: b0686dc4810f9ac4d99fe5f7e2c1ac5e,
     type: 3}
-  m_PrefabInstance: {fileID: 2128535145642306736}
+  m_PrefabInstance: {fileID: 543027414722350969}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4282720665363945239}
+  m_GameObject: {fileID: 2408418787999921374}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 91442d5d5ea5dc24f981127120db1fd8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!1 &4282720665363945239 stripped
+--- !u!1 &2408418787999921374 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2802739453247863719, guid: b0686dc4810f9ac4d99fe5f7e2c1ac5e,
     type: 3}
-  m_PrefabInstance: {fileID: 2128535145642306736}
+  m_PrefabInstance: {fileID: 543027414722350969}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &6011475511805809505
+--- !u!114 &5276308467204025345
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4282720665363945239}
+  m_GameObject: {fileID: 2408418787999921374}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ca88233faa69cf1419cfd37fb4c8fad1, type: 3}
@@ -250,20 +250,20 @@ MonoBehaviour:
   trackLayer:
     serializedVersion: 2
     m_Bits: 8
---- !u!114 &5057839723159672231
+--- !u!114 &6801662915178367890
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4282720665363945239}
+  m_GameObject: {fileID: 2408418787999921374}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 868e3dbd5a631f84dad0fff87a47bd43, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CustomIABots
-  kart: {fileID: 2026968397083666101}
-  sensor: {fileID: 6011475511805809505}
+  kart: {fileID: 441940886461334908}
+  sensor: {fileID: 5276308467204025345}
   learning: {fileID: 0}
   progressPoints: []
   reachDistance: 5
@@ -277,25 +277,25 @@ MonoBehaviour:
   decisionInterval: 0.1
   stuckTime: 3
   minimumSpeed: 0.5
---- !u!114 &465519148984331911
+--- !u!114 &8442840109051572248
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4282720665363945239}
+  m_GameObject: {fileID: 2408418787999921374}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9d4e0d3bbed6d984bbba5d7c3ac44d3d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BotRandomizer
   catalog: {fileID: 11400000, guid: 7e1f2cc49d52469479892d21ba2aa279, type: 2}
-  configuration: {fileID: 8780751752783293336}
---- !u!114 &8780751752783293336 stripped
+  configuration: {fileID: 7194593673691777105}
+--- !u!114 &7194593673691777105 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7228678026319939368, guid: b0686dc4810f9ac4d99fe5f7e2c1ac5e,
     type: 3}
-  m_PrefabInstance: {fileID: 2128535145642306736}
+  m_PrefabInstance: {fileID: 543027414722350969}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1

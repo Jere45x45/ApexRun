@@ -27,14 +27,16 @@ public class QTableData
 /// Cerebro compartido de los bots (Q-learning con tabla). Todos los bots de la
 /// escena usan la misma tabla, así que entrenar varios a la vez la llena más
 /// rápido.
-/// - Estado: qué sensores ven pista (sí/no), armado como un número.
-/// - Acciones: 0 = izquierda, 1 = derecho, 2 = derecha.
+/// - Estado: un número que arma CustomIABots con lo que ve el bot (en qué
+///   tramo de la pista está y a qué velocidad va).
+/// - Acciones: las que define CustomIABots (acelerar, soltar o frenar).
 /// </summary>
 public class BotLearning : MonoBehaviour
 {
     public static BotLearning Instance { get; private set; }
 
-    private const int ActionCount = 3;
+    /// <summary>Acelerar, soltar o frenar.</summary>
+    public const int ActionCount = 3;
 
     [Header("Learning")]
     [SerializeField] private float learningRate = 0.30f;
@@ -47,8 +49,8 @@ public class BotLearning : MonoBehaviour
     [Tooltip("Lo mínimo que sigue explorando cuando ya aprendió.")]
     [SerializeField, Range(0f, 1f)] private float minExploration = 0.02f;
 
-    [Tooltip("Cuánto baja la exploración en cada decisión (0.9995 ≈ a la mitad cada 1400 decisiones).")]
-    [SerializeField, Range(0.99f, 1f)] private float explorationDecay = 0.9995f;
+    [Tooltip("Cuánto baja la exploración en cada decisión (0.99995 ≈ a la mitad cada 14000 decisiones).")]
+    [SerializeField, Range(0.99f, 1f)] private float explorationDecay = 0.99995f;
 
     [Header("Entrenamiento")]
     [Tooltip("Velocidad del tiempo mientras se entrena (1 = normal). Con 5 aprende unas 5 veces más rápido si la compu aguanta.")]
@@ -57,8 +59,8 @@ public class BotLearning : MonoBehaviour
     [Header("Auto Save")]
     [SerializeField] private int saveEveryDecisions = 5000;
 
-    // Archivo nuevo: los estados de antes (con alturas) no sirven para los de ahora (sí/no).
-    private const string FileName = "ApexRun_QTable_v2.json";
+    // Archivo nuevo: los estados y las acciones cambiaron, las tablas de antes no sirven.
+    private const string FileName = "ApexRun_QTable_v9.json";
 
     private int decisionsSinceSave = 0;
 
@@ -119,9 +121,9 @@ public class BotLearning : MonoBehaviour
         SaveQTable();
     }
 
-    public int ChooseAction(float[] observations)
+    public int ChooseAction(int state)
     {
-        float[] values = GetValues(GetState(observations));
+        float[] values = GetValues(state);
 
         if (UnityEngine.Random.value < exploration)
         {
@@ -131,36 +133,24 @@ public class BotLearning : MonoBehaviour
         return BestAction(values);
     }
 
-    public void Learn(
-        float[] observations,
-        int action,
-        float reward,
-        float[] nextObservations)
-    {
-        Learn(observations, action, reward, nextObservations, false);
-    }
-
     /// <summary>
     /// Actualiza la tabla. Con terminal = true (se cayó, se trabó o terminó)
     /// no se suma lo que vendría después: el episodio terminó ahí.
     /// </summary>
     public void Learn(
-        float[] observations,
+        int state,
         int action,
         float reward,
-        float[] nextObservations,
+        int nextState,
         bool terminal)
     {
-        if (observations == null)
-            return;
-
-        float[] values = GetValues(GetState(observations));
+        float[] values = GetValues(state);
 
         float target = reward;
 
-        if (!terminal && nextObservations != null)
+        if (!terminal)
         {
-            float[] next = GetValues(GetState(nextObservations));
+            float[] next = GetValues(nextState);
             target += discount * next[BestAction(next)];
         }
 
@@ -175,20 +165,6 @@ public class BotLearning : MonoBehaviour
             SaveQTable();
             decisionsSinceSave = 0;
         }
-    }
-
-    /// <summary>Cada sensor que ve pista prende un bit: 9 sensores = 512 estados posibles.</summary>
-    private static int GetState(float[] observations)
-    {
-        int state = 0;
-
-        for (int i = 0; i < observations.Length; i++)
-        {
-            if (observations[i] > 0.5f)
-                state |= 1 << i;
-        }
-
-        return state;
     }
 
     private float[] GetValues(int state)

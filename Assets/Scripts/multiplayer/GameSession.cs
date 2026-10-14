@@ -13,8 +13,9 @@ using UnityEngine.SceneManagement;
 /// La partida, de punta a punta. Vive mientras dura el juego (DontDestroyOnLoad):
 /// - Un jugador: host local en 127.0.0.1, sin servicios ni internet.
 /// - Multijugador: Unity Multiplayer Services. El anfitrión crea una sesión
-///   privada con Relay (se juega por internet sin abrir puertos) y los demás
-///   entran con el código. La sesión arranca Netcode sola (host o cliente).
+///   pública con Relay (se juega por internet sin abrir puertos). Los demás la
+///   ven en la lista de servidores mientras no empezó, o entran con el código.
+///   La sesión arranca Netcode sola (host o cliente).
 /// - Pasa de escena a todos juntos (NetworkSceneManager): Inicio → Catálogo → Race.
 /// - Salir o perder la conexión vuelve al Inicio, con un mensaje si hace falta.
 /// </summary>
@@ -33,6 +34,10 @@ public class GameSession : MonoBehaviour
     [Header("Partida")]
     [Tooltip("Jugadores por partida (lugares en la grilla).")]
     [SerializeField, Range(2, 6)] private int maxPlayers = 6;
+
+    /// <summary>Datos de la partida que se ven en la lista de servidores.</summary>
+    public const string LapsProperty = "vueltas";
+    public const string WeatherProperty = "clima";
 
     private const string LocalAddress = "127.0.0.1";
     private const ushort LocalPort = 7777;
@@ -110,15 +115,25 @@ public class GameSession : MonoBehaviour
 
     // ───────────── Multijugador ─────────────
 
-    /// <summary>Crea una partida privada por Relay. Devuelve null si salió bien, o el error para mostrar.</summary>
+    /// <summary>
+    /// Crea una partida pública por Relay, con el nombre del anfitrión y la
+    /// configuración elegida (vueltas y clima) para mostrar en la lista de
+    /// servidores. Devuelve null si salió bien, o el error para mostrar.
+    /// </summary>
     public async Task<string> CreateSessionAsync(string playerName)
     {
         return await RunSessionTask(playerName, async () =>
         {
             SessionOptions options = new SessionOptions
             {
+                Name = LocalPlayerName,
                 MaxPlayers = maxPlayers,
-                IsPrivate = true
+                IsPrivate = false,
+                SessionProperties = new Dictionary<string, SessionProperty>
+                {
+                    [LapsProperty] = new SessionProperty(RaceSetupStore.Laps.ToString(), VisibilityPropertyOptions.Public, PropertyIndex.None),
+                    [WeatherProperty] = new SessionProperty(WeatherChoiceStore.Summary(), VisibilityPropertyOptions.Public, PropertyIndex.None)
+                }
             }
             .WithRelayNetwork()
             .WithPlayerName(VisibilityPropertyOptions.Member);
@@ -141,6 +156,67 @@ public class GameSession : MonoBehaviour
 
             return MultiplayerService.Instance.JoinSessionByCodeAsync(code, options);
         });
+    }
+
+    /// <summary>Se une a una partida de la lista de servidores. Devuelve null si salió bien, o el error para mostrar.</summary>
+    public async Task<string> JoinSessionByIdAsync(string sessionId, string playerName)
+    {
+        if (string.IsNullOrEmpty(sessionId))
+            return "Elegí una partida.";
+
+        return await RunSessionTask(playerName, () =>
+        {
+            JoinSessionOptions options = new JoinSessionOptions().WithPlayerName(VisibilityPropertyOptions.Member);
+
+            return MultiplayerService.Instance.JoinSessionByIdAsync(sessionId, options);
+        });
+    }
+
+    /// <summary>
+    /// Partidas públicas a las que todavía se puede entrar (no empezaron y
+    /// tienen lugar), las más nuevas primero. Si algo falla, devuelve null y el
+    /// error en <paramref name="error"/>.
+    /// </summary>
+    public async Task<List<ISessionInfo>> QuerySessionsAsync(string playerName, Action<string> error)
+    {
+        try
+        {
+            if (playerName != null)
+                LocalPlayerName = CleanName(playerName);
+
+            await SignInAsync();
+
+            QuerySessionsOptions options = new QuerySessionsOptions
+            {
+                Count = 20,
+                FilterOptions = new List<FilterOption>
+                {
+                    new FilterOption(FilterField.AvailableSlots, "0", FilterOperation.Greater)
+                },
+                SortOptions = new List<SortOption>
+                {
+                    new SortOption(SortOrder.Descending, SortField.CreationTime)
+                }
+            };
+
+            QuerySessionsResults results = await MultiplayerService.Instance.QuerySessionsAsync(options);
+
+            List<ISessionInfo> open = new List<ISessionInfo>();
+
+            foreach (ISessionInfo info in results.Sessions)
+            {
+                if (!info.IsLocked && info.AvailableSlots > 0)
+                    open.Add(info);
+            }
+
+            return open;
+        }
+        catch (Exception exception)
+        {
+            Debug.LogWarning($"GameSession: no se pudo buscar partidas ({exception.Message}).", this);
+            error?.Invoke("No se pudieron buscar partidas. Revisá la conexión a internet.");
+            return null;
+        }
     }
 
     /// <summary>

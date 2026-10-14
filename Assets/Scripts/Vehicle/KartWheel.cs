@@ -89,9 +89,21 @@ public class KartWheel
     /// <summary>Superficie que pisa la rueda (pista, pasto...). Null si el piso no tiene TrackSurface.</summary>
     public TrackSurfaceData CurrentSurface { get; private set; }
 
-    /// <summary>Multiplica el agarre del neumático según la superficie (1 = asfalto normal).</summary>
-    public float SurfaceGripMultiplier =>
-        CurrentSurface != null ? Mathf.Max(0f, CurrentSurface.GripMultiplier) : 1f;
+    /// <summary>
+    /// Multiplica el agarre del neumático según la superficie (1 = asfalto
+    /// seco). Con la pista mojada (TrackConditions.Wetness, lo pone el clima)
+    /// baja hasta el agarre en mojado de esa superficie.
+    /// </summary>
+    public float SurfaceGripMultiplier
+    {
+        get
+        {
+            float grip = CurrentSurface != null ? Mathf.Max(0f, CurrentSurface.GripMultiplier) : 1f;
+            float wetGrip = CurrentSurface != null ? CurrentSurface.WetGripMultiplier : TrackSurfaceData.DefaultWetGrip;
+
+            return grip * Mathf.Lerp(1f, wetGrip, TrackConditions.Wetness);
+        }
+    }
 
     /// <summary>True si la rueda está apoyada fuera de los límites de pista.</summary>
     public bool IsOnInvalidSurface =>

@@ -24,6 +24,12 @@ public class RaceLapManager : MonoBehaviour
     public int TotalLaps =>
         totalLaps;
 
+    /// <summary>Cambia la cantidad de vueltas (lo que eligió el anfitrión en el menú, ver RaceSetupSync).</summary>
+    public void SetTotalLaps(int laps)
+    {
+        totalLaps = Mathf.Max(1, laps);
+    }
+
     public event Action<Rigidbody>
         KartFinished;
 
