@@ -67,6 +67,37 @@ public class KartBehaviour : MonoBehaviour
     [Tooltip("Margen sobre el ángulo de deslizamiento de máximo agarre. 1 = justo en el pico.")]
     [SerializeField, Range(0.5f, 2f)] private float gripSteeringMargin = 1f;
 
+    [Tooltip("Diferencial a baja velocidad: casi quieto, las ruedas traseras giran cada una a su " +
+             "velocidad en vez de arrastrarse (eje rígido), así el kart dobla cerrado al arrancar " +
+             "o a paso de hombre. Se va apagando con la velocidad: en carrera el eje vuelve a ser rígido.")]
+    [SerializeField] private bool lowSpeedDifferential = true;
+
+    [Tooltip("Hasta esta velocidad (km/h) el diferencial actúa completo.")]
+    [SerializeField, Min(0f)] private float differentialFullBelowKmh = 8f;
+
+    [Tooltip("Desde esta velocidad (km/h) el eje trasero es rígido, como en un kart real.")]
+    [SerializeField, Min(0f)] private float differentialOffAboveKmh = 25f;
+
+    [Tooltip("Control de tracción a baja velocidad: si las traseras patinan, baja el acelerador " +
+             "hasta que vuelven a agarrar. Así, arrancando con el volante girado, el kart avanza " +
+             "doblando en vez de hacer un trompo. Actúa en el mismo rango que el diferencial.")]
+    [SerializeField] private bool lowSpeedTractionControl = true;
+
+    [Tooltip("Patinamiento permitido, en veces el de máximo agarre (1 = justo en el pico).")]
+    [SerializeField, Range(0.8f, 3f)] private float tractionSlipMargin = 1.3f;
+
+    [Tooltip("ABS: con el freno a fondo (teclado), baja la fuerza de frenado cuando las traseras " +
+             "están por bloquearse, así siguen girando y agarrando de costado. En curva deja " +
+             "frenar menos, porque parte del agarre se usa para doblar. Evita el trompo al frenar fuerte.")]
+    [SerializeField] private bool antiLockBrakes = true;
+
+    [Tooltip("Patinamiento de frenado permitido, en veces el de máximo agarre (1 = justo en el pico). " +
+             "Menos = más estable en curva pero frena un poco más largo.")]
+    [SerializeField, Range(0.3f, 2f)] private float absSlipMargin = 0.9f;
+
+    [Tooltip("Por debajo de esta velocidad (km/h) el ABS no actúa y el freno puede bloquear, para quedar quieto.")]
+    [SerializeField, Min(0f)] private float absMinSpeedKmh = 6f;
+
     [Header("Sin mandos")]
     [Tooltip("Freno (0 a 1) mientras el kart no tiene mandos habilitados y todavía se mueve, " +
              "por ejemplo después de cruzar la meta. 0 = rueda suelto.")]
@@ -86,6 +117,12 @@ public class KartBehaviour : MonoBehaviour
     private KartWheelVisual[] wheelVisuals;
     private float currentSteerAngle;
     private float steerAngleVelocity;
+
+    // Control de tracción: fracción del acelerador que se deja pasar (0 a 1).
+    private float tractionLimit = 1f;
+
+    // ABS: fracción del freno que se deja pasar (0 a 1).
+    private float brakeLimit = 1f;
 
     // Kart de otro jugador (multiplayer): la física corre en su computadora y
     // acá solo se muestra. Estos valores llegan por red (ver NetworkKart).
@@ -296,12 +333,14 @@ public class KartBehaviour : MonoBehaviour
     {
         float speed = Mathf.Abs(vehicle.ForwardSpeed);
 
+        float lowSpeedAssist = GetLowSpeedAssist(speed);
+
         if (inputEnabled)
         {
             float brake = braking ? 1f : 0f;
 
-            vehicle.Throttle = Mathf.Clamp01(throttle);
-            vehicle.Brake = Mathf.Max(brake, Mathf.Clamp01(-throttle));
+            vehicle.Throttle = Mathf.Clamp01(throttle) * GetTractionLimit(lowSpeedAssist, deltaTime);
+            vehicle.Brake = Mathf.Max(brake, Mathf.Clamp01(-throttle)) * GetBrakeLimit(speed, deltaTime);
         }
         else
         {
@@ -310,6 +349,105 @@ public class KartBehaviour : MonoBehaviour
         }
 
         UpdateSteering(speed, deltaTime);
+
+        vehicle.RearDifferential = lowSpeedDifferential ? lowSpeedAssist : 0f;
+    }
+
+    /// <summary>
+    /// Cuánto actúan las ayudas de baja velocidad (diferencial y control de
+    /// tracción): 1 hasta differentialFullBelowKmh, 0 desde differentialOffAboveKmh.
+    /// </summary>
+    private float GetLowSpeedAssist(float speed)
+    {
+        float kmh = speed * 3.6f;
+        return 1f - Mathf.InverseLerp(differentialFullBelowKmh, Mathf.Max(differentialFullBelowKmh + 0.1f, differentialOffAboveKmh), kmh);
+    }
+
+    /// <summary>
+    /// ABS (ver antiLockBrakes). Para cada trasera mide cuánto se acerca al
+    /// bloqueo respecto de lo que puede frenar sin perder el agarre de costado:
+    /// el neumático tiene un solo presupuesto de agarre (círculo de fricción),
+    /// así que si ya está doblando, le queda menos para frenar. Promedia las
+    /// dos ruedas por la carga (la que está en el aire no cuenta), baja el
+    /// freno rápido si se pasa y lo devuelve de a poco cuando vuelve a rodar.
+    /// </summary>
+    private float GetBrakeLimit(float speed, float deltaTime)
+    {
+        if (!antiLockBrakes || speed * 3.6f < absMinSpeedKmh)
+        {
+            brakeLimit = 1f;
+            return 1f;
+        }
+
+        KartWheel left = vehicle.Wheels[KartVehicle.RearLeft];
+        KartWheel right = vehicle.Wheels[KartVehicle.RearRight];
+
+        float loadSum = left.VerticalLoad + right.VerticalLoad;
+
+        if (loadSum <= 1f)
+            return brakeLimit;
+
+        float usage =
+            (BrakeSlipUsage(left) * left.VerticalLoad + BrakeSlipUsage(right) * right.VerticalLoad) / loadSum;
+
+        if (usage > 1f)
+            brakeLimit -= deltaTime * 10f * Mathf.Clamp01(usage - 1f + 0.25f);
+        else
+            brakeLimit += deltaTime * 3f;
+
+        brakeLimit = Mathf.Clamp(brakeLimit, 0.05f, 1f);
+
+        return brakeLimit;
+    }
+
+    /// <summary>
+    /// Patinamiento de frenado de una rueda, dividido por el que se permite:
+    /// absSlipMargin veces el del pico, achicado según cuánto del círculo de
+    /// fricción ya usa de costado. Más de 1 = se está pasando.
+    /// </summary>
+    private float BrakeSlipUsage(KartWheel wheel)
+    {
+        TireSettings tire = vehicle.Tire;
+
+        float braking = Mathf.Max(0f, -wheel.SlipRatio) / tire.LongitudinalPeakSlipRatio;
+        float lateral = Mathf.Clamp01(Mathf.Abs(wheel.SlipAngle) * Mathf.Deg2Rad / tire.LateralPeakSlipAngle);
+        float allowed = absSlipMargin * Mathf.Sqrt(Mathf.Max(0.04f, 1f - lateral * lateral));
+
+        return braking / allowed;
+    }
+
+    /// <summary>
+    /// Control de tracción (ver lowSpeedTractionControl). Mide el patinamiento
+    /// de las traseras (promedio pesado por la carga, así no cuenta la rueda que
+    /// está en el aire) y baja el acelerador rápido si se pasa del margen; lo
+    /// devuelve de a poco cuando vuelven a agarrar.
+    /// </summary>
+    private float GetTractionLimit(float assist, float deltaTime)
+    {
+        if (!lowSpeedTractionControl || assist <= 0f)
+        {
+            tractionLimit = 1f;
+            return 1f;
+        }
+
+        KartWheel left = vehicle.Wheels[KartVehicle.RearLeft];
+        KartWheel right = vehicle.Wheels[KartVehicle.RearRight];
+
+        float loadSum = left.VerticalLoad + right.VerticalLoad;
+        float slip = loadSum > 1f
+            ? (left.SlipRatio * left.VerticalLoad + right.SlipRatio * right.VerticalLoad) / loadSum
+            : 0f;
+
+        float allowed = vehicle.Tire.LongitudinalPeakSlipRatio * tractionSlipMargin;
+
+        if (slip > allowed)
+            tractionLimit -= deltaTime * 6f * Mathf.Clamp01((slip - allowed) / allowed + 0.25f);
+        else
+            tractionLimit += deltaTime * 1.5f;
+
+        tractionLimit = Mathf.Clamp(tractionLimit, 0.15f, 1f);
+
+        return Mathf.Lerp(1f, tractionLimit, assist);
     }
 
     /// <summary>

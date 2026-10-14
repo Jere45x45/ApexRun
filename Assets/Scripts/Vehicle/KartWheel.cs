@@ -54,6 +54,13 @@ public class KartWheel
     /// <summary>Ángulo de dirección en grados (positivo = hacia la derecha).</summary>
     public float SteerAngle { get; set; }
 
+    /// <summary>
+    /// Cuánto más rápido gira esta rueda que su eje (rad/s). En un eje rígido
+    /// vale 0: las dos ruedas giran igual. KartVehicle lo usa para el
+    /// diferencial de baja velocidad (ver KartVehicle.RearDifferential).
+    /// </summary>
+    public float AxleSpeedOffset { get; set; }
+
     // ---------- Contacto ----------
 
     public bool IsGrounded { get; private set; }
