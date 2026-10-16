@@ -1261,6 +1261,7 @@ GameObject:
   - component: {fileID: 218647088}
   - component: {fileID: 218647087}
   - component: {fileID: 218647086}
+  - component: {fileID: 218647089}
   m_Layer: 5
   m_Name: Button_JoinServer
   m_TagString: Untagged
@@ -1371,6 +1372,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 218647084}
   m_CullTransparentMesh: 0
+--- !u!114 &218647089
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 218647084}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ce4b93700df82741ac7b927a8015314, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AlphaHitArea
+  minimumAlpha: 0.5
 --- !u!1 &228459878
 GameObject:
   m_ObjectHideFlags: 0
@@ -2977,6 +2991,7 @@ GameObject:
   - component: {fileID: 432616817}
   - component: {fileID: 432616816}
   - component: {fileID: 432616819}
+  - component: {fileID: 432616820}
   m_Layer: 5
   m_Name: Button_Settings
   m_TagString: Untagged
@@ -3113,6 +3128,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuManager: {fileID: 1726649150}
   targetPanel: 2
+--- !u!114 &432616820
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 432616814}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ce4b93700df82741ac7b927a8015314, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AlphaHitArea
+  minimumAlpha: 0.5
 --- !u!1 &437532469
 GameObject:
   m_ObjectHideFlags: 0
@@ -7078,8 +7106,9 @@ GameObject:
   - component: {fileID: 946873772}
   - component: {fileID: 946873775}
   - component: {fileID: 946873774}
-  - component: {fileID: 946873776}
   - component: {fileID: 946873773}
+  - component: {fileID: 946873776}
+  - component: {fileID: 946873777}
   m_Layer: 5
   m_Name: Button_SinglePlayer
   m_TagString: Untagged
@@ -7204,6 +7233,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuManager: {fileID: 0}
   targetPanel: 0
+--- !u!114 &946873777
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 946873771}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ce4b93700df82741ac7b927a8015314, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AlphaHitArea
+  minimumAlpha: 0.5
 --- !u!1 &948055747
 GameObject:
   m_ObjectHideFlags: 0
@@ -8765,6 +8807,7 @@ GameObject:
   - component: {fileID: 1088082054}
   - component: {fileID: 1088082053}
   - component: {fileID: 1088082056}
+  - component: {fileID: 1088082057}
   m_Layer: 5
   m_Name: Button_AIMechanic
   m_TagString: Untagged
@@ -8901,6 +8944,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuManager: {fileID: 1726649150}
   targetPanel: 3
+--- !u!114 &1088082057
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1088082051}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ce4b93700df82741ac7b927a8015314, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AlphaHitArea
+  minimumAlpha: 0.5
 --- !u!1 &1097220761
 GameObject:
   m_ObjectHideFlags: 0
@@ -13199,6 +13255,7 @@ GameObject:
   - component: {fileID: 1689064070}
   - component: {fileID: 1689064069}
   - component: {fileID: 1689064072}
+  - component: {fileID: 1689064073}
   m_Layer: 5
   m_Name: Button_Exit
   m_TagString: Untagged
@@ -13335,6 +13392,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuManager: {fileID: 1726649150}
   targetPanel: 0
+--- !u!114 &1689064073
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1689064067}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ce4b93700df82741ac7b927a8015314, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AlphaHitArea
+  minimumAlpha: 0.5
 --- !u!1 &1692121454
 GameObject:
   m_ObjectHideFlags: 0
@@ -14058,6 +14128,7 @@ GameObject:
   - component: {fileID: 1783435932}
   - component: {fileID: 1783435931}
   - component: {fileID: 1783435930}
+  - component: {fileID: 1783435933}
   m_Layer: 5
   m_Name: Button_Back
   m_TagString: Untagged
@@ -14168,6 +14239,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1783435928}
   m_CullTransparentMesh: 0
+--- !u!114 &1783435933
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1783435928}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ce4b93700df82741ac7b927a8015314, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AlphaHitArea
+  minimumAlpha: 0.5
 --- !u!1 &1784342823
 GameObject:
   m_ObjectHideFlags: 0
@@ -15183,6 +15267,7 @@ GameObject:
   - component: {fileID: 1991267094}
   - component: {fileID: 1991267093}
   - component: {fileID: 1991267096}
+  - component: {fileID: 1991267097}
   m_Layer: 5
   m_Name: Button_MultiPlayer
   m_TagString: Untagged
@@ -15319,6 +15404,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuManager: {fileID: 1726649150}
   targetPanel: 1
+--- !u!114 &1991267097
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1991267091}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ce4b93700df82741ac7b927a8015314, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AlphaHitArea
+  minimumAlpha: 0.5
 --- !u!1 &1999179611
 GameObject:
   m_ObjectHideFlags: 0
@@ -16263,6 +16361,7 @@ GameObject:
   - component: {fileID: 2056562925}
   - component: {fileID: 2056562924}
   - component: {fileID: 2056562923}
+  - component: {fileID: 2056562926}
   m_Layer: 5
   m_Name: Button_CreateServer
   m_TagString: Untagged
@@ -16373,6 +16472,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2056562921}
   m_CullTransparentMesh: 0
+--- !u!114 &2056562926
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2056562921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ce4b93700df82741ac7b927a8015314, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AlphaHitArea
+  minimumAlpha: 0.5
 --- !u!1 &2061064279
 GameObject:
   m_ObjectHideFlags: 0

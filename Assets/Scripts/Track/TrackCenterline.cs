@@ -42,6 +42,15 @@ public class TrackCenterline : MonoBehaviour
 
     public float AverageWidth => averageWidth;
 
+    /// <summary>Collider del asfalto desde el que se genera la línea.</summary>
+    public MeshCollider TrackSurface => trackSurface;
+
+    /// <summary>Línea de llegada (su eje Z apunta en el sentido de carrera).</summary>
+    public Transform StartFinishLine => startFinishLine;
+
+    /// <summary>Puntos que no cayeron sobre el asfalto en la última generación (solo en el editor).</summary>
+    public int LastMissedPoints { get; private set; }
+
     public bool IsValid => points != null && points.Length >= 3;
 
     public float Length
@@ -193,24 +202,44 @@ public class TrackCenterline : MonoBehaviour
     [ContextMenu("Generar desde la pista")]
     private void GenerateFromTrack()
     {
+        Generate();
+    }
+
+    /// <summary>
+    /// Igual que "Generar desde la pista". Devuelve false (y explica por qué en
+    /// la consola) si no se pudo. La usa TrackSetup ("Preparar pista").
+    /// </summary>
+    public bool Generate()
+    {
         if (trackSurface == null || trackSurface.sharedMesh == null)
         {
             Debug.LogError("TrackCenterline necesita el MeshCollider de la pista.", this);
-            return;
+            return false;
         }
 
         if (startFinishLine == null)
         {
             Debug.LogError("TrackCenterline necesita la línea de llegada.", this);
-            return;
+            return false;
         }
 
         List<List<Vector3>> borders = FindBorders(trackSurface);
 
         if (borders.Count < 2)
         {
-            Debug.LogError($"Se esperaban dos bordes (exterior e interior) y se encontraron {borders.Count}.", this);
-            return;
+            Debug.LogError(
+                $"Se esperaban dos bordes (exterior e interior) y se encontraron {borders.Count}. " +
+                "El asfalto tiene que ser un solo objeto con forma de anillo, sin calles de boxes ni partes sueltas.",
+                this);
+            return false;
+        }
+
+        if (borders.Count > 2)
+        {
+            Debug.LogWarning(
+                $"El asfalto tiene {borders.Count} bordes (se esperaban 2). Se usan los dos más largos; " +
+                "revisá que la línea siga la pista (se ve en amarillo con el objeto seleccionado).",
+                this);
         }
 
         // El más largo es el exterior y el siguiente, el interior.
@@ -242,6 +271,7 @@ public class TrackCenterline : MonoBehaviour
         points = center.ToArray();
         averageWidth = widthSum / outer.Count;
         cumulative = null;
+        LastMissedPoints = missed;
 
         EditorUtility.SetDirty(this);
 
@@ -249,6 +279,8 @@ public class TrackCenterline : MonoBehaviour
             $"Línea central: {points.Length} puntos, {Length:F0} m, ancho medio {averageWidth:F1} m. " +
             $"Puntos que no cayeron sobre el asfalto: {missed}.",
             this);
+
+        return true;
     }
 
     private static List<List<Vector3>> FindBorders(MeshCollider surface)
