@@ -36,13 +36,15 @@ public class ChassisSettings
     [Min(0.001f)]
     public float rearAxleInertia = 0.12f;
 
-    [Tooltip("Torque de freno en el eje trasero con el freno a fondo (N·m). Un kart frena solo atrás.")]
+    [Tooltip("Torque de freno en el eje trasero con el freno a fondo (N·m).")]
     [Min(0f)]
     public float rearBrakeTorque = 200f;
 
-    [Tooltip("Torque de freno en cada delantera (N·m). 0 en karts sin freno delantero.")]
+    [Tooltip("Torque de freno en cada delantera (N·m), como los karts con freno en las cuatro " +
+             "ruedas (KZ, Rotax DD2). Al frenar el peso se va adelante: con freno solo atrás el " +
+             "kart frena la mitad y se cruza. 0 = sin freno delantero.")]
     [Min(0f)]
-    public float frontBrakeTorque = 0f;
+    public float frontBrakeTorque = 150f;
 
     [Header("Dirección")]
     public SteeringSettings steering = new SteeringSettings();

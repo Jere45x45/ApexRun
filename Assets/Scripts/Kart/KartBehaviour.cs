@@ -86,9 +86,10 @@ public class KartBehaviour : MonoBehaviour
     [Tooltip("Patinamiento permitido, en veces el de máximo agarre (1 = justo en el pico).")]
     [SerializeField, Range(0.8f, 3f)] private float tractionSlipMargin = 1.3f;
 
-    [Tooltip("ABS: con el freno a fondo (teclado), baja la fuerza de frenado cuando las traseras " +
-             "están por bloquearse, así siguen girando y agarrando de costado. En curva deja " +
-             "frenar menos, porque parte del agarre se usa para doblar. Evita el trompo al frenar fuerte.")]
+    [Tooltip("ABS: con el freno a fondo (teclado), baja la fuerza de frenado de cada eje cuando " +
+             "sus ruedas están por bloquearse, así siguen girando y agarrando de costado. En curva " +
+             "deja frenar menos, porque parte del agarre se usa para doblar. Adelante evita que el " +
+             "kart siga de largo sin doblar; atrás, el trompo.")]
     [SerializeField] private bool antiLockBrakes = true;
 
     [Tooltip("Patinamiento de frenado permitido, en veces el de máximo agarre (1 = justo en el pico). " +
@@ -97,6 +98,15 @@ public class KartBehaviour : MonoBehaviour
 
     [Tooltip("Por debajo de esta velocidad (km/h) el ABS no actúa y el freno puede bloquear, para quedar quieto.")]
     [SerializeField, Min(0f)] private float absMinSpeedKmh = 6f;
+
+    [Header("Freno con teclado")]
+    [Tooltip("Tiempo para llegar al freno a fondo al apretar la tecla (s). Como un pie que pisa " +
+             "rápido pero no de golpe: el peso pasa adelante y las ruedas no se bloquean de entrada. " +
+             "0 = de golpe.")]
+    [SerializeField, Min(0f)] private float brakeApplyTime = 0.12f;
+
+    [Tooltip("Tiempo para soltar el freno del todo al soltar la tecla (s).")]
+    [SerializeField, Min(0f)] private float brakeReleaseTime = 0.05f;
 
     [Header("Sin mandos")]
     [Tooltip("Freno (0 a 1) mientras el kart no tiene mandos habilitados y todavía se mueve, " +
@@ -121,8 +131,12 @@ public class KartBehaviour : MonoBehaviour
     // Control de tracción: fracción del acelerador que se deja pasar (0 a 1).
     private float tractionLimit = 1f;
 
-    // ABS: fracción del freno que se deja pasar (0 a 1).
+    // ABS: fracción del freno que se deja pasar en cada eje (0 a 1).
     private float brakeLimit = 1f;
+    private float frontBrakeLimit = 1f;
+
+    // Freno pedido, ya con la rampa del teclado (0 a 1).
+    private float brakeInput;
 
     // Kart de otro jugador (multiplayer): la física corre en su computadora y
     // acá solo se muestra. Estos valores llegan por red (ver NetworkKart).
@@ -337,15 +351,23 @@ public class KartBehaviour : MonoBehaviour
 
         if (inputEnabled)
         {
-            float brake = braking ? 1f : 0f;
+            float target = Mathf.Max(braking ? 1f : 0f, Mathf.Clamp01(-throttle));
+            float rampTime = target > brakeInput ? brakeApplyTime : brakeReleaseTime;
+
+            brakeInput = rampTime > 0f
+                ? Mathf.MoveTowards(brakeInput, target, deltaTime / rampTime)
+                : target;
 
             vehicle.Throttle = Mathf.Clamp01(throttle) * GetTractionLimit(lowSpeedAssist, deltaTime);
-            vehicle.Brake = Mathf.Max(brake, Mathf.Clamp01(-throttle)) * GetBrakeLimit(speed, deltaTime);
+            vehicle.Brake = brakeInput * GetBrakeLimit(speed, deltaTime);
+            vehicle.FrontBrake = brakeInput * GetFrontBrakeLimit(speed, deltaTime);
         }
         else
         {
+            brakeInput = 0f;
             vehicle.Throttle = 0f;
             vehicle.Brake = speed < StandstillSpeed ? 1f : noInputBrake;
+            vehicle.FrontBrake = vehicle.Brake;
         }
 
         UpdateSteering(speed, deltaTime);
@@ -373,31 +395,42 @@ public class KartBehaviour : MonoBehaviour
     /// </summary>
     private float GetBrakeLimit(float speed, float deltaTime)
     {
+        return UpdateBrakeLimit(ref brakeLimit, KartVehicle.RearLeft, KartVehicle.RearRight, speed, deltaTime);
+    }
+
+    /// <summary>Lo mismo para las delanteras, que frenan cada una con su propio eje.</summary>
+    private float GetFrontBrakeLimit(float speed, float deltaTime)
+    {
+        return UpdateBrakeLimit(ref frontBrakeLimit, KartVehicle.FrontLeft, KartVehicle.FrontRight, speed, deltaTime);
+    }
+
+    private float UpdateBrakeLimit(ref float limit, int leftIndex, int rightIndex, float speed, float deltaTime)
+    {
         if (!antiLockBrakes || speed * 3.6f < absMinSpeedKmh)
         {
-            brakeLimit = 1f;
+            limit = 1f;
             return 1f;
         }
 
-        KartWheel left = vehicle.Wheels[KartVehicle.RearLeft];
-        KartWheel right = vehicle.Wheels[KartVehicle.RearRight];
+        KartWheel left = vehicle.Wheels[leftIndex];
+        KartWheel right = vehicle.Wheels[rightIndex];
 
         float loadSum = left.VerticalLoad + right.VerticalLoad;
 
         if (loadSum <= 1f)
-            return brakeLimit;
+            return limit;
 
         float usage =
             (BrakeSlipUsage(left) * left.VerticalLoad + BrakeSlipUsage(right) * right.VerticalLoad) / loadSum;
 
         if (usage > 1f)
-            brakeLimit -= deltaTime * 10f * Mathf.Clamp01(usage - 1f + 0.25f);
+            limit -= deltaTime * 10f * Mathf.Clamp01(usage - 1f + 0.25f);
         else
-            brakeLimit += deltaTime * 3f;
+            limit += deltaTime * 3f;
 
-        brakeLimit = Mathf.Clamp(brakeLimit, 0.05f, 1f);
+        limit = Mathf.Clamp(limit, 0.05f, 1f);
 
-        return brakeLimit;
+        return limit;
     }
 
     /// <summary>
