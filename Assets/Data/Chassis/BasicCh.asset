@@ -15,6 +15,7 @@ MonoBehaviour:
   partID: chassis_basic
   partName: Basic Chassis
   description: "Chasis b\xE1sico del kart."
+  effects: []
   icon: {fileID: 0}
   modelPrefab: {fileID: 919132149155446097, guid: d7085a79663f0514899faf1e9d7bdd22,
     type: 3}
@@ -31,8 +32,9 @@ MonoBehaviour:
     torsionalStiffness: 400
     rearAxleInertia: 0.12
     rearBrakeTorque: 200
-    frontBrakeTorque: 0
+    frontBrakeTorque: 150
     steering:
+      maxSteerAngle: 25
       ackermann: 1
       casterAngle: 15
       kingpinInclination: 12

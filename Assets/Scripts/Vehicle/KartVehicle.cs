@@ -43,8 +43,14 @@ public class KartVehicle
     /// <summary>Acelerador, de 0 a 1.</summary>
     public float Throttle { get; set; }
 
-    /// <summary>Freno, de 0 a 1.</summary>
+    /// <summary>Freno trasero, de 0 a 1.</summary>
     public float Brake { get; set; }
+
+    /// <summary>
+    /// Freno delantero, de 0 a 1. Va aparte del trasero para que el ABS
+    /// regule cada eje por su cuenta (ver KartBehaviour).
+    /// </summary>
+    public float FrontBrake { get; set; }
 
     /// <summary>Ángulo de dirección en grados (rueda imaginaria en el centro del eje delantero). Positivo = derecha.</summary>
     public float SteerAngle { get; set; }
@@ -173,11 +179,12 @@ public class KartVehicle
         UpdateRearDifferential();
 
         float brake = Mathf.Clamp01(Brake);
+        float frontBrake = Mathf.Clamp01(FrontBrake);
 
         Engine.Throttle = Mathf.Clamp01(Throttle);
         RearAxle.BrakeTorque = brake * Chassis.rearBrakeTorque;
-        frontLeftAxle.BrakeTorque = brake * Chassis.frontBrakeTorque;
-        frontRightAxle.BrakeTorque = brake * Chassis.frontBrakeTorque;
+        frontLeftAxle.BrakeTorque = frontBrake * Chassis.frontBrakeTorque;
+        frontRightAxle.BrakeTorque = frontBrake * Chassis.frontBrakeTorque;
 
         // 1. Contactos: cargas verticales de las cuatro ruedas.
         foreach (KartWheel wheel in Wheels)
