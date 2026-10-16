@@ -97,7 +97,7 @@ public class CustomIABots : MonoBehaviour
 
         kart.SetInputEnabled(true);
 
-        raceStarted = false;
+        raceStarted = true;
 
         Debug.Log(
             "Bot listo para correr. Dificultad actual: " +
@@ -119,15 +119,13 @@ public class CustomIABots : MonoBehaviour
 
         if (!HasTrackBelow())
         {
-            Vector3 origin = transform.position + Vector3.up * 0.5f;
+            timeOffTrack += Time.fixedDeltaTime;
 
-    return Physics.Raycast(
-        origin,
-        Vector3.down,
-        fallCheckDistance + 1f,
-        trackLayer,
-        QueryTriggerInteraction.Ignore
-    );
+            if (timeOffTrack >= maxOffTrackTime)
+            {
+                FallOffTrack();
+                return;
+            }
         }
         else
         {
@@ -154,6 +152,9 @@ public class CustomIABots : MonoBehaviour
         // Solo consulta la politica de la IA.
         // No calcula recompensas ni actualiza la Q-table.
         lastAction = learning.ChooseAction(state);
+        Debug.Log(
+    $"Bot: {name} | Estado: {state} | Acción Q-table: {lastAction} | Velocidad: {rb.linearVelocity.magnitude:F2}"
+);
 
         float speed = rb.linearVelocity.magnitude;
 
@@ -309,15 +310,17 @@ private void Drive()
 
     private bool HasTrackBelow()
     {
-        return Physics.Raycast(
-            transform.position + Vector3.up * 2f,
+        Vector3 origin = transform.position + Vector3.up * 0.5f;
+
+        return Physics.Raycast
+        (
+            origin,
             Vector3.down,
-            fallCheckDistance,
+            fallCheckDistance + 1f,
             trackLayer,
             QueryTriggerInteraction.Ignore
         );
     }
-
     private static Vector3 Flat(Vector3 vector)
     {
         vector.y = 0f;

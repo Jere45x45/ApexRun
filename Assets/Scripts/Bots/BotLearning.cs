@@ -72,6 +72,7 @@ public class BotLearning : MonoBehaviour
     private string savePath;
 
     public float Exploration => exploration;
+    [SerializeField] private bool inferenceOnly = true;
 
     private void Awake()
     {
@@ -117,21 +118,22 @@ public class BotLearning : MonoBehaviour
     }
 
     private void OnApplicationQuit()
-    {
+{
+    if (!inferenceOnly)
         SaveQTable();
-    }
+}
 
     public int ChooseAction(int state)
+{
+    float[] values = GetValues(state);
+
+    if (!inferenceOnly && UnityEngine.Random.value < exploration)
     {
-        float[] values = GetValues(state);
-
-        if (UnityEngine.Random.value < exploration)
-        {
-            return UnityEngine.Random.Range(0, ActionCount);
-        }
-
-        return BestAction(values);
+        return UnityEngine.Random.Range(0, ActionCount);
     }
+
+    return BestAction(values);
+}
 
     /// <summary>
     /// Actualiza la tabla. Con terminal = true (se cayó, se trabó o terminó)
@@ -144,6 +146,8 @@ public class BotLearning : MonoBehaviour
         int nextState,
         bool terminal)
     {
+        if (inferenceOnly)
+        return;
         float[] values = GetValues(state);
 
         float target = reward;
