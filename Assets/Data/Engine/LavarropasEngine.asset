@@ -139,3 +139,5 @@ MonoBehaviour:
     clutchFullTorque: 12
     gearRatio: 7
     drivetrainEfficiency: 0.95
+    launchRatio: 22
+    launchRatioEndRpm: 8500
