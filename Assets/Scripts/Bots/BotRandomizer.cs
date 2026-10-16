@@ -25,6 +25,10 @@ public class BotRandomizer : MonoBehaviour
     {
         configuration = GetComponentInChildren<KartConfigurationController>();
     }
+    private void Start()
+    {
+    RandomizeKart();
+    }
 
     public void RandomizeKart()
     {
