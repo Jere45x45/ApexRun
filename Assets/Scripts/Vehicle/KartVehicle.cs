@@ -43,11 +43,27 @@ public class KartVehicle
     /// <summary>Acelerador, de 0 a 1.</summary>
     public float Throttle { get; set; }
 
-    /// <summary>Freno, de 0 a 1.</summary>
+    /// <summary>Freno trasero, de 0 a 1.</summary>
     public float Brake { get; set; }
+
+    /// <summary>
+    /// Freno delantero, de 0 a 1. Va aparte del trasero para que el ABS
+    /// regule cada eje por su cuenta (ver KartBehaviour).
+    /// </summary>
+    public float FrontBrake { get; set; }
 
     /// <summary>Ángulo de dirección en grados (rueda imaginaria en el centro del eje delantero). Positivo = derecha.</summary>
     public float SteerAngle { get; set; }
+
+    /// <summary>
+    /// Diferencial del eje trasero, de 0 a 1.
+    /// - 0 (real): eje rígido, las dos traseras giran juntas. En curva la de
+    ///   adentro se arrastra hasta que el kart la levanta.
+    /// - 1: cada trasera gira a la velocidad que pide su recorrido en la curva
+    ///   (la de afuera más rápido), como con un diferencial: no se arrastran.
+    /// Es una ayuda de manejo para baja velocidad (ver KartBehaviour).
+    /// </summary>
+    public float RearDifferential { get; set; }
 
     /// <summary>Velocidad en la dirección en que apunta el kart (m/s). Negativa = marcha atrás.</summary>
     public float ForwardSpeed => Vector3.Dot(body.linearVelocity, body.rotation * Vector3.forward);
@@ -160,12 +176,15 @@ public class KartVehicle
         // Dirección antes de los contactos: la geometría mueve el centro de cada delantera.
         Steering.Apply(SteerAngle);
 
+        UpdateRearDifferential();
+
         float brake = Mathf.Clamp01(Brake);
+        float frontBrake = Mathf.Clamp01(FrontBrake);
 
         Engine.Throttle = Mathf.Clamp01(Throttle);
         RearAxle.BrakeTorque = brake * Chassis.rearBrakeTorque;
-        frontLeftAxle.BrakeTorque = brake * Chassis.frontBrakeTorque;
-        frontRightAxle.BrakeTorque = brake * Chassis.frontBrakeTorque;
+        frontLeftAxle.BrakeTorque = frontBrake * Chassis.frontBrakeTorque;
+        frontRightAxle.BrakeTorque = frontBrake * Chassis.frontBrakeTorque;
 
         // 1. Contactos: cargas verticales de las cuatro ruedas.
         foreach (KartWheel wheel in Wheels)
@@ -202,6 +221,24 @@ public class KartVehicle
 
         // 4. Aire: resistencia y carga aerodinámica.
         Aerodynamics.Apply(body);
+    }
+
+    /// <summary>
+    /// Diferencial trasero (RearDifferential): cada trasera gira más rápido o
+    /// más lento que el eje según lo que recorre al girar el kart. Un punto a
+    /// la distancia x del centro (positiva a la derecha) avanza −giro·x más
+    /// que el centro: doblando a la derecha, la izquierda (afuera) va más rápido.
+    /// </summary>
+    private void UpdateRearDifferential()
+    {
+        float blend = Mathf.Clamp01(RearDifferential);
+        float yawRate = Vector3.Dot(body.angularVelocity, body.rotation * Vector3.up);
+
+        for (int i = RearLeft; i <= RearRight; i++)
+        {
+            KartWheel wheel = Wheels[i];
+            wheel.AxleSpeedOffset = blend > 0f ? -blend * yawRate * wheel.LocalPosition.x / Tire.radius : 0f;
+        }
     }
 
     /// <summary>

@@ -54,6 +54,13 @@ public class KartWheel
     /// <summary>Ángulo de dirección en grados (positivo = hacia la derecha).</summary>
     public float SteerAngle { get; set; }
 
+    /// <summary>
+    /// Cuánto más rápido gira esta rueda que su eje (rad/s). En un eje rígido
+    /// vale 0: las dos ruedas giran igual. KartVehicle lo usa para el
+    /// diferencial de baja velocidad (ver KartVehicle.RearDifferential).
+    /// </summary>
+    public float AxleSpeedOffset { get; set; }
+
     // ---------- Contacto ----------
 
     public bool IsGrounded { get; private set; }
@@ -89,9 +96,21 @@ public class KartWheel
     /// <summary>Superficie que pisa la rueda (pista, pasto...). Null si el piso no tiene TrackSurface.</summary>
     public TrackSurfaceData CurrentSurface { get; private set; }
 
-    /// <summary>Multiplica el agarre del neumático según la superficie (1 = asfalto normal).</summary>
-    public float SurfaceGripMultiplier =>
-        CurrentSurface != null ? Mathf.Max(0f, CurrentSurface.GripMultiplier) : 1f;
+    /// <summary>
+    /// Multiplica el agarre del neumático según la superficie (1 = asfalto
+    /// seco). Con la pista mojada (TrackConditions.Wetness, lo pone el clima)
+    /// baja hasta el agarre en mojado de esa superficie.
+    /// </summary>
+    public float SurfaceGripMultiplier
+    {
+        get
+        {
+            float grip = CurrentSurface != null ? Mathf.Max(0f, CurrentSurface.GripMultiplier) : 1f;
+            float wetGrip = CurrentSurface != null ? CurrentSurface.WetGripMultiplier : TrackSurfaceData.DefaultWetGrip;
+
+            return grip * Mathf.Lerp(1f, wetGrip, TrackConditions.Wetness);
+        }
+    }
 
     /// <summary>True si la rueda está apoyada fuera de los límites de pista.</summary>
     public bool IsOnInvalidSurface =>
@@ -207,6 +226,11 @@ public class KartWheel
             Collider ground = overlapBuffer[i];
 
             if (ground.attachedRigidbody == body)
+                continue;
+
+            // Capas que no chocan entre sí (Physics → Layer Collision Matrix), por
+            // ejemplo los bots de entrenamiento: tampoco se apoyan uno sobre otro.
+            if (Physics.GetIgnoreLayerCollision(body.gameObject.layer, ground.gameObject.layer))
                 continue;
 
             bool touching = Physics.ComputePenetration(
