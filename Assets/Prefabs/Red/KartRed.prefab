@@ -25,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 1938067214138919614}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -0.35}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -211,6 +211,16 @@ MonoBehaviour:
   steeringSmoothTime: 0.06
   limitSteeringToGrip: 1
   gripSteeringMargin: 1
+  lowSpeedDifferential: 1
+  differentialFullBelowKmh: 8
+  differentialOffAboveKmh: 25
+  lowSpeedTractionControl: 1
+  tractionSlipMargin: 1.3
+  antiLockBrakes: 1
+  absSlipMargin: 0.9
+  absMinSpeedKmh: 6
+  brakeApplyTime: 0.12
+  brakeReleaseTime: 0.05
   noInputBrake: 0.25
 --- !u!114 &7955980074788983492
 MonoBehaviour:
@@ -392,6 +402,7 @@ MonoBehaviour:
   restitution: 0
   overlapCorrection: 0.5
   overlapSlop: 0.01
+  maxCorrectionPerStep: 0.05
   maxPrediction: 0.25
 --- !u!1 &2823503327116068364
 GameObject:

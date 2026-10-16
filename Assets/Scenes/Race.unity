@@ -5033,6 +5033,7 @@ MonoBehaviour:
   continueButton: {fileID: 686413739}
   restartButton: {fileID: 1477241319}
   menuButton: {fileID: 654947496}
+  pauseOnFocusLost: 1
   menuSceneName: Inicio
 --- !u!1 &1314686109
 GameObject:
@@ -5308,8 +5309,8 @@ MonoBehaviour:
   displayName: Piloto
   fieldOfView: 60
   nearClipPlane: 0.03
-  eyePosition: {x: 0, y: 0.507, z: -0.232}
-  eyePitch: 4.23
+  eyePosition: {x: 0, y: 0.507, z: -0.582}
+  eyePitch: 4.2
   headMovementPerG: {x: 0.03, y: 0.015, z: 0.04}
   maxHeadOffset: 0.08
   horizonLock: 0.5

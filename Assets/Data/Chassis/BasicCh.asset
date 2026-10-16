@@ -17,7 +17,7 @@ MonoBehaviour:
   description: "Chasis b\xE1sico del kart."
   effects: []
   icon: {fileID: 0}
-  modelPrefab: {fileID: 919132149155446097, guid: d7085a79663f0514899faf1e9d7bdd22,
+  modelPrefab: {fileID: 919132149155446097, guid: 1b79c86317740f843b238e86cb72823b,
     type: 3}
   rarity: 0
   mass: 250
@@ -39,3 +39,5 @@ MonoBehaviour:
       casterAngle: 15
       kingpinInclination: 12
       spindleLength: 0.12
+  steeringWheelHub: {x: 0, y: 0.32306546, z: 0.13584231}
+  steeringColumnTilt: 25

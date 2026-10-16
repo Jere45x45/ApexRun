@@ -28,6 +28,12 @@ public class WheelData : KartPart
     [Min(0.001f)]
     public float radius = 0.25f;
 
+    [Header("Modelo")]
+    [Tooltip("Hacia dónde mira la llanta en el modelo, sin rotar: marcado = hacia +X (la derecha del " +
+             "kart); sin marcar = hacia −X. Con esto el juego gira cada rueda para que la llanta " +
+             "quede siempre hacia afuera, de los dos lados.")]
+    public bool rimFacesRight = true;
+
     [Header("Física nueva (Fase 0)")]
     [Tooltip("Neumático de la física nueva: radio, rigidez, agarre (Pacejka) y deformación. " +
              "Cuando Race pase a la física nueva, reemplaza a la suspensión, el radio y las curvas de fricción.")]

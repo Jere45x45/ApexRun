@@ -324,6 +324,7 @@ public class KartBehaviour : MonoBehaviour
             // Ruedas visuales: con la pose interpolada del Transform, una vez por frame.
             for (int i = 0; i < wheelVisuals.Length; i++)
             {
+                wheelVisuals[i].ModelRimFacesRight = modelController == null || modelController.WheelRimFacesRight;
                 wheelVisuals[i].UpdatePose(transform, GetWheelModel(i), Time.deltaTime);
             }
         }
@@ -659,6 +660,7 @@ public class KartBehaviour : MonoBehaviour
             bool front = i == KartVehicle.FrontLeft || i == KartVehicle.FrontRight;
             float radius = Mathf.Max(0.05f, wheelRadii[i]);
 
+            wheelVisuals[i].ModelRimFacesRight = modelController == null || modelController.WheelRimFacesRight;
             wheelVisuals[i].UpdatePose(
                 transform,
                 GetWheelModel(i),
