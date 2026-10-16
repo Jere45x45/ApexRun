@@ -1,33 +1,5 @@
 using UnityEngine;
 
-/// <summary>
-/// Bot que aprende a correr la pista con Q-learning (BotLearning). Maneja el
-/// mismo kart que los jugadores (KartBehaviour, la física nueva) con SetInputs.
-///
-/// Se reparte el trabajo:
-/// - El volante lo maneja solo: apunta a un punto un poco más adelante sobre la
-///   línea central (TrackCenterline).
-/// - Lo que APRENDE es lo difícil: en cada parte de la pista, cuándo acelerar,
-///   soltar o frenar. O sea, se aprende la pista: dónde frenar y a cuánto se
-///   puede tomar cada curva.
-///
-/// Lo que ve (el "estado"):
-/// - En qué tramo de la pista está (la pista se corta en tramos de segmentLength metros).
-/// - A qué velocidad va (6 rangos).
-/// Con la pista de 1438 m y tramos de 15 m son 96 × 6 = 576 situaciones.
-/// Como depende de los tramos, la tabla sirve para esta pista: otra pista
-/// necesita su propio entrenamiento (y su propio archivo de tabla).
-///
-/// Lo que puede hacer: acelerar, soltar o frenar (3 acciones).
-///
-/// Recompensa en cada decisión:
-/// - + por cada metro que avanzó sobre la pista (y - si retrocedió): ir más
-///   rápido da más.
-/// - - si no tiene pista debajo (y fuera de la pista no cuenta lo que avanza).
-/// - + al completar una vuelta. Caerse, salirse más de un segundo, hacer un
-///   trompo o trabarse termina el intento con castigo.
-/// Cada intento arranca en un punto al azar de la pista, así practica todas las curvas.
-/// </summary>
 public class CustomIABots : MonoBehaviour
 {
     [Header("Kart")]
