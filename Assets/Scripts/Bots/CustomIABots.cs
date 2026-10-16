@@ -152,9 +152,7 @@ public class CustomIABots : MonoBehaviour
         // Solo consulta la politica de la IA.
         // No calcula recompensas ni actualiza la Q-table.
         lastAction = learning.ChooseAction(state);
-        Debug.Log(
-    $"Bot: {name} | Estado: {state} | Acción Q-table: {lastAction} | Velocidad: {rb.linearVelocity.magnitude:F2}"
-);
+        
 
         float speed = rb.linearVelocity.magnitude;
 
