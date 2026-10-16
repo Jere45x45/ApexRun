@@ -97,7 +97,7 @@ public class CustomIABots : MonoBehaviour
 
         kart.SetInputEnabled(true);
 
-        raceStarted = true;
+        raceStarted = false;
 
         Debug.Log(
             "Bot listo para correr. Dificultad actual: " +
@@ -119,13 +119,15 @@ public class CustomIABots : MonoBehaviour
 
         if (!HasTrackBelow())
         {
-            timeOffTrack += Time.fixedDeltaTime;
+            Vector3 origin = transform.position + Vector3.up * 0.5f;
 
-            if (timeOffTrack >= maxOffTrackTime)
-            {
-                FallOffTrack();
-                return;
-            }
+    return Physics.Raycast(
+        origin,
+        Vector3.down,
+        fallCheckDistance + 1f,
+        trackLayer,
+        QueryTriggerInteraction.Ignore
+    );
         }
         else
         {
@@ -165,38 +167,65 @@ public class CustomIABots : MonoBehaviour
         }
     }
 
-    private void Drive()
-    {
-        float speed = rb.linearVelocity.magnitude;
-        Vector3 position = transform.position;
+    
+private void Drive()
+{
+    float speed = rb.linearVelocity.magnitude;
+    Vector3 position = transform.position;
 
-        float lookAhead = Mathf.Clamp(
-            3f + speed * 0.6f, 5f, 14f
-        );
+    // Mira más adelante para anticipar las curvas.
+    float lookAhead = Mathf.Clamp(
+        5f + speed * 0.4f,
+        5f,
+        12f
+    );
 
-        float aimDistance =
-            FindTrackDistanceNear(trackDistance, position)
-            + lookAhead;
+    float aimDistance =
+        FindTrackDistanceNear(trackDistance, position)
+        + lookAhead;
 
-        Vector3 aimPoint =
-            centerline.GetPointAtDistance(aimDistance);
+    Vector3 aimPoint =
+        centerline.GetPointAtDistance(aimDistance);
 
-        float angle = Vector3.SignedAngle(
-            Flat(transform.forward),
-            Flat(aimPoint - position),
-            Vector3.up
-        );
+    Vector3 directionToTarget = aimPoint - position;
+    directionToTarget.y = 0f;
 
-        float steering = Mathf.Clamp(
-            angle / fullSteerAngle, -1f, 1f
-        );
+    if (directionToTarget.sqrMagnitude < 0.01f)
+        return;
 
-        float throttle =
+    directionToTarget.Normalize();
+
+    Vector3 forward = transform.forward;
+    forward.y = 0f;
+    forward.Normalize();
+
+    float angle = Vector3.SignedAngle(
+        forward,
+        directionToTarget,
+        Vector3.up
+    );
+
+    // Limita el giro para evitar correcciones bruscas.
+    float steering = Mathf.Clamp(
+        angle / 45f,
+        -0.65f,
+        0.65f
+    );
+
+    float throttle;
+
+    if (speed >= maxSpeed)
+        throttle = -brakeStrength;
+    else if (speed < alwaysAccelerateBelow)
+        throttle = 1f;
+    else
+        throttle =
             lastAction == Accelerate ? 1f :
             lastAction == Brake ? -brakeStrength : 0f;
 
-        kart.SetInputs(throttle, steering, false);
-    }
+    kart.SetInputs(throttle, steering, false);
+}
+
 
     private int GetState()
     {
@@ -329,29 +358,35 @@ public class CustomIABots : MonoBehaviour
         );
     }
 
-    public void FallOffTrack()
+    
+public void FallOffTrack()
+{
+    if (eliminated)
+        return;
+
+    eliminated = true;
+    raceStarted = false;
+
+    Debug.Log(
+        "Bot eliminado de la carrera: " + gameObject.name,
+        this
+    );
+
+    if (kart != null)
     {
-        if (eliminated)
-            return;
-
-        eliminated = true;
-        raceStarted = false;
-
-        Debug.Log(
-            "Bot eliminado de la carrera: " + gameObject.name,
-            this
-        );
-
-        // Detiene el kart antes de desactivarlo.
         kart.SetInputs(0f, 0f, true);
         kart.SetInputEnabled(false);
+    }
 
+    if (rb != null)
+    {
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
-
-        // Desaparece definitivamente durante esta carrera.
-        gameObject.SetActive(false);
     }
+
+    gameObject.SetActive(false);
+}
+
 
     private void OnTriggerEnter(Collider other)
     {
