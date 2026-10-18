@@ -10,7 +10,8 @@ using UnityEngine;
 /// propio no choca físicamente con las copias. En cambio:
 /// - Cada paso de física busca contacto con las copias, puestas donde está el
 ///   otro kart ahora (lo último que mandó su dueño, adelantado por la
-///   latencia), no donde se lo ve.
+///   latencia). Es lo mismo que se dibuja (KartNetworkTransform), así que el
+///   choque pasa donde se ve.
 /// - De cada par de karts resuelve el choque uno solo, siempre el mismo (el de
 ///   NetworkObjectId más bajo): calcula el golpe entre los dos con las
 ///   velocidades de antes del choque, se aplica su parte y le manda al otro
@@ -44,10 +45,6 @@ public class KartRemoteContacts : MonoBehaviour
     [Tooltip("Lo máximo que se corre el kart por paso de física para salir de la superposición (m).")]
     [SerializeField, Min(0.001f)] private float maxCorrectionPerStep = 0.05f;
 
-    [Header("Latencia")]
-    [Tooltip("Máximo que se adelanta la copia para estimar dónde está el otro kart ahora (s).")]
-    [SerializeField, Min(0f)] private float maxPrediction = 0.25f;
-
     // Más allá de esta distancia entre karts no se buscan contactos (m).
     private const float CheckDistance = 5f;
 
@@ -55,12 +52,21 @@ public class KartRemoteContacts : MonoBehaviour
     // llega la confirmación de su computadora.
     private const float MaxHitMemory = 0.5f;
 
+    /// <summary>Caja del chasis y su posición respecto del kart (fija).</summary>
+    private struct HullPart
+    {
+        public Collider Collider;
+        public Vector3 Position;
+        public Quaternion Rotation;
+        public Vector3 Center;
+    }
+
     private class Remote
     {
         public NetworkKart Kart;
         public Rigidbody Body;
         public KartNetworkTransform Network;
-        public Collider[] Hull;
+        public HullPart[] Hull;
 
         // Golpe que se le mandó al otro kart y que todavía no se ve en lo que
         // manda su dueño: cambio de velocidad que le toca, velocidad que
@@ -75,6 +81,8 @@ public class KartRemoteContacts : MonoBehaviour
 
     private NetworkKart networkKart;
 
+    private HullPart[] ownHull;
+
     private void Reset()
     {
         kart = GetComponent<KartBehaviour>();
@@ -85,6 +93,7 @@ public class KartRemoteContacts : MonoBehaviour
     private void Awake()
     {
         networkKart = GetComponent<NetworkKart>();
+        ownHull = ToParts(transform, hull);
     }
 
     private void OnEnable()
@@ -166,7 +175,7 @@ public class KartRemoteContacts : MonoBehaviour
             Kart = other,
             Body = other.GetComponent<Rigidbody>(),
             Network = other.GetComponent<KartNetworkTransform>(),
-            Hull = FindHull(other.gameObject)
+            Hull = ToParts(other.transform, FindHull(other.gameObject))
         };
 
         if (remote.Body == null || remote.Network == null)
@@ -175,10 +184,10 @@ public class KartRemoteContacts : MonoBehaviour
         // El kart propio deja de chocar físicamente con la copia.
         foreach (Collider own in hull)
         {
-            foreach (Collider theirs in remote.Hull)
+            foreach (HullPart theirs in remote.Hull)
             {
-                if (own != null && theirs != null)
-                    Physics.IgnoreCollision(own, theirs, true);
+                if (own != null && theirs.Collider != null)
+                    Physics.IgnoreCollision(own, theirs.Collider, true);
             }
         }
 
@@ -213,9 +222,11 @@ public class KartRemoteContacts : MonoBehaviour
     /// <summary>Busca contacto con la copia puesta donde está el otro kart ahora y, si hay, lo resuelve.</summary>
     private void ResolveContact(Remote remote)
     {
+        float prediction = remote.Network.PredictionTime;
         Vector3 pendingHit = GetPendingHit(remote);
         Vector3 remoteVelocity = remote.Kart.OwnerVelocity + pendingHit;
-        Vector3 predictedPosition = remote.Network.OwnerPosition + remoteVelocity * GetPrediction(remote);
+        Vector3 predictedPosition = remote.Network.OwnerPosition + remoteVelocity * prediction;
+        Quaternion predictedRotation = remote.Network.PredictRotation(remote.Kart.OwnerAngularVelocity, prediction);
 
         // Desde el golpe, el otro kart ya se viene moviendo con la velocidad
         // que se le dio, aunque su dueño todavía no lo haya mandado.
@@ -225,28 +236,35 @@ public class KartRemoteContacts : MonoBehaviour
         if ((predictedPosition - body.position).sqrMagnitude > CheckDistance * CheckDistance)
             return;
 
-        // Corrimiento de la copia: de donde se la ve a donde está ahora.
-        Vector3 shift = predictedPosition - remote.Body.position;
+        // Las cajas se ubican con la pose del Rigidbody (la de este paso de
+        // física) y no con la del Transform: con la interpolación prendida, el
+        // Transform tiene la pose dibujada, que va un paso atrasada.
+        Vector3 ownPosition = body.position;
+        Quaternion ownRotation = body.rotation;
 
         float deepest = 0f;
         Vector3 normal = Vector3.zero;
         Vector3 point = Vector3.zero;
 
-        foreach (Collider own in hull)
+        foreach (HullPart own in ownHull)
         {
-            if (own == null || !own.enabled)
+            if (own.Collider == null || !own.Collider.enabled)
                 continue;
 
-            foreach (Collider theirs in remote.Hull)
+            Vector3 ownPartPosition = ownPosition + ownRotation * own.Position;
+            Quaternion ownPartRotation = ownRotation * own.Rotation;
+
+            foreach (HullPart theirs in remote.Hull)
             {
-                if (theirs == null || !theirs.enabled)
+                if (theirs.Collider == null || !theirs.Collider.enabled)
                     continue;
 
-                Vector3 theirPosition = theirs.transform.position + shift;
+                Vector3 theirPartPosition = predictedPosition + predictedRotation * theirs.Position;
+                Quaternion theirPartRotation = predictedRotation * theirs.Rotation;
 
                 if (!Physics.ComputePenetration(
-                        own, own.transform.position, own.transform.rotation,
-                        theirs, theirPosition, theirs.transform.rotation,
+                        own.Collider, ownPartPosition, ownPartRotation,
+                        theirs.Collider, theirPartPosition, theirPartRotation,
                         out Vector3 direction, out float distance))
                 {
                     continue;
@@ -256,7 +274,9 @@ public class KartRemoteContacts : MonoBehaviour
                 {
                     deepest = distance;
                     normal = direction;
-                    point = own.ClosestPoint(theirs.bounds.center + shift);
+                    point = Physics.ClosestPoint(
+                        predictedPosition + predictedRotation * theirs.Center,
+                        own.Collider, ownPartPosition, ownPartRotation);
                 }
             }
         }
@@ -267,7 +287,7 @@ public class KartRemoteContacts : MonoBehaviour
         // Los karts se empujan de costado o de frente, no hacia arriba: las
         // cajas son bajas y la salida más corta muchas veces sería vertical,
         // y eso subiría un kart arriba del otro.
-        Vector3 up = body.transform.up;
+        Vector3 up = ownRotation * Vector3.up;
         normal = Vector3.ProjectOnPlane(normal, up);
 
         if (normal.sqrMagnitude < 0.01f)
@@ -295,7 +315,7 @@ public class KartRemoteContacts : MonoBehaviour
             {
                 // Al otro le toca el golpe contrario: se lo manda a su
                 // computadora, con el punto en coordenadas de su kart.
-                Vector3 localPoint = Quaternion.Inverse(remote.Body.rotation) * (point - predictedPosition);
+                Vector3 localPoint = Quaternion.Inverse(predictedRotation) * (point - predictedPosition);
                 remote.Kart.SendHit(-normal * impulse, localPoint);
 
                 // Acá recién se va a ver cuando llegue su próxima velocidad.
@@ -393,39 +413,6 @@ public class KartRemoteContacts : MonoBehaviour
         return rotation * local;
     }
 
-    /// <summary>
-    /// Cuánto adelantar lo último que mandó el dueño para estimar dónde está
-    /// ahora: lo que tardó en llegar (latencia del dueño al servidor y del
-    /// servidor acá) más el tiempo desde que llegó.
-    /// </summary>
-    private float GetPrediction(Remote remote)
-    {
-        NetworkManager manager = NetworkManager.Singleton;
-        float travel = 0f;
-
-        if (manager != null && manager.IsListening)
-        {
-            NetworkTransport transport = manager.NetworkConfig.NetworkTransport;
-            ulong owner = remote.Kart.OwnerClientId;
-
-            if (manager.IsServer)
-            {
-                // Del dueño al servidor: media ida y vuelta.
-                travel = transport.GetCurrentRtt(owner) * 0.0005f;
-            }
-            else
-            {
-                float mine = transport.GetCurrentRtt(NetworkManager.ServerClientId) * 0.0005f;
-
-                // Si el dueño es otro cliente, su tramo hasta el servidor se
-                // estima igual al propio.
-                travel = owner == NetworkManager.ServerClientId ? mine : mine * 2f;
-            }
-        }
-
-        return Mathf.Min(travel + remote.Network.OwnerStateAge, maxPrediction);
-    }
-
     private static Collider[] FindHull(GameObject root)
     {
         List<Collider> found = new List<Collider>();
@@ -437,5 +424,43 @@ public class KartRemoteContacts : MonoBehaviour
         }
 
         return found.ToArray();
+    }
+
+    /// <summary>
+    /// Posición y rotación de cada caja respecto del kart (las cajas no se
+    /// mueven dentro del kart), y su centro respecto del kart.
+    /// </summary>
+    private static HullPart[] ToParts(Transform root, Collider[] colliders)
+    {
+        HullPart[] parts = new HullPart[colliders.Length];
+        Quaternion inverseRoot = Quaternion.Inverse(root.rotation);
+
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Collider collider = colliders[i];
+
+            if (collider == null)
+                continue;
+
+            Transform t = collider.transform;
+            Vector3 localCenter = Vector3.zero;
+
+            if (collider is BoxCollider box)
+                localCenter = box.center;
+            else if (collider is SphereCollider sphere)
+                localCenter = sphere.center;
+            else if (collider is CapsuleCollider capsule)
+                localCenter = capsule.center;
+
+            parts[i] = new HullPart
+            {
+                Collider = collider,
+                Position = inverseRoot * (t.position - root.position),
+                Rotation = inverseRoot * t.rotation,
+                Center = inverseRoot * (t.TransformPoint(localCenter) - root.position)
+            };
+        }
+
+        return parts;
     }
 }

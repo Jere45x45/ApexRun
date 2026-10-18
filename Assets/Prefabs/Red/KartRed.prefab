@@ -337,13 +337,17 @@ MonoBehaviour:
   PositionThreshold: 0.001
   RotAngleThreshold: 0.01
   ScaleThreshold: 0.01
-  UseQuaternionSynchronization: 0
+  UseQuaternionSynchronization: 1
   UseQuaternionCompression: 0
   UseHalfFloatPrecision: 0
   InLocalSpace: 0
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+  predictCopies: 1
+  maxPrediction: 0.25
+  correctionSharpness: 8
+  snapDistance: 4
 --- !u!114 &1475179307869758415
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -403,7 +407,6 @@ MonoBehaviour:
   overlapCorrection: 0.5
   overlapSlop: 0.01
   maxCorrectionPerStep: 0.05
-  maxPrediction: 0.25
 --- !u!1 &2823503327116068364
 GameObject:
   m_ObjectHideFlags: 0
