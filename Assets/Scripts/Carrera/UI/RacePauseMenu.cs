@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -6,18 +7,21 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
-/// Pausa de la carrera, solo en un jugador (en red la carrera es de todos y no
-/// se puede frenar).
-/// - Esc, P o Start del joystick pausan y reanudan, durante la cuenta
+/// Menú de pausa de la carrera.
+/// - Esc, P o Start del joystick lo abren y lo cierran, durante la cuenta
 ///   regresiva y la carrera (no después de cruzar la meta).
-/// - También se pausa sola si el juego pierde el foco (alt-tab, clic en otra
-///   ventana, minimizar). Al volver queda en pausa hasta tocar CONTINUAR.
-/// - Al pausar se congela todo: la física y lo que usa el tiempo del juego
-///   (Time.timeScale = 0), el sonido (AudioListener.pause) y el reloj de la
-///   carrera (RaceManager.PauseClock: el cronómetro y la cuenta regresiva no
-///   avanzan).
+/// - En un jugador es una pausa de verdad: se congela todo, la física y lo
+///   que usa el tiempo del juego (Time.timeScale = 0), el sonido
+///   (AudioListener.pause) y el reloj de la carrera (RaceManager.PauseClock:
+///   el cronómetro y la cuenta regresiva no avanzan). También se pausa solo
+///   si el juego pierde el foco (alt-tab, clic en otra ventana, minimizar), y
+///   al volver queda en pausa hasta tocar CONTINUAR.
+/// - En red la carrera es de todos y no se frena: el menú se abre arriba de
+///   la carrera, que sigue andando. Mientras está abierto, el kart propio no
+///   recibe los mandos (sigue de largo sin acelerar, como si soltaras todo).
+///   No se abre solo al perder el foco y no tiene REINICIAR.
 /// - Menú: CONTINUAR, REINICIAR (vuelve a cargar la carrera, como Reintentar
-///   de los resultados) y SALIR AL MENÚ (vuelve al Inicio).
+///   de los resultados; solo en un jugador) y SALIR AL MENÚ (vuelve al Inicio).
 /// Si la escena se cierra estando en pausa, deja el tiempo y el sonido como
 /// estaban.
 /// </summary>
@@ -33,7 +37,7 @@ public class RacePauseMenu : MonoBehaviour
     [SerializeField] private Button restartButton;
     [SerializeField] private Button menuButton;
 
-    [Tooltip("Pausar solo cuando el juego pierde el foco (alt-tab, otra ventana, minimizar).")]
+    [Tooltip("Pausar solo cuando el juego pierde el foco (alt-tab, otra ventana, minimizar). Solo en un jugador.")]
     [SerializeField] private bool pauseOnFocusLost = true;
 
     [Header("Escenas")]
@@ -42,11 +46,26 @@ public class RacePauseMenu : MonoBehaviour
 
     private InputAction pauseAction;
 
-    private bool paused;
+    // Menú abierto (en un jugador, además, todo congelado).
+    private bool open;
+
+    // True si al abrirlo se congeló la carrera (un jugador).
+    private bool frozen;
+
     private float timeScaleBeforePause = 1f;
 
-    /// <summary>True mientras la carrera está en pausa.</summary>
-    public bool IsPaused => paused;
+    // Lugar de SALIR AL MENÚ en el panel: sin REINICIAR, pasa a su lugar.
+    private Vector2 menuButtonPosition;
+    private bool hasMenuButtonPosition;
+
+    // Mandos del jugador apagados mientras el menú está abierto en red.
+    private readonly List<PlayerKartInput> blockedInputs = new List<PlayerKartInput>();
+
+    /// <summary>True mientras el menú de pausa está abierto (en red, la carrera sigue).</summary>
+    public bool IsOpen => open;
+
+    /// <summary>True mientras la carrera está congelada (solo en un jugador).</summary>
+    public bool IsPaused => frozen;
 
     private void Awake()
     {
@@ -66,6 +85,12 @@ public class RacePauseMenu : MonoBehaviour
 
         if (panel != null)
             panel.SetActive(false);
+
+        if (menuButton != null && menuButton.transform is RectTransform menuRect)
+        {
+            menuButtonPosition = menuRect.anchoredPosition;
+            hasMenuButtonPosition = true;
+        }
     }
 
     private void OnEnable()
@@ -87,10 +112,18 @@ public class RacePauseMenu : MonoBehaviour
 
     private void Update()
     {
+        if (open && !frozen && !CanPause())
+        {
+            // En red la carrera sigue: si terminó con el menú abierto, se
+            // cierra para que se vean los resultados.
+            Resume();
+            return;
+        }
+
         if (!pauseAction.WasPressedThisFrame())
             return;
 
-        if (paused)
+        if (open)
             Resume();
         else if (CanPause())
             Pause();
@@ -112,14 +145,15 @@ public class RacePauseMenu : MonoBehaviour
 
     private void PauseForFocusLoss()
     {
-        if (pauseOnFocusLost && !paused && CanPause())
+        // En red no: la carrera sigue igual y el menú solo taparía la pista.
+        if (pauseOnFocusLost && !open && CanPause() && IsSinglePlayer())
             Pause();
     }
 
-    /// <summary>Se puede pausar en un jugador, durante la cuenta regresiva o la carrera.</summary>
+    /// <summary>Se puede abrir durante la cuenta regresiva o la carrera.</summary>
     public bool CanPause()
     {
-        if (raceManager == null || !raceManager.IsSpawned || !IsSinglePlayer())
+        if (raceManager == null || !raceManager.IsSpawned)
             return false;
 
         return raceManager.IsCountdown() || raceManager.IsRacing();
@@ -143,16 +177,28 @@ public class RacePauseMenu : MonoBehaviour
 
     public void Pause()
     {
-        if (paused)
+        if (open)
             return;
 
-        paused = true;
+        open = true;
 
-        timeScaleBeforePause = Time.timeScale > 0f ? Time.timeScale : 1f;
-        Time.timeScale = 0f;
-        AudioListener.pause = true;
+        if (IsSinglePlayer())
+        {
+            frozen = true;
 
-        raceManager.PauseClock();
+            timeScaleBeforePause = Time.timeScale > 0f ? Time.timeScale : 1f;
+            Time.timeScale = 0f;
+            AudioListener.pause = true;
+
+            raceManager.PauseClock();
+        }
+        else
+        {
+            BlockPlayerInput();
+        }
+
+        // Reiniciar la carrera es para un jugador: en red la reinicia el anfitrión para todos.
+        ShowRestartButton(frozen);
 
         if (panel != null)
             panel.SetActive(true);
@@ -164,7 +210,7 @@ public class RacePauseMenu : MonoBehaviour
 
     public void Resume()
     {
-        if (!paused)
+        if (!open)
             return;
 
         ReleasePause();
@@ -217,13 +263,71 @@ public class RacePauseMenu : MonoBehaviour
         SceneManager.LoadScene(menuSceneName);
     }
 
-    /// <summary>Saca la pausa: tiempo, sonido y reloj de la carrera.</summary>
-    private void ReleasePause()
+    /// <summary>Muestra u oculta REINICIAR. Sin él, SALIR AL MENÚ sube a su lugar y no queda un hueco.</summary>
+    private void ShowRestartButton(bool show)
     {
-        if (!paused)
+        if (restartButton == null)
             return;
 
-        paused = false;
+        restartButton.gameObject.SetActive(show);
+
+        if (!hasMenuButtonPosition || !(menuButton.transform is RectTransform menuRect) ||
+            !(restartButton.transform is RectTransform restartRect))
+        {
+            return;
+        }
+
+        menuRect.anchoredPosition = show ? menuButtonPosition : restartRect.anchoredPosition;
+    }
+
+    /// <summary>
+    /// En red: el teclado deja de manejar el kart propio mientras el menú está
+    /// abierto, y el kart queda sin acelerar, sin frenar y con el volante derecho.
+    /// </summary>
+    private void BlockPlayerInput()
+    {
+        blockedInputs.Clear();
+
+        foreach (PlayerKartInput input in FindObjectsByType<PlayerKartInput>(FindObjectsSortMode.None))
+        {
+            if (!input.enabled)
+                continue;
+
+            input.enabled = false;
+            blockedInputs.Add(input);
+
+            KartBehaviour kart = input.GetComponent<KartBehaviour>();
+
+            if (kart != null)
+                kart.SetInputs(0f, 0f, false);
+        }
+    }
+
+    private void RestorePlayerInput()
+    {
+        foreach (PlayerKartInput input in blockedInputs)
+        {
+            if (input != null)
+                input.enabled = true;
+        }
+
+        blockedInputs.Clear();
+    }
+
+    /// <summary>Saca la pausa: tiempo, sonido y reloj de la carrera, o los mandos en red.</summary>
+    private void ReleasePause()
+    {
+        if (!open)
+            return;
+
+        open = false;
+
+        RestorePlayerInput();
+
+        if (!frozen)
+            return;
+
+        frozen = false;
 
         Time.timeScale = timeScaleBeforePause;
         AudioListener.pause = false;

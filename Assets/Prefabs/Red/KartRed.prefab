@@ -125,6 +125,7 @@ GameObject:
   - component: {fileID: 1475179307869758415}
   - component: {fileID: 5500287128892511253}
   - component: {fileID: 3684216999669853167}
+  - component: {fileID: 3470231710490591324}
   m_Layer: 0
   m_Name: KartRed
   m_TagString: Untagged
@@ -407,6 +408,26 @@ MonoBehaviour:
   overlapCorrection: 0.5
   overlapSlop: 0.01
   maxCorrectionPerStep: 0.05
+--- !u!114 &3470231710490591324
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2802739453247863719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 534531cd562169d4ca341139e93f71e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KartFlipRecovery
+  kart: {fileID: 120240854046394885}
+  body: {fileID: 5308325793877818942}
+  tiltAngle: 70
+  maxSpeed: 2
+  maxAngularSpeed: 1.5
+  delay: 1.5
+  heightAboveGround: 0.4
+  groundSearchDistance: 4
 --- !u!1 &2823503327116068364
 GameObject:
   m_ObjectHideFlags: 0

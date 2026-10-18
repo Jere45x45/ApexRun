@@ -5123,6 +5123,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1289513384}
   - component: {fileID: 1289513385}
+  - component: {fileID: 1289513386}
   m_Layer: 0
   m_Name: Pausa
   m_TagString: Untagged
@@ -5169,6 +5170,20 @@ MonoBehaviour:
   menuButton: {fileID: 654947496}
   pauseOnFocusLost: 1
   menuSceneName: Inicio
+--- !u!114 &1289513386
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1289513383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53fb9314e88ee4d45a86aa82b335f991, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RaceCursorLock
+  pauseMenu: {fileID: 1289513385}
+  resultsPanel: {fileID: 964103095}
 --- !u!1 &1314686109
 GameObject:
   m_ObjectHideFlags: 0
