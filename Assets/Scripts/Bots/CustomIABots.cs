@@ -47,6 +47,9 @@ public class CustomIABots : MonoBehaviour
     private bool eliminated;
     private bool raceStarted;
 
+    private bool startRequested;
+    private bool initialized;
+
     private void Awake()
     {
         if (kart == null)
@@ -95,17 +98,59 @@ public class CustomIABots : MonoBehaviour
 
         trackDistance = centerline.GetDistance(transform.position);
 
-        kart.SetInputEnabled(true);
+        kart.SetInputEnabled(false);
 
-        raceStarted = true;
+        raceStarted = false;
+        initialized = true;
 
-        Debug.Log(
-            "Bot listo para correr. Dificultad actual: " +
-            maxSpeed + " m/s",
-            this
-        );
+        Debug.Log("Bot preparado y esperando el inicio de la carrera.", this);
+
+        if (startRequested)
+        {
+        BeginRace();
+        }
     }
 
+    public void StartRace()
+    {
+        if (eliminated)
+        {
+            Debug.LogWarning(
+            "Este bot ya fue eliminado y no puede volver a correr.",
+            this
+            );
+            return;
+        }
+
+        startRequested = true;
+
+        if (initialized)
+        {
+            BeginRace();
+        }
+    }
+
+    private void BeginRace()
+    {
+        if (eliminated || !initialized || !startRequested)
+        return;
+
+        trackDistance = centerline.GetDistance(transform.position);
+        timeOffTrack = 0f;
+        decisionTimer = 0f;
+        lastAction = Accelerate;
+
+        raceStarted = true;
+        startRequested = false;
+
+        kart.SetInputEnabled(true);
+
+        Debug.Log(
+        "Carrera iniciada para " + gameObject.name,
+        this
+        );
+    }
+    
     private void FixedUpdate()
     {
         if (eliminated || !raceStarted)
@@ -333,28 +378,30 @@ private void Drive()
         switch (level)
         {
             case 1:
-                maxSpeed = 9f;
-                break;
+            maxSpeed = 100f / 3.6f; // 100 km/h
+            break;
 
             case 2:
-                maxSpeed = 13f;
-                break;
+            maxSpeed = 110f / 3.6f; // 110 km/h
+            break;
 
             case 3:
-                maxSpeed = 17f;
-                break;
+            maxSpeed = 120f / 3.6f; // 120 km/h
+            break;
 
             default:
-                Debug.LogWarning(
-                    "Nivel invalido. Usa 1, 2 o 3.",
-                    this
-                );
-                return;
+            Debug.LogWarning(
+                "Nivel invalido. Usa 1, 2 o 3.",
+                this
+            );
+            return;
         }
 
-        Debug.Log(
-            "Dificultad aplicada: " + level +
-            " | Velocidad maxima: " + maxSpeed + " m/s",
+        Debug.Log
+        (
+            "Dificultad " + level +
+            " | Velocidad maxima: " +
+            (maxSpeed * 3.6f).ToString("F0") + " km/h",
             this
         );
     }
