@@ -25,12 +25,12 @@ public class CustomIABots : MonoBehaviour
     [Header("Dificultad")]
     [SerializeField] private float maxSpeed = 13f;
 
-    private const int SpeedBuckets = 6;
-
     private static readonly float[] SpeedLimits =
     {
-        8f, 11f, 14f, 17f, 20f
+    5f, 8f, 11f, 14f, 17f, 20f, 24f, 28f, 32f
     };
+
+    private const int SpeedBuckets = 10;
 
     private const int Accelerate = 0;
     private const int Coast = 1;
@@ -43,6 +43,10 @@ public class CustomIABots : MonoBehaviour
     private float decisionTimer;
 
     private int lastAction = Accelerate;
+    private int previousState;
+    private int previousAction;
+    private float previousTrackDistance;
+    private bool hasPreviousDecision;
 
     private bool eliminated;
     private bool raceStarted;
@@ -140,6 +144,11 @@ public class CustomIABots : MonoBehaviour
         decisionTimer = 0f;
         lastAction = Accelerate;
 
+        hasPreviousDecision = false;
+        previousState = 0;
+        previousAction = Accelerate;
+        previousTrackDistance = trackDistance;
+
         raceStarted = true;
         startRequested = false;
 
@@ -191,25 +200,54 @@ public class CustomIABots : MonoBehaviour
     }
 
     private void ChooseDrivingAction()
+{
+    int state = GetState();
+
+    // Aprender de la decision anterior.
+    if (hasPreviousDecision)
     {
-        int state = GetState();
+        float progress = trackDistance - previousTrackDistance;
+        float length = centerline.Length;
 
-        // Solo consulta la politica de la IA.
-        // No calcula recompensas ni actualiza la Q-table.
-        lastAction = learning.ChooseAction(state);
-        
+        // Corregir el progreso cuando se cruza
+        // el final de una pista circular.
+        if (progress > length * 0.5f)
+            progress -= length;
+        else if (progress < -length * 0.5f)
+            progress += length;
 
-        float speed = rb.linearVelocity.magnitude;
+        // Recompensar avanzar y penalizar retroceder
+        // o quedarse sin avanzar.
+        float reward =
+            Mathf.Clamp(progress, -2f, 2f) * 0.2f - 0.01f;
 
-        if (speed < alwaysAccelerateBelow)
-        {
-            lastAction = Accelerate;
-        }
-        else if (speed >= maxSpeed)
-        {
-            lastAction = Brake;
-        }
+        learning.Learn(
+            previousState,
+            previousAction,
+            reward,
+            state,
+            false
+        );
     }
+
+    lastAction = learning.ChooseAction(state);
+
+    float speed = rb.linearVelocity.magnitude;
+
+    if (speed < alwaysAccelerateBelow)
+    {
+        lastAction = Accelerate;
+    }
+    else if (speed >= maxSpeed)
+    {
+        lastAction = Brake;
+    }
+
+    previousState = state;
+    previousAction = lastAction;
+    previousTrackDistance = trackDistance;
+    hasPreviousDecision = true;
+}
 
     
 private void Drive()
@@ -411,6 +449,18 @@ public void FallOffTrack()
 {
     if (eliminated)
         return;
+    if (learning != null && hasPreviousDecision)
+    {
+    learning.Learn(
+        previousState,
+        previousAction,
+        -10f,
+        GetState(),
+        true
+    );
+
+    hasPreviousDecision = false;
+    }
 
     eliminated = true;
     raceStarted = false;

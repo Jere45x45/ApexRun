@@ -10,7 +10,7 @@ public class DifficultyManager : MonoBehaviour
 
     private void Awake()
     {
-        // Al iniciar, ninguna carrera está activa.
+        // Ninguna carrera comienza automaticamente.
         if (facil != null) facil.SetActive(false);
         if (medio != null) medio.SetActive(false);
         if (dificil != null) dificil.SetActive(false);
@@ -31,29 +31,42 @@ public class DifficultyManager : MonoBehaviour
         SelectDifficulty(dificil, 3);
     }
 
-    private void SelectDifficulty(GameObject grupoSeleccionado, int nivel)
+    private void SelectDifficulty(GameObject grupo, int nivel)
     {
-        Debug.Log("Se presionó un botón de dificultad: " + nivel);
-
-        if (grupoSeleccionado == null)
+        if (grupo == null)
         {
-            Debug.LogError("Falta asignar el Empty de la dificultad " + nivel, this);
+            Debug.LogError("Falta asignar el grupo del nivel " + nivel, this);
             return;
         }
 
-        // Desactivar todos los grupos.
+        if (BotLearning.Instance == null)
+        {
+            Debug.LogError(
+                "No se encontro BotLearning activo en la escena.",
+                this
+            );
+            return;
+        }
+
+        // 1. Cargar la Q-table correspondiente.
+        BotLearning.Instance.SetDifficultyTable(nivel);
+
+        // 2. Desactivar los otros grupos.
         if (facil != null) facil.SetActive(false);
         if (medio != null) medio.SetActive(false);
         if (dificil != null) dificil.SetActive(false);
 
-        // Activar el Empty elegido: incluye pista y bots.
-        grupoSeleccionado.SetActive(true);
+        // 3. Activar la pista y los bots seleccionados.
+        grupo.SetActive(true);
 
-        // Configurar los bots y ordenarles que comiencen.
+        // 4. Configurar los bots e iniciar la carrera.
         CustomIABots[] bots =
-            grupoSeleccionado.GetComponentsInChildren<CustomIABots>(true);
+            grupo.GetComponentsInChildren<CustomIABots>(true);
 
-        Debug.Log("Bots encontrados en el grupo: " + bots.Length);
+        Debug.Log(
+            "Nivel " + nivel + " | Bots encontrados: " + bots.Length,
+            this
+        );
 
         foreach (CustomIABots bot in bots)
         {
@@ -61,6 +74,6 @@ public class DifficultyManager : MonoBehaviour
             bot.StartRace();
         }
 
-        Debug.Log("Dificultad activada: " + grupoSeleccionado.name);
+        Debug.Log("Carrera preparada: " + grupo.name, this);
     }
 }
