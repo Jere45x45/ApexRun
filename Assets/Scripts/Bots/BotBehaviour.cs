@@ -33,6 +33,13 @@ public class BotBehaviour : MonoBehaviour
     [Header("Configuration")]
     [SerializeField] private KartConfiguration configuration;
 
+    [SerializeField] private float maxSpeedKmh = 100f;
+
+    public void SetMaxSpeedKmh(float speed)
+    {
+        maxSpeedKmh = speed;
+    }
+
     private Kart kart;
 
     private float throttle;
@@ -123,7 +130,13 @@ public class BotBehaviour : MonoBehaviour
 
         kartPhysics.UpdateWheels(deltaTime);
 
-        engineController.UpdateMotor(throttle, kart.Stats);
+        float speedKmh = rb.linearVelocity.magnitude * 3.6f;
+
+        float limitedThrottle = speedKmh >= maxSpeedKmh
+        ? 0f
+        : throttle;
+
+        engineController.UpdateMotor(limitedThrottle, kart.Stats);
 
         steeringController.UpdateSteering(
             steering,
