@@ -33,6 +33,10 @@ public class CatalogUIController : MonoBehaviour
     [SerializeField]
     private ScrollRect scrollRect;
 
+    [Tooltip("Taller: mientras el kart va de una estación a otra no se puede cambiar de pestaña.")]
+    [SerializeField]
+    private CatalogWorkshop workshop;
+
     [Header("Pestañas")]
     [SerializeField]
     private CategoryTab[] tabs = new CategoryTab[0];
@@ -66,6 +70,11 @@ public class CatalogUIController : MonoBehaviour
 
     public void ShowCategory(PartType type)
     {
+        // Mientras el kart viaja a una estación, las pestañas no responden:
+        // hay que esperar a que llegue.
+        if (workshop != null && workshop.IsMoving)
+            return;
+
         CurrentCategory = type;
 
         ClearItems();
