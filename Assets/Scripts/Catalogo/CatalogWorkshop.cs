@@ -107,6 +107,18 @@ public class CatalogWorkshop : MonoBehaviour
     /// <summary>True mientras el kart va de una estación a otra.</summary>
     public bool IsMoving => moving;
 
+    /// <summary>
+    /// Otro script maneja la cámara por un rato (el Easter Egg de la radio):
+    /// mientras es true, el taller sigue ubicando el kart pero no toca la cámara.
+    /// </summary>
+    public bool CameraHeld { get; set; }
+
+    /// <summary>
+    /// True mientras no se puede cambiar de estación: el kart está viajando o
+    /// la cámara la está usando otro script.
+    /// </summary>
+    public bool IsBusy => moving || CameraHeld;
+
     private void Awake()
     {
         BuildObstacles();
@@ -204,6 +216,10 @@ public class CatalogWorkshop : MonoBehaviour
         Quaternion kartRotation = Quaternion.Slerp(kartFromRotation, kartTargetRotation, t);
 
         kart.SetPositionAndRotation(kartPosition, kartRotation);
+
+        // La cámara la está usando otro script (el Easter Egg de la radio).
+        if (CameraHeld)
+            return;
 
         if (viewCamera == null || current.cameraPoint == null)
             return;
