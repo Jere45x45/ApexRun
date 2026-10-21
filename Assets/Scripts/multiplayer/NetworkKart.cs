@@ -207,6 +207,16 @@ public class NetworkKart : NetworkBehaviour
     }
 
     /// <summary>
+    /// Nombre para mostrar de un kart que no es de un jugador (un bot). Lo
+    /// pone su dueño (el host) después de que aparece, y le llega a todos.
+    /// </summary>
+    public void SetDisplayName(string value)
+    {
+        if (IsSpawned && IsOwner)
+            playerName.Value = new FixedString32Bytes(value ?? string.Empty);
+    }
+
+    /// <summary>
     /// Otra computadora chocó contra este kart y le manda su parte del golpe:
     /// impulso en el mundo y punto en coordenadas de este kart. Pasa por el
     /// servidor, que lo valida, y llega al dueño (KartRemoteContacts).

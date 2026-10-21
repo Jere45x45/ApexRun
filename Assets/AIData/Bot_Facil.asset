@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b6a9a07863147d48a78ce10a53896c4, type: 3}
+  m_Name: Bot_Facil
+  m_EditorClassIdentifier: Assembly-CSharp::BotLevelProfile
+  difficulty: 0
+  displayName: "F\xC1CIL"
+  qTable: {fileID: 4900000, guid: a9e3f2e29e2c349498b5af7bffa66835, type: 3}
+  laneWidth: 0.3
+  progressReward: 0.06
+  timePenalty: 0
+  offTrackPenalty: 1
+  incidentPenalty: 25
+  centerPreference: 0.03
+  defendPosition: 0
+  defendDistance: 12

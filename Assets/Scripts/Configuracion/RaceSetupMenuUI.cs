@@ -11,7 +11,10 @@ using UnityEngine.UI;
 ///   Cada una puede quedar AL AZAR (WeatherChoiceStore).
 /// - Partida (solo al crear un servidor): PÚBLICA aparece en la lista de
 ///   servidores; PRIVADA no, y se entra solo con el código (RaceSetupStore).
-/// - Bots y Pista se ven pero todavía no se pueden cambiar.
+/// - Bots (de 0 a 6), con − y +, y su Nivel (fácil, medio, difícil), con
+///   &lt; y &gt;. Un jugador y Crear servidor guardan la cantidad aparte: al
+///   crear un servidor arranca en 0, así solo hay bots si se ponen.
+/// - Pista se ve pero todavía no se puede cambiar.
 /// Lo elegido queda guardado (RaceSetupStore, WeatherChoiceStore) y lo
 /// aplican en la carrera RaceSetupSync y RaceWeather.
 /// El botón de abajo dice ¡A CORRER! (un jugador) o CREAR SERVIDOR (red).
@@ -43,6 +46,16 @@ public class RaceSetupMenuUI : MonoBehaviour
     [SerializeField] private Button fogNext;
     [SerializeField] private TMP_Text fogValue;
 
+    [Header("Bots")]
+    [SerializeField] private Button botsMinus;
+    [SerializeField] private Button botsPlus;
+    [SerializeField] private TMP_Text botsValue;
+
+    [Header("Nivel de los bots")]
+    [SerializeField] private Button levelPrevious;
+    [SerializeField] private Button levelNext;
+    [SerializeField] private TMP_Text levelValue;
+
     [Header("Partida (solo Crear servidor)")]
     [Tooltip("Fila entera: se muestra solo al crear un servidor.")]
     [SerializeField] private GameObject visibilityRow;
@@ -70,6 +83,18 @@ public class RaceSetupMenuUI : MonoBehaviour
 
         fogPrevious.onClick.AddListener(() => ChangeFog(-1));
         fogNext.onClick.AddListener(() => ChangeFog(+1));
+
+        if (botsMinus != null)
+            botsMinus.onClick.AddListener(() => ChangeBots(-1));
+
+        if (botsPlus != null)
+            botsPlus.onClick.AddListener(() => ChangeBots(+1));
+
+        if (levelPrevious != null)
+            levelPrevious.onClick.AddListener(() => ChangeLevel(-1));
+
+        if (levelNext != null)
+            levelNext.onClick.AddListener(() => ChangeLevel(+1));
 
         if (visibilityPrevious != null)
             visibilityPrevious.onClick.AddListener(ToggleVisibility);
@@ -113,6 +138,21 @@ public class RaceSetupMenuUI : MonoBehaviour
         Refresh();
     }
 
+    private void ChangeBots(int delta)
+    {
+        RaceSetupStore.SetBots(multiplayer, RaceSetupStore.GetBots(multiplayer) + delta);
+        Refresh();
+    }
+
+    private void ChangeLevel(int direction)
+    {
+        int count = System.Enum.GetValues(typeof(RaceDifficulty)).Length;
+        int level = ((int)RaceSetupStore.BotDifficulty + direction + count) % count;
+
+        RaceSetupStore.BotDifficulty = (RaceDifficulty)level;
+        Refresh();
+    }
+
     /// <summary>Pública ⇄ privada (solo hay dos, así que &lt; y &gt; hacen lo mismo).</summary>
     private void ToggleVisibility()
     {
@@ -122,6 +162,9 @@ public class RaceSetupMenuUI : MonoBehaviour
 
     private void Confirm()
     {
+        // Los bots de esta carrera (los pone el host al cargar la pista).
+        RaceSetupStore.BotsForRace = RaceSetupStore.GetBots(multiplayer);
+
         if (multiplayer)
         {
             // La sala (código y jugadores) está en la pantalla de Multijugador.
@@ -158,6 +201,30 @@ public class RaceSetupMenuUI : MonoBehaviour
         weatherValue.text = WeatherChoiceStore.Label(WeatherChoiceStore.Current);
         timeValue.text = WeatherChoiceStore.Label(WeatherChoiceStore.Time);
         fogValue.text = WeatherChoiceStore.Label(WeatherChoiceStore.Fog);
+
+        int bots = RaceSetupStore.GetBots(multiplayer);
+
+        if (botsValue != null)
+            botsValue.text = bots == 0 ? "SIN BOTS" : bots.ToString();
+
+        if (botsMinus != null)
+            botsMinus.interactable = bots > 0;
+
+        if (botsPlus != null)
+            botsPlus.interactable = bots < RaceSetupStore.MaxBots;
+
+        // Sin bots, el nivel no importa: se ve apagado.
+        if (levelValue != null)
+        {
+            levelValue.text = RaceDifficultySettings.Label(RaceSetupStore.BotDifficulty);
+            levelValue.alpha = bots > 0 ? 1f : 0.4f;
+        }
+
+        if (levelPrevious != null)
+            levelPrevious.interactable = bots > 0;
+
+        if (levelNext != null)
+            levelNext.interactable = bots > 0;
 
         if (visibilityRow != null)
             visibilityRow.SetActive(multiplayer);

@@ -1,6 +1,14 @@
 
 using UnityEngine;
 
+/// <summary>
+/// Escena de entrenamiento de los bots (JuliVersionMINI): un grupo por nivel,
+/// cada uno con su copia de la pista y sus bots.
+/// - Con BotLearning en modo entrenamiento y trainAllOnStart, al darle Play
+///   arrancan los tres niveles a la vez, cada uno en su pista. Cada nivel
+///   aprende en su propia tabla.
+/// - Los botones Fácil, Medio y Difícil dejan solo ese grupo.
+/// </summary>
 public class DifficultyManager : MonoBehaviour
 {
     [Header("Grupos completos de cada dificultad")]
@@ -8,12 +16,22 @@ public class DifficultyManager : MonoBehaviour
     [SerializeField] private GameObject medio;
     [SerializeField] private GameObject dificil;
 
+    [Header("Entrenamiento")]
+    [Tooltip("Con BotLearning entrenando: al arrancar, los tres niveles entrenan a la vez.")]
+    [SerializeField] private bool trainAllOnStart = true;
+
     private void Awake()
     {
         // Ninguna carrera comienza automaticamente.
         if (facil != null) facil.SetActive(false);
         if (medio != null) medio.SetActive(false);
         if (dificil != null) dificil.SetActive(false);
+    }
+
+    private void Start()
+    {
+        if (trainAllOnStart && BotLearning.Instance != null && BotLearning.Instance.IsTraining)
+            TrainAll();
     }
 
     public void SelectEasy()
@@ -31,6 +49,14 @@ public class DifficultyManager : MonoBehaviour
         SelectDifficulty(dificil, 3);
     }
 
+    /// <summary>Los tres niveles a la vez, cada uno en su pista.</summary>
+    public void TrainAll()
+    {
+        StartGroup(facil, 1);
+        StartGroup(medio, 2);
+        StartGroup(dificil, 3);
+    }
+
     private void SelectDifficulty(GameObject grupo, int nivel)
     {
         if (grupo == null)
@@ -39,34 +65,22 @@ public class DifficultyManager : MonoBehaviour
             return;
         }
 
-        if (BotLearning.Instance == null)
-        {
-            Debug.LogError(
-                "No se encontro BotLearning activo en la escena.",
-                this
-            );
-            return;
-        }
-
-        // 1. Cargar la Q-table correspondiente.
-        BotLearning.Instance.SetDifficultyTable(nivel);
-
-        // 2. Desactivar los otros grupos.
         if (facil != null) facil.SetActive(false);
         if (medio != null) medio.SetActive(false);
         if (dificil != null) dificil.SetActive(false);
 
-        // 3. Activar la pista y los bots seleccionados.
+        StartGroup(grupo, nivel);
+    }
+
+    /// <summary>Activa la pista y los bots del grupo, les pone el nivel y los larga.</summary>
+    private void StartGroup(GameObject grupo, int nivel)
+    {
+        if (grupo == null)
+            return;
+
         grupo.SetActive(true);
 
-        // 4. Configurar los bots e iniciar la carrera.
-        CustomIABots[] bots =
-            grupo.GetComponentsInChildren<CustomIABots>(true);
-
-        Debug.Log(
-            "Nivel " + nivel + " | Bots encontrados: " + bots.Length,
-            this
-        );
+        CustomIABots[] bots = grupo.GetComponentsInChildren<CustomIABots>(true);
 
         foreach (CustomIABots bot in bots)
         {
@@ -74,6 +88,6 @@ public class DifficultyManager : MonoBehaviour
             bot.StartRace();
         }
 
-        Debug.Log("Carrera preparada: " + grupo.name, this);
+        Debug.Log("Nivel " + nivel + " | Bots: " + bots.Length + " | " + grupo.name, this);
     }
 }

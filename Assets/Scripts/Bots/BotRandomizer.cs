@@ -2,8 +2,13 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Le pone al bot piezas al azar del catálogo (motor, ruedas, kit aero y
-/// volante). El chasis es fijo, como en la carrera.
+/// Piezas de los bots. Todos corren con las mismas piezas que cuentan para
+/// manejar (motor, ruedas y kit aero), así los niveles se diferencian solo
+/// por cómo manejan. El volante es solo estético y sale al azar. El chasis
+/// es fijo, como en la carrera.
+/// Las piezas se ponen en Start, o antes si alguien llama a RandomizeKart
+/// (el spawner de la carrera lo hace antes de que el bot aparezca en red,
+/// para que los demás lo vean con las mismas piezas).
 /// </summary>
 public class BotRandomizer : MonoBehaviour
 {
@@ -13,21 +18,26 @@ public class BotRandomizer : MonoBehaviour
     [Header("Kart")]
     [SerializeField] private KartConfigurationController configuration;
 
-    private static readonly PartType[] RandomTypes =
-    {
-        PartType.Engine,
-        PartType.Wheels,
-        PartType.AeroKit,
-        PartType.SteeringWheel
-    };
+    [Header("Piezas de todos los bots (partID)")]
+    [Tooltip("Motor eléctrico: llega a 120 km/h, la velocidad máxima de los bots.")]
+    [SerializeField] private string engineId = "engine_electric";
+    [SerializeField] private string wheelsId = "wheels_slick";
+    [SerializeField] private string aeroKitId = "kitaero_basic";
+
+    [Tooltip("El volante no cambia el manejo: sale al azar.")]
+    [SerializeField] private bool randomSteeringWheel = true;
+
+    private bool applied;
 
     private void Reset()
     {
         configuration = GetComponentInChildren<KartConfigurationController>();
     }
+
     private void Start()
     {
-    RandomizeKart();
+        if (!applied)
+            RandomizeKart();
     }
 
     public void RandomizeKart()
@@ -44,21 +54,35 @@ public class BotRandomizer : MonoBehaviour
             return;
         }
 
-        List<string> installed = new List<string>();
+        Install(engineId);
+        Install(wheelsId);
+        Install(aeroKitId);
 
-        foreach (PartType type in RandomTypes)
+        if (randomSteeringWheel)
         {
-            List<KartPart> parts = GetParts(type);
+            List<KartPart> wheels = GetParts(PartType.SteeringWheel);
 
-            if (parts.Count == 0)
-                continue;
-
-            KartPart part = parts[Random.Range(0, parts.Count)];
-            configuration.InstallPart(part);
-            installed.Add(type + "=" + part.name);
+            if (wheels.Count > 0)
+                configuration.InstallPart(wheels[Random.Range(0, wheels.Count)]);
         }
 
-        Debug.Log("Bot randomizado: " + string.Join(", ", installed));
+        applied = true;
+    }
+
+    private void Install(string partId)
+    {
+        if (string.IsNullOrEmpty(partId))
+            return;
+
+        KartPart part = catalog.GetPartByID(partId);
+
+        if (part == null)
+        {
+            Debug.LogWarning($"BotRandomizer: el catálogo no tiene la pieza '{partId}'.", this);
+            return;
+        }
+
+        configuration.InstallPart(part);
     }
 
     private List<KartPart> GetParts(PartType type)
@@ -68,9 +92,7 @@ public class BotRandomizer : MonoBehaviour
         foreach (KartPart part in catalog.GetParts(type))
         {
             if (part != null)
-            {
                 result.Add(part);
-            }
         }
 
         return result;
