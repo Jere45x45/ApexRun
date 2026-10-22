@@ -11,6 +11,11 @@ using UnityEngine;
 /// - Recompensas: el fácil casi solo premia no caerse (aprende la forma más
 ///   lenta de completar la pista, la que le sale primero); el difícil premia
 ///   ir rápido, aunque tenga que arriesgar más.
+/// - Ritmo en las curvas (cornerSpeedFloor y cornerSpeedCap): cada nivel va
+///   entre dos fracciones de la velocidad segura de la curva que viene: por
+///   debajo del piso acelera, por arriba del tope frena, y en el medio decide
+///   la tabla. Fácil 0,70–0,85, medio 0,85–0,95, difícil 0,97–1,05. Así el
+///   orden fácil &lt; medio &lt; difícil no depende de cuánto entrenaron.
 /// - Defensa: el difícil, en carrera, tapa al que viene atrás.
 /// Lo que aprende cada nivel queda en su Q-table (qTable).
 /// </summary>
@@ -29,6 +34,17 @@ public class BotLevelProfile : ScriptableObject
     [Header("Trazada")]
     [Tooltip("Cuánto del ancho utilizable de la pista puede usar (0 a 1). Tiene 5 carriles repartidos en ese ancho.")]
     [Range(0.1f, 1f)] public float laneWidth = 0.65f;
+
+    [Header("Curvas")]
+    [Tooltip("Tope de velocidad en las curvas, como fracción de la velocidad segura estimada para la curva que viene " +
+             "(0 = sin tope: usa lo que aprendió). Vale también al entrenar, así aprende dentro de su tope. " +
+             "En las rectas todos llegan a 120 km/h.")]
+    [Range(0f, 1.2f)] public float cornerSpeedCap = 0f;
+
+    [Tooltip("Piso de velocidad: por debajo de esta fracción de la velocidad segura de la curva que viene, " +
+             "acelera aunque la tabla diga otra cosa (0 = sin piso). Así no anda más lento que su nivel " +
+             "donde la tabla quedó conservadora.")]
+    [Range(0f, 1.2f)] public float cornerSpeedFloor = 0f;
 
     [Header("Recompensas del entrenamiento")]
     [Tooltip("Premio por cada metro que avanza sobre la pista.")]

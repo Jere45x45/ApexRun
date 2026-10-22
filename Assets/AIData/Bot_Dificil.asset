@@ -16,10 +16,12 @@ MonoBehaviour:
   displayName: "DIF\xCDCIL"
   qTable: {fileID: 4900000, guid: 38975e1d9be8f774397bc80f15dbd0fb, type: 3}
   laneWidth: 1
+  cornerSpeedCap: 1.05
+  cornerSpeedFloor: 0
   progressReward: 0.14
   timePenalty: 0.08
   offTrackPenalty: 0.4
-  incidentPenalty: 12
+  incidentPenalty: 25
   centerPreference: 0
   defendPosition: 1
   defendDistance: 12

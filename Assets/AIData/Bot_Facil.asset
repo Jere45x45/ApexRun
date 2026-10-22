@@ -16,6 +16,8 @@ MonoBehaviour:
   displayName: "F\xC1CIL"
   qTable: {fileID: 4900000, guid: a9e3f2e29e2c349498b5af7bffa66835, type: 3}
   laneWidth: 0.3
+  cornerSpeedCap: 0.85
+  cornerSpeedFloor: 0.7
   progressReward: 0.06
   timePenalty: 0
   offTrackPenalty: 1

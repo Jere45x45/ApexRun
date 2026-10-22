@@ -7,6 +7,9 @@ using UnityEngine;
 /// - Cuánto lugar hay a cada lado de la línea, cada 2 m. Es el lugar
 ///   utilizable: lo que queda hasta el borde menos medio kart y un margen.
 /// - Qué tan cerrada es la curva en cada punto (curvatura, 1/radio).
+/// - Los lomos: a qué velocidad el kart sale volando en cada metro de
+///   pista (el piso cae más rápido de lo que cae el kart). La pista tiene
+///   quiebres de pendiente que lo hacen saltar, y en el aire no dobla.
 /// Con eso se arma la trazada de cada bot: una "fracción" de −1 (todo a la
 /// izquierda) a 1 (todo a la derecha) que se convierte en metros según el
 /// ancho de la pista en ese lugar.
@@ -18,10 +21,18 @@ public class BotTrackInfo
 
     // Medio kart (de costado) y el margen que se deja hasta el borde (m).
     private const float KartHalfWidth = 0.75f;
-    private const float EdgeMargin = 0.35f;
+    private const float EdgeMargin = 0.8f;
 
     // Hasta dónde se busca el borde de la pista a cada lado (m).
     private const float MaxSearch = 16f;
+
+    // Lomos: cada cuánto se mide el piso (m), hasta dónde se mira el vuelo
+    // (m) y cuánto puede separarse el kart del piso sin que cuente (m): los
+    // saltitos de pocos centímetros no molestan.
+    private const float JumpSpacing = 1f;
+    private const int JumpLookAhead = 8;
+    private const float JumpTolerance = 0.03f;
+    private const float NoJump = 99f;
 
     private static readonly Dictionary<TrackCenterline, BotTrackInfo> Cache =
         new Dictionary<TrackCenterline, BotTrackInfo>();
@@ -32,6 +43,8 @@ public class BotTrackInfo
     private readonly float[] left;
     private readonly float[] right;
     private readonly float[] curvature;
+    private readonly int jumpCount;
+    private readonly float[] jumpSpeed;
 
     public TrackCenterline Centerline { get; }
 
@@ -120,6 +133,53 @@ public class BotTrackInfo
             right[i] = minRight;
             curvature[i] = sum / 5f;
         }
+
+        jumpCount = Mathf.Max(3, Mathf.CeilToInt(length / JumpSpacing));
+        jumpSpeed = MeasureJumps(jumpCount);
+    }
+
+    /// <summary>
+    /// Velocidad (m/s) desde la que el kart sale volando en cada punto: con
+    /// la pendiente con la que llega, cae como una piedra (g·t²/2); si el
+    /// piso de adelante cae más rápido que eso (más que JumpTolerance), se
+    /// despega. Se mide en el medio y a cada lado del medio de la pista,
+    /// con el punto más alto de los tres (el que despega).
+    /// </summary>
+    private float[] MeasureJumps(int samples)
+    {
+        float spacing = length / samples;
+        float[] height = new float[samples];
+
+        for (int i = 0; i < samples; i++)
+        {
+            float best = float.MinValue;
+
+            foreach (float fraction in new[] { -0.5f, 0f, 0.5f })
+                best = Mathf.Max(best, PlaceOnAsphalt(GetPoint(i * spacing, fraction), out _).y);
+
+            height[i] = best;
+        }
+
+        float[] result = new float[samples];
+
+        for (int i = 0; i < samples; i++)
+        {
+            float slope = (height[i] - height[(i - 2 + samples) % samples]) / (2f * spacing);
+            float speed = NoJump;
+
+            for (int step = 1; step <= JumpLookAhead; step++)
+            {
+                float ahead = step * spacing;
+                float drop = height[i] + slope * ahead - height[(i + step) % samples] - JumpTolerance;
+
+                if (drop > 0f)
+                    speed = Mathf.Min(speed, ahead * Mathf.Sqrt(9.81f / (2f * drop)));
+            }
+
+            result[i] = speed;
+        }
+
+        return result;
     }
 
     /// <summary>Lugar utilizable a la izquierda de la línea central (m).</summary>
@@ -133,6 +193,15 @@ public class BotTrackInfo
 
     /// <summary>Curvatura en ese punto (1/m): positiva si dobla a la derecha.</summary>
     public float GetCurvature(float distance) => Sample(curvature, distance);
+
+    /// <summary>Velocidad (m/s) desde la que el kart salta en ese punto (99 si no hay lomo).</summary>
+    public float GetJumpSpeed(float distance)
+    {
+        float position = Mathf.Repeat(distance, length) / length * jumpCount;
+        int index = Mathf.FloorToInt(position) % jumpCount;
+
+        return Mathf.Min(jumpSpeed[index], jumpSpeed[(index + 1) % jumpCount]);
+    }
 
     /// <summary>Hacia la derecha de la pista en ese punto (horizontal).</summary>
     public Vector3 GetRightVector(float distance)

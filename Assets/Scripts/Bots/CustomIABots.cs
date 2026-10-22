@@ -18,7 +18,14 @@ using UnityEngine;
 ///
 /// Los tres niveles (BotLevelProfile) tienen el mismo kart y la misma
 /// velocidad máxima (120 km/h). Cambia cuánto ancho de pista pueden usar
-/// sus carriles y qué premia su entrenamiento.
+/// sus carriles, qué premia su entrenamiento y, en el fácil y el medio, un
+/// tope de velocidad en las curvas.
+///
+/// Saltos y derrapes: la pista tiene lomos que hacen saltar al kart. En el
+/// aire el bot suelta el acelerador (si no, las ruedas de atrás se aceleran
+/// solas y al caer patinan) y pone las ruedas hacia donde va el kart (si no,
+/// cae con el volante cruzado y hace un trompo). Si la cola se le va, suelta
+/// el acelerador hasta que vuelve a agarrar.
 ///
 /// Entrenando (BotLearning con inferenceOnly apagado): si se cae, se sale
 /// de la pista, hace un trompo o queda trabado, recibe un castigo y vuelve a
@@ -59,6 +66,12 @@ public class CustomIABots : MonoBehaviour
     // situación nueva y para el seguro de la carrera.
     private const float LateralGrip = 11.5f;
     private const float BrakeDecel = 13f;
+
+    // Si la tabla cree que acelerar es al menos esto peor que lo mejor, el piso del nivel no la obliga.
+    private const float FloorTrust = 2f;
+
+    // Riesgo de un tramo (incidentes recientes del entrenamiento) desde el que el piso no obliga.
+    private const float RiskThreshold = 0.5f;
 
     // Desde cuántas veces aprendida una situación se confía en la tabla sin el seguro.
     private const int MinTrustedVisits = 20;
@@ -115,6 +128,31 @@ public class CustomIABots : MonoBehaviour
 
     [Tooltip("Velocidad al volver a arrancar (m/s): entre estos dos valores, al azar.")]
     [SerializeField] private Vector2 startSpeedRange = new Vector2(6f, 22f);
+
+    [Header("Saltos y derrapes")]
+    [Tooltip("Con menos ruedas apoyadas que esto, el kart está en el aire. Con 2 ruedas no cuenta: " +
+             "puede ser el kart con las ruedas de un lado colgando del borde de la pista.")]
+    [SerializeField, Range(1, 4)] private int minGroundedWheels = 2;
+
+    [Tooltip("Tiempo en el aire (s) desde el que cuenta como salto: el bot suelta el acelerador y pone " +
+             "las ruedas hacia donde va, así no cae cruzado. Los saltitos más cortos no cuentan.")]
+    [SerializeField, Min(0f)] private float jumpTime = 0.06f;
+
+    [Tooltip("Después de caer de un salto, cuánto tiempo más sigue sin acelerar (s, como mucho lo que duró el salto).")]
+    [SerializeField, Min(0f)] private float landingTime = 0.25f;
+
+    [Tooltip("Control de tracción: si las ruedas de atrás patinan más que estas veces el patinamiento de " +
+             "máximo agarre, suelta el acelerador (por ejemplo al caer de un salto).")]
+    [SerializeField, Range(1f, 4f)] private float wheelspinMargin = 1.5f;
+
+    [Tooltip("Lomos: hasta cuántas veces la velocidad a la que el kart despega puede llegar a uno (1 = justo " +
+             "sin despegar). Un poco más deja saltos cortos, que no molestan; menos hace frenar justo antes " +
+             "del lomo, a veces ya doblando, y es peor.")]
+    [SerializeField, Range(0.8f, 2f)] private float jumpSpeedMargin = 1.1f;
+
+    [Tooltip("Derrape (°, entre hacia dónde mira el kart y hacia dónde va) desde el que suelta el acelerador " +
+             "hasta que la cola vuelve a agarrar.")]
+    [SerializeField, Range(5f, 45f)] private float slideAngle = 12f;
 
     [Header("Carrera")]
     [Tooltip("Esquiva al de adelante y no se tira encima del que va al lado.")]
@@ -175,6 +213,12 @@ public class CustomIABots : MonoBehaviour
     // Volante del kart (para pasar de curva deseada a mando).
     private float lockAngle = 20f;
     private float wheelBase = 1.05f;
+
+    // Saltos y derrapes: cuánto lleva en el aire, cuánto le queda sin
+    // acelerar después de caer, y si está derrapando.
+    private float airTimer;
+    private float landingTimer;
+    private bool sliding;
 
     public RaceDifficulty Difficulty => difficulty;
 
@@ -378,6 +422,34 @@ public class CustomIABots : MonoBehaviour
 
         int action = learning.ChooseAction(difficulty, state);
 
+        // Tope del nivel en las curvas (el fácil y el medio): frena si va más
+        // rápido que esa fracción de la velocidad segura de la curva que viene.
+        // También entrenando: la acción que se aprende es la que se hizo.
+        float cap = profile != null ? profile.cornerSpeedCap : 0f;
+
+        if (cap > 0f && speed > SpeedLimitAhead(trackDistance, speed) * cap)
+            return Brake * LaneMoves + action % LaneMoves;
+
+        // Lomos, en todos los niveles: si al llegar al que viene saldría
+        // volando, frena. En el aire no dobla y cae afuera de la trazada.
+        if (speed > JumpLimitAhead(trackDistance, speed))
+            return Brake * LaneMoves + action % LaneMoves;
+
+        // Piso del nivel: si va bastante más lento de lo que la curva que
+        // viene permite, acelera. Entre el piso y el tope decide la tabla.
+        // Salvo donde la tabla ya aprendió que acelerar sale caro o donde
+        // el entrenamiento tuvo incidentes hace poco (por ejemplo, una curva
+        // en S donde la cuenta de la velocidad segura se queda corta): ahí
+        // manda la tabla.
+        float floor = profile != null ? profile.cornerSpeedFloor : 0f;
+        int accelerate = Accelerate * LaneMoves + action % LaneMoves;
+
+        if (floor > 0f && speed < MaxSpeed && speed < SpeedLimitAhead(trackDistance, speed) * floor &&
+            learning.GetRegret(difficulty, state, accelerate) < FloorTrust && !IsRiskyAhead())
+        {
+            return accelerate;
+        }
+
         // Seguro de la carrera, solo en situaciones que casi no entrenó: si va
         // bastante más rápido de lo que la curva que viene permite (medida
         // sobre la línea central), frena aunque la tabla diga otra cosa. En
@@ -450,6 +522,40 @@ public class CustomIABots : MonoBehaviour
             limit = Mathf.Min(limit, Mathf.Sqrt(cornerSpeed * cornerSpeed + 2f * decel * x));
         }
 
+        return Mathf.Min(limit, JumpLimitAhead(from, speed));
+    }
+
+    /// <summary>True si este tramo o los dos siguientes tuvieron incidentes en el entrenamiento (BotLearning.GetRisk).</summary>
+    private bool IsRiskyAhead()
+    {
+        int segment = Mathf.FloorToInt(trackDistance / segmentLength);
+
+        for (int ahead = 0; ahead <= 2; ahead++)
+        {
+            if (learning.GetRisk(difficulty, segment + ahead) > RiskThreshold)
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Velocidad a la que se puede ir en ese punto para llegar a tiempo
+    /// frenado a los lomos que vienen sin salir volando (con un poco de
+    /// margen: un salto corto no molesta).
+    /// </summary>
+    private float JumpLimitAhead(float from, float speed)
+    {
+        float decel = BrakeDecel * gripFactor;
+        float span = speed * speed / (2f * decel) + 10f;
+        float limit = float.MaxValue;
+
+        for (float x = 0f; x <= span; x += 1f)
+        {
+            float jump = info.GetJumpSpeed(from + x) * jumpSpeedMargin;
+            limit = Mathf.Min(limit, Mathf.Sqrt(jump * jump + 2f * decel * x));
+        }
+
         return limit;
     }
 
@@ -517,6 +623,9 @@ public class CustomIABots : MonoBehaviour
         backwardsProgress = 0f;
         hasTrafficTarget = false;
         trafficCoast = false;
+        airTimer = 0f;
+        landingTimer = 0f;
+        sliding = false;
     }
 
     // ------------------------------------------------------------ Manejo
@@ -533,7 +642,130 @@ public class CustomIABots : MonoBehaviour
         float distanceAhead = Mathf.Clamp(lookAhead.x + lookAhead.y * Mathf.Max(0f, speed), lookAhead.x, lookAhead.z);
         Vector3 aim = info.GetPoint(trackDistance + distanceAhead, lateralFraction);
 
-        kart.SetInputs(GetThrottle(speed), GetSteering(aim, speed), false);
+        float throttle = GetThrottle(speed);
+        float steering;
+
+        UpdateSteeringGeometry();
+
+        airTimer = IsAirborne() ? airTimer + deltaTime : 0f;
+
+        // Más de un segundo "en el aire" no es un salto (por ejemplo, con
+        // las ruedas colgando de un borde): sigue manejando normal.
+        if (airTimer > jumpTime && airTimer < 1f)
+        {
+            // Saltó: ni acelera ni frena (las ruedas de atrás se aceleran o
+            // se bloquean solas y al caer patinan) y deja las ruedas hacia
+            // donde va el kart, así cae derecho.
+            landingTimer = Mathf.Min(landingTime, airTimer);
+            throttle = 0f;
+            steering = GetSteeringAlongTravel();
+        }
+        else
+        {
+            landingTimer = Mathf.Max(0f, landingTimer - deltaTime);
+            sliding = IsSliding(speed);
+
+            // Recién caído, con la cola yéndose o con las de atrás
+            // patinando: sin acelerar hasta que agarra.
+            if (landingTimer > 0f || sliding || (speed > 8f && IsWheelspinning()))
+                throttle = Mathf.Min(throttle, 0f);
+
+            steering = GetSteering(aim, speed);
+        }
+
+        kart.SetInputs(throttle, steering, false);
+    }
+
+    /// <summary>True si tiene menos de minGroundedWheels ruedas apoyadas (saltó en un lomo).</summary>
+    private bool IsAirborne()
+    {
+        KartVehicle vehicle = kart.Vehicle;
+
+        if (vehicle == null)
+            return false;
+
+        int grounded = 0;
+
+        foreach (KartWheel wheel in vehicle.Wheels)
+        {
+            if (wheel != null && wheel.IsGrounded)
+                grounded++;
+        }
+
+        return grounded < minGroundedWheels;
+    }
+
+    /// <summary>
+    /// True si alguna rueda de atrás apoyada patina acelerando más de lo que
+    /// agarra. Solo andando: para arrancar ya está el control de tracción de
+    /// KartBehaviour.
+    /// </summary>
+    private bool IsWheelspinning()
+    {
+        KartVehicle vehicle = kart.Vehicle;
+
+        if (vehicle == null || !vehicle.IsConfigured)
+            return false;
+
+        float allowed = vehicle.Tire.LongitudinalPeakSlipRatio * wheelspinMargin;
+
+        KartWheel left = vehicle.Wheels[KartVehicle.RearLeft];
+        KartWheel right = vehicle.Wheels[KartVehicle.RearRight];
+
+        return (left.IsGrounded && left.SlipRatio > allowed) || (right.IsGrounded && right.SlipRatio > allowed);
+    }
+
+    /// <summary>
+    /// True si la cola se le está yendo: el kart avanza cruzado (más de
+    /// slideAngle entre hacia dónde mira y hacia dónde va). Deja de contar
+    /// cuando vuelve a menos de la mitad.
+    /// </summary>
+    private bool IsSliding(float speed)
+    {
+        if (speed < 8f)
+            return false;
+
+        Vector3 local = Quaternion.Inverse(rb.rotation) * rb.linearVelocity;
+        float angle = Mathf.Abs(Mathf.Atan2(local.x, local.z) * Mathf.Rad2Deg);
+
+        return angle > (sliding ? slideAngle * 0.5f : slideAngle);
+    }
+
+    /// <summary>
+    /// Mando del volante que deja las ruedas delanteras hacia donde va de
+    /// verdad el eje delantero (sin deslizar de costado). Usa la misma
+    /// cuenta que KartBehaviour: el mando es una fracción del ángulo útil
+    /// hacia cada lado, que va de la dirección de avance más o menos el
+    /// ángulo de máximo agarre.
+    /// </summary>
+    private float GetSteeringAlongTravel()
+    {
+        KartVehicle vehicle = kart.Vehicle;
+
+        if (vehicle == null || !vehicle.IsConfigured)
+            return 0f;
+
+        KartWheel left = vehicle.Wheels[KartVehicle.FrontLeft];
+        KartWheel right = vehicle.Wheels[KartVehicle.FrontRight];
+
+        Vector3 localPoint = 0.5f * (left.LocalPosition + right.LocalPosition);
+        Vector3 worldPoint = rb.position + rb.rotation * localPoint;
+        Vector3 velocity = Quaternion.Inverse(rb.rotation) * rb.GetPointVelocity(worldPoint);
+
+        if (velocity.z < 4f)
+            return 0f;
+
+        float travel = Mathf.Atan2(velocity.x, velocity.z) * Mathf.Rad2Deg;
+        float peak = vehicle.Tire.LateralPeakSlipAngle * Mathf.Rad2Deg;
+
+        if (travel >= 0f)
+        {
+            float upper = Mathf.Clamp(travel + peak, 0f, lockAngle);
+            return upper > 0.01f ? Mathf.Clamp01(travel / upper) : 0f;
+        }
+
+        float lower = Mathf.Clamp(travel - peak, -lockAngle, 0f);
+        return lower < -0.01f ? -Mathf.Clamp01(travel / lower) : 0f;
     }
 
     private float GetThrottle(float speed)
@@ -570,8 +802,6 @@ public class CustomIABots : MonoBehaviour
 
         if (toAim.sqrMagnitude < 0.01f || forward.sqrMagnitude < 1e-4f)
             return 0f;
-
-        UpdateSteeringGeometry();
 
         float alpha = Vector3.SignedAngle(forward, toAim, Vector3.up) * Mathf.Deg2Rad;
         float distance = Mathf.Max(1f, toAim.magnitude);
@@ -618,6 +848,12 @@ public class CustomIABots : MonoBehaviour
 
         if (Training)
         {
+            // Pasó un tramo entero sin incidente: baja su riesgo.
+            int previousSegment = Mathf.FloorToInt(previous / segmentLength);
+
+            if (progress > 0f && previousSegment != Mathf.FloorToInt(trackDistance / segmentLength))
+                learning.ReportPass(difficulty, previousSegment, segmentCount);
+
             lapProgress += progress;
 
             if (lapProgress >= info.Length)
@@ -752,6 +988,7 @@ public class CustomIABots : MonoBehaviour
                 learning.Learn(difficulty, previousState, previousAction, -profile.incidentPenalty, 0, true);
 
             learning.ReportIncident(difficulty);
+            learning.ReportIncidentAt(difficulty, Mathf.FloorToInt(trackDistance / segmentLength), segmentCount);
             lastIncidentDistance = trackDistance;
             RespawnForTraining();
             return;

@@ -24,6 +24,9 @@ public class BotQTableData
     public float kilometers;
     public float[] values = new float[0];
     public int[] visits = new int[0];
+
+    // Riesgo de cada tramo de la pista (ver BotLearning.GetRisk).
+    public float[] risk = new float[0];
 }
 
 /// <summary>
@@ -42,6 +45,9 @@ public class BotQTableData
 public class BotLearning : MonoBehaviour
 {
     public const int Version = 10;
+
+    // Cuánto baja el riesgo de un tramo con cada pasada sin incidente (ver GetRisk).
+    private const float RiskDecay = 0.98f;
 
     public static BotLearning Instance { get; private set; }
 
@@ -259,6 +265,19 @@ public class BotLearning : MonoBehaviour
         return brains.TryGetValue(difficulty, out Brain brain) && IsValid(brain, state) ? brain.Visits[state] : 0;
     }
 
+    /// <summary>
+    /// Cuánto peor que la mejor acción cree la tabla que es esa acción en esa
+    /// situación (0 = es la mejor, o la tabla no está cargada).
+    /// </summary>
+    public float GetRegret(RaceDifficulty difficulty, int state, int action)
+    {
+        if (!brains.TryGetValue(difficulty, out Brain brain) || !IsValid(brain, state) || action < 0 || action >= brain.Actions)
+            return 0f;
+
+        int offset = state * brain.Actions;
+        return brain.Q[offset + BestAction(brain, state)] - brain.Q[offset + action];
+    }
+
     /// <summary>La mejor acción para esa situación; entrenando, a veces una al azar.</summary>
     public int ChooseAction(RaceDifficulty difficulty, int state)
     {
@@ -306,6 +325,57 @@ public class BotLearning : MonoBehaviour
 
         brain.RecentLapSum += lapTime;
         brain.RecentLaps++;
+    }
+
+    /// <summary>
+    /// Riesgo aprendido de un tramo de la pista (0 = seguro). Sube 1 con
+    /// cada incidente en ese tramo o en los dos siguientes (la velocidad con
+    /// la que se llega se decide antes) y baja de a poco con cada pasada sin
+    /// incidente. Con riesgo, el piso de velocidad del nivel no obliga a
+    /// acelerar ahí y decide la tabla.
+    /// </summary>
+    public float GetRisk(RaceDifficulty difficulty, int segment)
+    {
+        if (!brains.TryGetValue(difficulty, out Brain brain))
+            return 0f;
+
+        float[] risk = brain.Data.risk;
+
+        return risk != null && risk.Length > 0 ? risk[((segment % risk.Length) + risk.Length) % risk.Length] : 0f;
+    }
+
+    /// <summary>Entrenando: un incidente en ese tramo (ver GetRisk).</summary>
+    public void ReportIncidentAt(RaceDifficulty difficulty, int segment, int segments)
+    {
+        if (!IsTraining || !brains.TryGetValue(difficulty, out Brain brain) || segments <= 0)
+            return;
+
+        float[] risk = GetRiskArray(brain, segments);
+
+        for (int back = 0; back <= 2; back++)
+            risk[((segment - back) % segments + segments) % segments] += 1f;
+
+        brain.Dirty = true;
+    }
+
+    /// <summary>Entrenando: pasó por ese tramo sin incidente (ver GetRisk).</summary>
+    public void ReportPass(RaceDifficulty difficulty, int segment, int segments)
+    {
+        if (!IsTraining || !brains.TryGetValue(difficulty, out Brain brain) || segments <= 0)
+            return;
+
+        float[] risk = GetRiskArray(brain, segments);
+        int index = ((segment % segments) + segments) % segments;
+
+        risk[index] *= RiskDecay;
+    }
+
+    private static float[] GetRiskArray(Brain brain, int segments)
+    {
+        if (brain.Data.risk == null || brain.Data.risk.Length != segments)
+            brain.Data.risk = new float[segments];
+
+        return brain.Data.risk;
     }
 
     public void ReportIncident(RaceDifficulty difficulty)

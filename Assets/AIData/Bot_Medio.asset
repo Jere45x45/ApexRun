@@ -16,10 +16,12 @@ MonoBehaviour:
   displayName: MEDIO
   qTable: {fileID: 4900000, guid: 8e729d1a7253d334f92c25121aae4ecc, type: 3}
   laneWidth: 0.65
+  cornerSpeedCap: 0.95
+  cornerSpeedFloor: 0
   progressReward: 0.1
   timePenalty: 0.03
   offTrackPenalty: 0.6
-  incidentPenalty: 15
+  incidentPenalty: 20
   centerPreference: 0
   defendPosition: 0
   defendDistance: 12

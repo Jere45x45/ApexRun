@@ -138,6 +138,12 @@ MonoBehaviour:
   spinAngle: 100
   randomStartChance: 0.6
   startSpeedRange: {x: 6, y: 22}
+  minGroundedWheels: 2
+  jumpTime: 0.06
+  landingTime: 0.25
+  wheelspinMargin: 1.5
+  jumpSpeedMargin: 1.1
+  slideAngle: 12
   avoidKarts: 1
 --- !u!114 &4574118446121218069
 MonoBehaviour:
