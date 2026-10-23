@@ -75,6 +75,14 @@ public static class KartLoadoutStore
         }
     }
 
+    /// <summary>La pieza elegida de un tipo (su partID), o vacío si no se eligió ninguna.</summary>
+    public static string GetSelectedID(PartType type)
+    {
+        Load();
+
+        return selection.TryGetValue(type, out string partID) ? partID : "";
+    }
+
     private static void Load()
     {
         if (selection != null)
