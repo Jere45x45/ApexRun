@@ -364,6 +364,8 @@ public class RadioEasterEgg : MonoBehaviour
 
         if (music != null && musicSource != null)
         {
+            // La radio es música: la controla el volumen de la música de Configuración.
+            AudioChannel.Assign(musicSource, AudioChannel.Channel.Music);
             musicSource.clip = music;
             musicSource.loop = true;
             musicSource.volume = musicVolume;
