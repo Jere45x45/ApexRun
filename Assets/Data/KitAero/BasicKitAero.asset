@@ -14,17 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AeroKitData
   partID: kitaero_basic
   partName: Basic Kit Aero
-  description: 
+  description: "Alerones estilo F\xF3rmula 1 adelante y atr\xE1s, con pontones: carga
+    y resistencia intermedias."
   effects:
   - Equilibrado
+  - "+ Agarre en curvas r\xE1pidas"
   icon: {fileID: 0}
   modelPrefab: {fileID: 919132149155446097, guid: 2224745baedfe6c4ebeeb2620b4ae6c6,
     type: 3}
   rarity: 0
-  downforce: 100
-  aerodynamicDrag: 0.02
+  downforce: 300
+  aerodynamicDrag: 0.022
   aeroSettings:
     airDensity: 1.225
-    dragArea: 0.46
-    downforceArea: 0.08
-    centerOfPressure: {x: 0, y: 0.3, z: -0.5}
+    dragArea: 0.5
+    downforceArea: 0.35
+    centerOfPressure: {x: 0, y: 0.3, z: -0.35}

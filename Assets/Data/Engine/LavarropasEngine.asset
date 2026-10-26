@@ -14,31 +14,34 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EngineData
   partID: engine_lavarropas
   partName: Engine Lavarropas
-  description: Motor de lavarropas
+  description: 'Motor de lavarropas: el motor de base para arrancar. Gira alto, pero
+    tiene poca fuerza.'
   effects:
   - Motor de base
+  - "- Aceleraci\xF3n"
+  - "- Velocidad m\xE1xima"
   icon: {fileID: 0}
   modelPrefab: {fileID: 919132149155446097, guid: 7535a5a4f538ce847a31bbe14d8ce5e4,
     type: 3}
   rarity: 0
-  motorTorque: 3000
-  maxSpeed: 80
+  motorTorque: 2500
+  maxSpeed: 70
   engineSettings:
     torqueCurve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 5
-        inSlope: 0.001
-        outSlope: 0.001
+        value: 6
+        inSlope: 0.0015
+        outSlope: 0.0015
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
         outWeight: 0.33333334
       - serializedVersion: 3
         time: 2000
-        value: 7
+        value: 9
         inSlope: 0.0015
         outSlope: 0.0015
         tangentMode: 0
@@ -46,19 +49,10 @@ MonoBehaviour:
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 3000
-        value: 9
-        inSlope: 0.002
-        outSlope: 0.002
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
         time: 4000
-        value: 11
-        inSlope: 0.002
-        outSlope: 0.002
+        value: 12
+        inSlope: 0.0015
+        outSlope: 0.0015
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
@@ -66,62 +60,44 @@ MonoBehaviour:
       - serializedVersion: 3
         time: 6000
         value: 15
-        inSlope: 0.002125
-        outSlope: 0.002125
+        inSlope: 0.00125
+        outSlope: 0.00125
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
         time: 8000
-        value: 19.5
-        inSlope: 0.001875
-        outSlope: 0.001875
+        value: 17
+        inSlope: 0.00033333336
+        outSlope: 0.00033333336
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 9000
-        value: 21
-        inSlope: 0.00049999997
-        outSlope: 0.00049999997
+        time: 9500
+        value: 16.5
+        inSlope: -0.001
+        outSlope: -0.001
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 10000
-        value: 20.5
-        inSlope: -0.0009833336
-        outSlope: -0.0009833336
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 11500
-        value: 18.3
-        inSlope: -0.0021666666
-        outSlope: -0.0021666666
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 13000
+        time: 11000
         value: 14
-        inSlope: -0.0034333332
-        outSlope: -0.0034333332
+        inSlope: -0.0018333334
+        outSlope: -0.0018333334
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 14000
-        value: 10
-        inSlope: -0.004
-        outSlope: -0.004
+        time: 12000
+        value: 12
+        inSlope: -0.002
+        outSlope: -0.002
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
@@ -129,15 +105,18 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    idleRpm: 2000
-    maxRpm: 14000
-    inertia: 0.0025
-    frictionTorque: 1
-    frictionTorquePerRpm: 0.0003
-    clutchEngageRpm: 2500
-    clutchFullRpm: 4000
-    clutchFullTorque: 12
-    gearRatio: 7
+    idleRpm: 1500
+    maxRpm: 12000
+    inertia: 0.003
+    frictionTorque: 1.2
+    frictionTorquePerRpm: 0.0004
+    clutchEngageRpm: 2000
+    clutchFullRpm: 3500
+    clutchFullTorque: 10
+    gearRatio: 6.5
     drivetrainEfficiency: 0.95
-    launchRatio: 22
-    launchRatioEndRpm: 8500
+    launchRatio: 18
+    launchEndRpm: 3500
+    launchClutchEngageRpm: 5000
+    launchClutchFullRpm: 7500
+    launchClutchFullTorque: 16
