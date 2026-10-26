@@ -1,0 +1,130 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcb6c684bab5ce748aec75dd58f86a3e, type: 3}
+  m_Name: MotoEngine
+  m_EditorClassIdentifier: Assembly-CSharp::EngineData
+  partID: engine_moto
+  partName: Motor de Moto
+  description: 'Motor de moto: sube muy alto de vueltas, pero abajo no tiene fuerza.'
+  effects:
+  - "+ Velocidad m\xE1xima (la m\xE1s alta)"
+  - "- Aceleraci\xF3n"
+  - '- Le cuesta salir de las curvas lentas'
+  icon: {fileID: 0}
+  modelPrefab: {fileID: 919132149155446097, guid: c57cb8fccb097a647b3347ca6a67b0cd,
+    type: 3}
+  rarity: 2
+  motorTorque: 3000
+  maxSpeed: 95
+  engineSettings:
+    torqueCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 3
+        inSlope: 0.001
+        outSlope: 0.001
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 3000
+        value: 6
+        inSlope: 0.0013333333
+        outSlope: 0.0013333333
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 6000
+        value: 11
+        inSlope: 0.0020833332
+        outSlope: 0.0020833332
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 8000
+        value: 16
+        inSlope: 0.002375
+        outSlope: 0.002375
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 10000
+        value: 20.5
+        inSlope: 0.0019583334
+        outSlope: 0.0019583334
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 11500
+        value: 23
+        inSlope: 0.00066666666
+        outSlope: 0.00066666666
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 13000
+        value: 22.5
+        inSlope: -0.0013333333
+        outSlope: -0.0013333333
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 14500
+        value: 19
+        inSlope: -0.0031666667
+        outSlope: -0.0031666667
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 15500
+        value: 15
+        inSlope: -0.004
+        outSlope: -0.004
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    idleRpm: 2200
+    maxRpm: 15500
+    inertia: 0.0018
+    frictionTorque: 1
+    frictionTorquePerRpm: 0.0003
+    clutchEngageRpm: 3000
+    clutchFullRpm: 5000
+    clutchFullTorque: 12
+    gearRatio: 6.8
+    drivetrainEfficiency: 0.95
+    launchRatio: 18
+    launchEndRpm: 4500
+    launchClutchEngageRpm: 7000
+    launchClutchFullRpm: 10000
+    launchClutchFullTorque: 20
