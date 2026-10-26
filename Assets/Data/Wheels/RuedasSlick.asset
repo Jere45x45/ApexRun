@@ -30,6 +30,7 @@ MonoBehaviour:
   damperRate: 4500
   suspensionTargetPosition: 0.5
   radius: 0.165
+  rimFacesRight: 1
   tireSettings:
     radius: 0.165
     verticalStiffness: 70000
