@@ -11,12 +11,12 @@ PrefabInstance:
     - target: {fileID: 148877019368481449, guid: b0686dc4810f9ac4d99fe5f7e2c1ac5e,
         type: 3}
       propertyPath: m_InScenePlaced
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 148877019368481449, guid: b0686dc4810f9ac4d99fe5f7e2c1ac5e,
         type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 97338494
+      value: 2298942676
       objectReference: {fileID: 0}
     - target: {fileID: 148877019368481449, guid: b0686dc4810f9ac4d99fe5f7e2c1ac5e,
         type: 3}
