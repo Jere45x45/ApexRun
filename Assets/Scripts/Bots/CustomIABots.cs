@@ -34,7 +34,11 @@ using UnityEngine;
 ///
 /// En carrera: usa lo aprendido sin explorar, esquiva al de adelante, no se
 /// tira encima del que va al lado y, el difícil, tapa al que viene atrás.
-/// Si tiene un incidente, reaparece un poco antes, en un lugar libre de la
+/// Respeta las reglas de carrera (ver UpdateTraffic): en las rectas deja
+/// lugar al que va a la par, no se mueve de costado mientras frena, solo se
+/// pone delante de otro con la posición ganada y, con tres a la par en una
+/// recta, no se cruza. Estas reglas no son parte de lo aprendido: no hace
+/// falta volver a entrenar. Si tiene un incidente, reaparece un poco antes, en un lugar libre de la
 /// pista. Con lluvia frena antes (lo aprendido es en seco). Maneja solo
 /// mientras la carrera le habilita
 /// los mandos (KartBehaviour.InputEnabled), y solo en la computadora que lo
@@ -158,6 +162,35 @@ public class CustomIABots : MonoBehaviour
     [Tooltip("Esquiva al de adelante y no se tira encima del que va al lado.")]
     [SerializeField] private bool avoidKarts = true;
 
+    [Header("Reglas de carrera")]
+    [Tooltip("Largo de un kart (m). Dos karts van a la par si están a menos de esto; la posición está " +
+             "ganada si el bot tiene la mitad o más del kart delante del otro.")]
+    [SerializeField, Min(0.5f)] private float kartLength = 1.8f;
+
+    [Tooltip("En las rectas, lugar que le deja de costado al que va a la par: distancia entre los centros de " +
+             "los dos karts (m). Un kart mide 1,5 m de ancho.")]
+    [SerializeField, Min(1.5f)] private float sideSpace = 2.5f;
+
+    [Tooltip("Cuenta como recta donde, de 5 m atrás a 30 m adelante, las curvas son más abiertas que este radio (m).")]
+    [SerializeField, Min(10f)] private float straightRadius = 60f;
+
+    [Tooltip("Mientras frena no se mueve de costado si hay un kart a la par o a menos de esto atrás (m).")]
+    [SerializeField, Min(0f)] private float brakeHoldDistance = 20f;
+
+    [Tooltip("Desaceleración (m/s²) desde la que cuenta que está frenando, aunque no esté pisando el freno.")]
+    [SerializeField, Min(0.5f)] private float brakingDecel = 3f;
+
+    [Tooltip("El difícil: cuántas veces puede moverse para tapar al que viene atrás, hasta que ese kart se aleja.")]
+    [SerializeField, Min(0)] private int maxDefenseMoves = 1;
+
+    // Cada cuánto mira a los otros karts en carrera (s).
+    private const float TrafficInterval = 0.1f;
+
+    // El difícil tapa solo andando (no en la largada) y si el de atrás lo
+    // está alcanzando: más rápido que él por lo menos esto (m/s).
+    private const float MinDefenseSpeed = 12f;
+    private const float AttackSpeed = 0.5f;
+
     private Rigidbody rb;
     private BotTrackInfo info;
     private BotLevelProfile profile;
@@ -201,6 +234,28 @@ public class CustomIABots : MonoBehaviour
     private bool trafficCoast;
     private float defenseFraction;
     private float defenseHoldUntil;
+    private int defenseMoves;
+    private bool defending;
+    private float trafficTimer;
+
+    // Reglas de carrera: dónde puede ir de costado (m desde la línea
+    // central, + = derecha) para dejar lugar a los que van a la par, y si
+    // tiene prohibido moverse de costado (frenando con alguien cerca, o tres
+    // a la par en una recta).
+    private bool hasSpaceLimits;
+    private float spaceMin;
+    private float spaceMax;
+    private bool lateralLocked;
+
+    // Hay un kart a la par o cerca atrás: si frena, no se mueve de costado.
+    // Lo mira el tráfico cada 0,1 s; la frenada se mira en cada paso, así
+    // se traba apenas empieza a frenar.
+    private bool nearForBraking;
+
+    // Frenada: velocidad del paso anterior, desaceleración medida y hasta cuándo cuenta como frenando.
+    private float lastSpeed;
+    private float smoothedAccel;
+    private float brakingUntil;
 
     // Entrenamiento al estilo de la escena de Juli: arranca cuando le dicen (StartRace).
     private bool startRequested;
@@ -358,12 +413,31 @@ public class CustomIABots : MonoBehaviour
             return;
         }
 
+        UpdateBraking(speed, deltaTime);
+
         decisionTimer += deltaTime;
 
         if (decisionTimer >= decisionInterval)
         {
             decisionTimer = 0f;
             Decide(speed);
+        }
+
+        // Tráfico y reglas de carrera: solo en carrera, más seguido que las
+        // decisiones (los otros karts se mueven).
+        if (Training)
+        {
+            ClearTraffic();
+        }
+        else
+        {
+            trafficTimer += deltaTime;
+
+            if (trafficTimer >= TrafficInterval)
+            {
+                trafficTimer = 0f;
+                UpdateTraffic(speed);
+            }
         }
 
         Drive(speed, deltaTime);
@@ -396,13 +470,14 @@ public class CustomIABots : MonoBehaviour
         throttleChoice = action / LaneMoves;
         int move = action % LaneMoves;
 
-        if (move == MoveLeft)
+        // Con el costado trabado por las reglas de carrera, el carril es el
+        // que tiene (la tabla sigue desde ahí cuando se destraba).
+        if (LateralHeld)
+            laneIndex = NearestLane(lateralFraction);
+        else if (move == MoveLeft)
             laneIndex = Mathf.Max(-2, laneIndex - 1);
         else if (move == MoveRight)
             laneIndex = Mathf.Min(2, laneIndex + 1);
-
-        if (!Training)
-            UpdateTraffic(speed);
 
         previousState = state;
         previousAction = action;
@@ -636,6 +711,24 @@ public class CustomIABots : MonoBehaviour
         float desired = hasTrafficTarget ? trafficFraction : laneIndex / 2f * LaneWidth;
         float halfWidth = Mathf.Max(0.5f, info.GetHalfWidth(trackDistance));
 
+        // Reglas de carrera: con el costado trabado sigue por donde va, y
+        // nunca se mete en el lugar que tiene que dejarle al que va a la par
+        // (si el otro se le acerca, se corre).
+        if (LateralHeld)
+            desired = lateralFraction;
+
+        if (hasSpaceLimits)
+        {
+            float offset = info.GetLateralOffset(trackDistance, desired);
+            desired = OffsetToFraction(trackDistance, Mathf.Clamp(offset, spaceMin, spaceMax));
+
+            // La línea a la que apunta tampoco puede quedar en ese lugar: si
+            // quedó (venía cambiando de carril), pasa ya al borde permitido,
+            // así deja de ir hacia el otro.
+            float current = info.GetLateralOffset(trackDistance, lateralFraction);
+            lateralFraction = OffsetToFraction(trackDistance, Mathf.Clamp(current, spaceMin, spaceMax));
+        }
+
         lateralFraction = Mathf.MoveTowards(lateralFraction, desired, laneChangeSpeed / halfWidth * deltaTime);
 
         // Punto al que apunta: sobre la trazada, más adelante cuanto más rápido va.
@@ -767,6 +860,29 @@ public class CustomIABots : MonoBehaviour
         float lower = Mathf.Clamp(travel - peak, -lockAngle, 0f);
         return lower < -0.01f ? -Mathf.Clamp01(travel / lower) : 0f;
     }
+
+    /// <summary>
+    /// Mide si está frenando: eligió frenar o va perdiendo velocidad de golpe
+    /// (más de brakingDecel). Sigue contando un rato después, así no se
+    /// mueve entre una frenada y la siguiente. Soltar por tener a otro kart
+    /// adelante no cuenta: si no, el que viene detrás de uno más lento nunca
+    /// se podría abrir para pasarlo.
+    /// </summary>
+    private void UpdateBraking(float speed, float deltaTime)
+    {
+        if (deltaTime > 0f)
+            smoothedAccel = Mathf.Lerp(smoothedAccel, (speed - lastSpeed) / deltaTime, 0.2f);
+
+        lastSpeed = speed;
+
+        if (throttleChoice == Brake || (smoothedAccel < -brakingDecel && !trafficCoast))
+            brakingUntil = Time.time + 0.3f;
+    }
+
+    private bool IsBraking => Time.time < brakingUntil;
+
+    /// <summary>No se mueve de costado: tres a la par en una recta, o frenando con alguien cerca.</summary>
+    private bool LateralHeld => lateralLocked || (nearForBraking && IsBraking);
 
     private float GetThrottle(float speed)
     {
@@ -1088,6 +1204,11 @@ public class CustomIABots : MonoBehaviour
 
         // La física del kart (ruedas, motor) se pone de acuerdo con la velocidad nueva.
         kart.ResetMotion();
+
+        // El cambio de velocidad del salto no es una frenada.
+        lastSpeed = Vector3.Dot(velocity, rotation * Vector3.forward);
+        smoothedAccel = 0f;
+        brakingUntil = 0f;
     }
 
     private int NearestLane(float fraction)
@@ -1098,35 +1219,65 @@ public class CustomIABots : MonoBehaviour
     // ------------------------------------------------------------ Tráfico (carrera)
 
     /// <summary>
-    /// Mira a los karts de alrededor y decide si tiene que salirse de su
-    /// carril:
+    /// Mira a los karts de alrededor (el jugador y los otros bots) y decide
+    /// por dónde ir de costado. Reglas de carrera, que mandan sobre todo lo
+    /// demás:
+    /// - En las rectas le deja lugar al que va a la par: no se le acerca a
+    ///   menos de sideSpace de costado y, si el otro se le acerca, se corre.
+    /// - Mientras frena no se mueve de costado si hay alguien a la par o
+    ///   cerca atrás: así no se le cruza en el camino.
+    /// - Se pone delante de otro kart solo con la posición ganada: la mitad o
+    ///   más del kart delante del otro. Si no, le deja lugar.
+    /// - Con tres a la par en una recta (él y otros dos), no se cruza: sigue
+    ///   por donde va.
+    /// Dentro de esas reglas:
     /// 1. Si alcanza al de adelante, se abre para pasarlo por el lado con más
-    ///    lugar; si no hay lugar, suelta.
-    /// 2. Si hay alguien al lado, no se le tira encima: sigue por donde va.
-    /// 3. El difícil, si alguien se le acerca de atrás, se pone en su línea
-    ///    para taparlo. Mantiene cada movimiento al menos 1,2 s, para no
-    ///    zigzaguear.
+    ///    lugar; si no hay lugar o no se puede mover, suelta. Mientras lo va
+    ///    pasando sigue por esa línea: no se le vuelve a meter detrás.
+    /// 2. Si hay alguien al lado (en una curva), no se le tira encima: sigue
+    ///    por donde va.
+    /// 3. El difícil, en las rectas y andando (en la largada no), si alguien
+    ///    lo alcanza de atrás, se pone en su línea para taparlo:
+    ///    maxDefenseMoves veces (una), hasta que ese kart se aleja. Después
+    ///    sigue por donde quedó: no zigzaguea siguiéndolo.
     /// </summary>
     private void UpdateTraffic(float speed)
     {
         hasTrafficTarget = false;
         trafficCoast = false;
+        lateralLocked = false;
+        hasSpaceLimits = false;
+        nearForBraking = false;
 
         bool defend = profile != null && profile.defendPosition;
-
-        if (!avoidKarts && !defend)
-            return;
 
         if (Time.time >= rivalsRefreshAt)
             RefreshRivals();
 
-        float halfWidth = Mathf.Max(0.5f, info.GetHalfWidth(trackDistance));
+        bool straight = IsStraight(trackDistance);
+
+        // Dónde está de costado de verdad (no la línea a la que apunta, que
+        // va adelante del kart): con eso se sabe de qué lado está cada uno.
+        float myOffset = info.GetLateralOffset(trackDistance, info.GetFraction(transform.position, trackDistance));
+
+        // Lugar de costado que puede usar (m desde la línea central): toda la
+        // pista utilizable, menos el que les tiene que dejar a los otros.
+        float minOffset = -info.GetUsableLeft(trackDistance);
+        float maxOffset = info.GetUsableRight(trackDistance);
+        float spaceLeft = minOffset;
+        float spaceRight = maxOffset;
+
         float aheadGap = float.MaxValue;
-        float aheadFraction = 0f;
+        float aheadOffset = 0f;
         float aheadSpeed = 0f;
+        float passingGap = float.MaxValue;
+        float passingSpeed = 0f;
         bool alongside = false;
         float behindGap = float.MaxValue;
         float behindFraction = 0f;
+        float behindSpeed = 0f;
+        int abreast = 0;
+        bool nearWhileBraking = false;
 
         foreach (KartBehaviour rival in rivals)
         {
@@ -1139,16 +1290,28 @@ public class CustomIABots : MonoBehaviour
                 continue;
 
             float rivalDistance = FindTrackDistanceNear(trackDistance, position, -35f, 35f, 1.5f);
+
+            // Cuánto adelante está el otro (m, negativo = atrás) y de qué lado (m, + = a la derecha).
             float gap = Wrap(rivalDistance - trackDistance);
             float rivalFraction = info.GetFraction(position, rivalDistance);
+            float rivalOffset = info.GetLateralOffset(rivalDistance, rivalFraction);
             float rivalSpeed = GetSpeedAlongTrack(rival);
-            float lateralGap = Mathf.Abs(rivalFraction - lateralFraction) * halfWidth;
+            float side = rivalOffset - myOffset;
+            float lateralGap = Mathf.Abs(side);
 
+            // Adelante y en el camino.
             if (gap > 0.5f && gap < aheadGap && lateralGap < 1.8f)
             {
                 aheadGap = gap;
-                aheadFraction = rivalFraction;
+                aheadOffset = rivalOffset;
                 aheadSpeed = rivalSpeed;
+            }
+
+            // Adelante, al costado de su línea: lo está pasando.
+            if (gap > 0.5f && gap < passingGap && lateralGap >= 1.8f && lateralGap < sideSpace + 0.3f)
+            {
+                passingGap = gap;
+                passingSpeed = rivalSpeed;
             }
 
             if (Mathf.Abs(gap) <= 2.5f && lateralGap < 2.2f)
@@ -1158,25 +1321,76 @@ public class CustomIABots : MonoBehaviour
             {
                 behindGap = -gap;
                 behindFraction = rivalFraction;
+                behindSpeed = rivalSpeed;
             }
+
+            // A la par: los karts se superponen de adelante a atrás.
+            bool overlapping = Mathf.Abs(gap) < kartLength;
+
+            // (Hasta dos lugares al costado: él en una punta y los otros dos al lado.)
+            if (overlapping && lateralGap < 2.5f * sideSpace)
+                abreast++;
+
+            if (lateralGap < 2f * sideSpace && (overlapping || (gap < 0f && -gap < brakeHoldDistance)))
+                nearWhileBraking = true;
+
+            // Posición ganada: el bot tiene la mitad o más del kart delante
+            // del otro. Si no la tiene y el otro no va entero adelante, en
+            // las rectas le deja lugar de costado.
+            bool earned = gap <= -0.5f * kartLength;
+
+            if (straight && !earned && gap < kartLength)
+            {
+                if (side > 0f || (side == 0f && maxOffset - myOffset < myOffset - minOffset))
+                    spaceRight = Mathf.Min(spaceRight, rivalOffset - sideSpace);
+                else
+                    spaceLeft = Mathf.Max(spaceLeft, rivalOffset + sideSpace);
+            }
+        }
+
+        // Lugar para los que van a la par.
+        if (spaceLeft > minOffset || spaceRight < maxOffset)
+        {
+            // Apretado entre dos: va por el medio del hueco.
+            if (spaceLeft > spaceRight)
+                spaceLeft = spaceRight = 0.5f * (spaceLeft + spaceRight);
+
+            hasSpaceLimits = true;
+            spaceMin = Mathf.Max(spaceLeft, minOffset);
+            spaceMax = Mathf.Min(spaceRight, maxOffset);
+
+            if (spaceMin > spaceMax)
+                spaceMin = spaceMax = Mathf.Clamp(0.5f * (spaceLeft + spaceRight), minOffset, maxOffset);
+        }
+
+        // Frenando con alguien cerca, o tres a la par en una recta: no se
+        // mueve de costado.
+        nearForBraking = nearWhileBraking;
+        lateralLocked = (IsBraking && nearWhileBraking) || (straight && abreast >= 2);
+
+        // El difícil vuelve a poder tapar cuando el de atrás se alejó.
+        if (behindGap > (defend ? profile.defendDistance : 0f) + 4f)
+        {
+            defenseMoves = 0;
+            defending = false;
         }
 
         // 1. Alcanza al de adelante.
         if (avoidKarts && aheadGap < 3f + speed * 0.6f && speed > aheadSpeed + 0.5f)
         {
-            float step = 2.2f / halfWidth;
-            float limit = Mathf.Max(LaneWidth, 0.85f);
-            float leftFraction = Mathf.Clamp(aheadFraction - step, -limit, limit);
-            float rightFraction = Mathf.Clamp(aheadFraction + step, -limit, limit);
-            bool leftFree = Mathf.Abs(leftFraction - aheadFraction) * halfWidth > 1.6f;
-            bool rightFree = Mathf.Abs(rightFraction - aheadFraction) * halfWidth > 1.6f;
+            float passLeft = aheadOffset - sideSpace;
+            float passRight = aheadOffset + sideSpace;
+            float low = hasSpaceLimits ? spaceMin : minOffset;
+            float high = hasSpaceLimits ? spaceMax : maxOffset;
+            bool leftFree = !lateralLocked && passLeft >= low && passLeft <= high;
+            bool rightFree = !lateralLocked && passRight >= low && passRight <= high;
 
             if (leftFree || rightFree)
             {
                 bool goRight = rightFree &&
-                               (!leftFree || Mathf.Abs(rightFraction - lateralFraction) < Mathf.Abs(leftFraction - lateralFraction));
+                               (!leftFree || Mathf.Abs(passRight - myOffset) < Mathf.Abs(passLeft - myOffset));
 
-                SetTrafficTarget(goRight ? rightFraction : leftFraction);
+                SetTrafficTarget(OffsetToFraction(trackDistance, goRight ? passRight : passLeft));
             }
             else
             {
@@ -1186,24 +1400,71 @@ public class CustomIABots : MonoBehaviour
             return;
         }
 
-        // 2. Alguien al lado: sigue por donde va.
-        if (alongside)
+        if (lateralLocked)
+            return;
+
+        // 2. Alguien al lado, o lo va pasando: sigue por donde va.
+        if (alongside || (avoidKarts && passingGap < 3f + speed * 0.6f && speed > passingSpeed + 0.5f))
         {
             SetTrafficTarget(lateralFraction);
             return;
         }
 
-        // 3. Defender la posición.
-        if (defend && behindGap < profile.defendDistance)
+        // 3. Defender la posición, solo en las rectas (frenando ya no se
+        // mueve), andando (en la largada no) y con la posición ganada (el de
+        // atrás está más de un metro atrás) cuando el de atrás lo ataca. Un
+        // movimiento, y se queda en esa línea.
+        bool attacked = behindSpeed > speed + AttackSpeed;
+
+        if (defend && straight && speed > MinDefenseSpeed && behindGap < profile.defendDistance && (defending || attacked))
         {
-            if (Time.time >= defenseHoldUntil)
+            if (!defending && defenseMoves < maxDefenseMoves && Time.time >= defenseHoldUntil)
             {
                 defenseFraction = Mathf.Clamp(behindFraction, -LaneWidth, LaneWidth);
                 defenseHoldUntil = Time.time + 1.2f;
+                defenseMoves++;
+                defending = true;
             }
 
-            SetTrafficTarget(defenseFraction);
+            // Mientras dura el movimiento va a esa línea; después sigue por
+            // donde quedó (volver a la anterior sería otro movimiento).
+            if (defending)
+                SetTrafficTarget(Time.time < defenseHoldUntil ? defenseFraction : lateralFraction);
         }
+    }
+
+    /// <summary>Entrenando no hay reglas de carrera ni tráfico: maneja solo con lo aprendido.</summary>
+    private void ClearTraffic()
+    {
+        hasTrafficTarget = false;
+        trafficCoast = false;
+        lateralLocked = false;
+        hasSpaceLimits = false;
+        nearForBraking = false;
+    }
+
+    /// <summary>True si de 5 m atrás a 30 m adelante las curvas son más abiertas que straightRadius.</summary>
+    private bool IsStraight(float distance)
+    {
+        float limit = 1f / straightRadius;
+
+        for (float x = -5f; x <= 30f; x += 2.5f)
+        {
+            if (Mathf.Abs(info.GetCurvature(distance + x)) > limit)
+                return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>Fracción del lugar utilizable para un corrimiento desde la línea central (m, + = derecha).</summary>
+    private float OffsetToFraction(float distance, float offset)
+    {
+        float fraction = offset >= 0f
+            ? offset / Mathf.Max(0.3f, info.GetUsableRight(distance))
+            : offset / Mathf.Max(0.3f, info.GetUsableLeft(distance));
+
+        return Mathf.Clamp(fraction, -1f, 1f);
     }
 
     /// <summary>True si no hay otro kart a menos de 4 m de ese lugar.</summary>
