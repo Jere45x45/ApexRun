@@ -28,6 +28,10 @@ public class TrackCenterline : MonoBehaviour
     [Tooltip("Distancia entre puntos de la línea (m).")]
     [SerializeField, Min(0.5f)] private float pointSpacing = 2f;
 
+    [Tooltip("Opcional. Si el asfalto viene en el mismo objeto que otras cosas (por ejemplo, los pianos), " +
+             "la línea se saca solo de las caras con este material. Vacío = todo el objeto.")]
+    [SerializeField] private Material roadMaterial;
+
     [Header("Datos generados")]
     [SerializeField] private Vector3[] points = new Vector3[0];
 
@@ -223,7 +227,7 @@ public class TrackCenterline : MonoBehaviour
             return false;
         }
 
-        List<List<Vector3>> borders = FindBorders(trackSurface);
+        List<List<Vector3>> borders = FindBorders(trackSurface, roadMaterial);
 
         if (borders.Count < 2)
         {
@@ -283,13 +287,13 @@ public class TrackCenterline : MonoBehaviour
         return true;
     }
 
-    private static List<List<Vector3>> FindBorders(MeshCollider surface)
+    private static List<List<Vector3>> FindBorders(MeshCollider surface, Material onlyMaterial)
     {
         Mesh mesh = surface.sharedMesh;
         Transform meshTransform = surface.transform;
 
         Vector3[] vertices = mesh.vertices;
-        int[] triangles = mesh.triangles;
+        int[] triangles = GetRoadTriangles(surface, mesh, onlyMaterial);
 
         // Une los vértices que están en el mismo lugar (el FBX los repite por
         // normales o UV distintas).
@@ -381,6 +385,35 @@ public class TrackCenterline : MonoBehaviour
         }
 
         return loops;
+    }
+
+    /// <summary>
+    /// Triángulos del asfalto: todos, o solo los de las partes del objeto que
+    /// usan onlyMaterial (si el objeto tiene ese material).
+    /// </summary>
+    private static int[] GetRoadTriangles(MeshCollider surface, Mesh mesh, Material onlyMaterial)
+    {
+        MeshRenderer renderer = surface.GetComponent<MeshRenderer>();
+
+        if (onlyMaterial == null || renderer == null)
+            return mesh.triangles;
+
+        Material[] materials = renderer.sharedMaterials;
+        List<int> result = new List<int>();
+
+        for (int sub = 0; sub < mesh.subMeshCount && sub < materials.Length; sub++)
+        {
+            if (materials[sub] == onlyMaterial)
+                result.AddRange(mesh.GetTriangles(sub));
+        }
+
+        if (result.Count == 0)
+        {
+            Debug.LogWarning($"TrackCenterline: el objeto {surface.name} no usa el material {onlyMaterial.name}. Se usa todo el objeto.", surface);
+            return mesh.triangles;
+        }
+
+        return result.ToArray();
     }
 
     private static void CountEdge(Dictionary<long, int> edgeUse, int a, int b)
