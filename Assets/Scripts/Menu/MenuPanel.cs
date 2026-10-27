@@ -1,4 +1,4 @@
-﻿public enum MenuPanel
+public enum MenuPanel
 {
     Main,
     Multiplayer,
@@ -9,5 +9,8 @@
     RaceSetup,
 
     /// <summary>Unirse a una partida: con el código o de la lista de servidores.</summary>
-    JoinServer
+    JoinServer,
+
+    /// <summary>Créditos: se abre desde Configuración.</summary>
+    Credits
 }

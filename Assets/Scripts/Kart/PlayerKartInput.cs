@@ -85,6 +85,12 @@ public class PlayerKartInput : MonoBehaviour
             .With("negative", "<Keyboard>/s")
             .With("positive", "<Keyboard>/w");
 
+        // Las flechas hacen lo mismo que W y S.
+        throttleAction
+            .AddCompositeBinding("1DAxis")
+            .With("negative", "<Keyboard>/downArrow")
+            .With("positive", "<Keyboard>/upArrow");
+
         throttleAction.AddBinding(
             "<Gamepad>/rightTrigger"
         );
@@ -99,6 +105,12 @@ public class PlayerKartInput : MonoBehaviour
             .AddCompositeBinding("1DAxis")
             .With("negative", "<Keyboard>/a")
             .With("positive", "<Keyboard>/d");
+
+        // Las flechas hacen lo mismo que A y D.
+        steeringAction
+            .AddCompositeBinding("1DAxis")
+            .With("negative", "<Keyboard>/leftArrow")
+            .With("positive", "<Keyboard>/rightArrow");
 
         steeringAction.AddBinding(
             "<Gamepad>/leftStick/x"
