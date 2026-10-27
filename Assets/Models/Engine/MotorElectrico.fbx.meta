@@ -3,7 +3,27 @@ guid: 49ec2151ccebb224a969521e96483d42
 ModelImporter:
   serializedVersion: 24300
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Engranajes
+    second: {fileID: 2100000, guid: cc4cbe4898fbc964aac5e379c3549535, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Metal
+    second: {fileID: 2100000, guid: bb382a35a87c3ca4fb4a53a1467a94eb, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Negativo
+    second: {fileID: 2100000, guid: 2da8beae716436f4d9ef2d1b5efc9a62, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Positivo
+    second: {fileID: 2100000, guid: 60b051ac4192b9a4488e3ea3a60e3d4d, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

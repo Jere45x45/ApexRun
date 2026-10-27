@@ -10,6 +10,8 @@ using UnityEngine;
 ///   pesos: el cielo (despejado, nublado, lluvia, tormenta, lluvia que para,
 ///   se larga a llover), la hora (mañana, mediodía, atardecer, noche) y la
 ///   niebla (sin, leve, densa). La hora y la niebla no cambian en la carrera.
+/// - En el menú, "lluvia que para" y "se larga a llover" no se eligen sueltos:
+///   salen del clima dinámico (mitad y mitad) o del sorteo de AL AZAR.
 /// - "Lluvia que para" y "Se larga a llover" cambian una sola vez: después de
 ///   que el primero completa una vuelta sorteada (entre la 1 y la anteúltima)
 ///   y unos segundos más. En una carrera de una vuelta, a los segundos de largar.
@@ -145,9 +147,14 @@ public class RaceWeather : NetworkBehaviour
     {
         WeatherChoice choice = WeatherChoiceStore.Current;
 
-        WeatherScenario chosen = choice == WeatherChoice.Random
-            ? (WeatherScenario)Pick(clearWeight, cloudyWeight, rainWeight, stormWeight, rainStopsWeight, rainStartsWeight)
-            : (WeatherScenario)((int)choice - 1);
+        WeatherScenario chosen;
+
+        if (choice == WeatherChoice.Random)
+            chosen = (WeatherScenario)Pick(clearWeight, cloudyWeight, rainWeight, stormWeight, rainStopsWeight, rainStartsWeight);
+        else if (choice == WeatherChoice.Dynamic)
+            chosen = Random.value < 0.5f ? WeatherScenario.RainStops : WeatherScenario.RainStarts; // Clima dinámico: mitad y mitad.
+        else
+            chosen = (WeatherScenario)((int)choice - 1);
 
         TimeOfDayChoice timeChoice = WeatherChoiceStore.Time;
 

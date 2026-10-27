@@ -47,8 +47,12 @@ public enum WeatherChoice
     Cloudy,
     Rain,
     Storm,
-    RainStops,
-    RainStarts
+
+    /// <summary>
+    /// Clima dinámico: el servidor sortea si larga lloviendo y para, o si larga
+    /// seco y se larga a llover (RainStops o RainStarts). Cambia una vez en la carrera.
+    /// </summary>
+    Dynamic
 }
 
 /// <summary>Lo que elige el anfitrión para la hora: una fija o al azar.</summary>
@@ -88,7 +92,7 @@ public static class WeatherChoiceStore
     /// <summary>Cielo elegido (se llama Current por compatibilidad).</summary>
     public static WeatherChoice Current
     {
-        get => weather ??= (WeatherChoice)Load<WeatherChoice>(WeatherKey);
+        get => weather ??= LoadWeather();
         set { weather = value; Save(WeatherKey, (int)value); }
     }
 
@@ -120,7 +124,12 @@ public static class WeatherChoiceStore
 
     public static string Label(WeatherChoice choice)
     {
-        return choice == WeatherChoice.Random ? "AL AZAR" : Label((WeatherScenario)((int)choice - 1)).ToUpperInvariant();
+        switch (choice)
+        {
+            case WeatherChoice.Random: return "AL AZAR";
+            case WeatherChoice.Dynamic: return "DINÁMICO";
+            default: return Label((WeatherScenario)((int)choice - 1)).ToUpperInvariant();
+        }
     }
 
     public static string Label(TimeOfDayChoice choice)
@@ -170,7 +179,7 @@ public static class WeatherChoiceStore
     /// <summary>Resumen para la lista de servidores, por ejemplo "LLUVIA · NOCHE · NIEBLA LEVE".</summary>
     public static string Summary()
     {
-        string text = Label(Current) + "  ·  " + Label(Time);
+        string text = (Current == WeatherChoice.Dynamic ? "CLIMA DINÁMICO" : Label(Current)) + "  ·  " + Label(Time);
 
         if (Fog != FogChoice.None)
             text += "  ·  " + (Fog == FogChoice.Random ? "NIEBLA AL AZAR" : Label(Fog));
@@ -179,6 +188,20 @@ public static class WeatherChoiceStore
     }
 
     // ---------- PlayerPrefs ----------
+
+    /// <summary>
+    /// Cielo guardado. Antes había "lluvia que para" (5) y "se larga a llover" (6):
+    /// los dos pasan a ser el clima dinámico.
+    /// </summary>
+    private static WeatherChoice LoadWeather()
+    {
+        int saved = PlayerPrefs.GetInt(WeatherKey, 0);
+
+        if (saved == 6)
+            return WeatherChoice.Dynamic;
+
+        return System.Enum.IsDefined(typeof(WeatherChoice), saved) ? (WeatherChoice)saved : WeatherChoice.Random;
+    }
 
     private static int Load<T>(string key) where T : System.Enum
     {

@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 73d4e822eaaf5534fb3515d2afccae92
+guid: 0e50f238e990ac94c8a0de189fc7f612
 ModelImporter:
   serializedVersion: 24300
   internalIDToNameTable: []
@@ -28,22 +28,22 @@ ModelImporter:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: Atlas UV de Metal Oscuro Desgastado
-    second: {fileID: 2800000, guid: 0acdea297afeef44daee31cbd06dcc2d, type: 3}
+    second: {fileID: 2800000, guid: 31c5c45a0d8a3824cbdf49d249c29bee, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: Mapa normal UV de armadura desgastada
-    second: {fileID: 2800000, guid: 28c92bb3296a70447940de3e0e2f4f02, type: 3}
+    second: {fileID: 2800000, guid: c3263a8737608b149bb192b1592fb692, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: Mapa normal UV de paneles desgastados
-    second: {fileID: 2800000, guid: 8d4290129b79d214a89a72613063af75, type: 3}
+    second: {fileID: 2800000, guid: d177eb87a3801554782edaa355865410, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: TexturaMotorLancha
-    second: {fileID: 2800000, guid: de94e191dbd72ba4ab25c5853891eff4, type: 3}
+    second: {fileID: 2800000, guid: 8459551cbff774c4ab2892b4db478859, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0

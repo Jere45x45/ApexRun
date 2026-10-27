@@ -20,7 +20,7 @@ MonoBehaviour:
   - "- Aceleraci\xF3n"
   - '- Frena al soltar el acelerador'
   icon: {fileID: 0}
-  modelPrefab: {fileID: 919132149155446097, guid: 73d4e822eaaf5534fb3515d2afccae92,
+  modelPrefab: {fileID: 919132149155446097, guid: 0e50f238e990ac94c8a0de189fc7f612,
     type: 3}
   rarity: 1
   motorTorque: 3400
