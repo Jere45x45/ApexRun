@@ -7378,10 +7378,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "<b><color=#DB1A1F>DESARROLLO</color></b>\nJerem\xEDas \xB7 programaci\xF3n,
-    f\xEDsica, pistas e interfaz\nJuli \xB7 bots, mec\xE1nico IA y dise\xF1o\nJuan
-    Ignacio \xB7 clima, c\xE1maras y multijugador\nJoaqu\xEDn \xB7 modelos 3D de
-    los karts, las piezas y el taller\nMicaela \xB7 modelos 3D de la pista\n<size=55%>
+  m_text: "<b><color=#DB1A1F>DESARROLLO</color></b>\nJerem\xEDas \xB7 F\xEDsicas,
+    cat\xE1logo, iluminaci\xF3n, Interfaz\nJuli \xB7 Bots y mec\xE1nico IA\nJuan
+    Ignacio \xB7 Clima, c\xE1maras y multijugador\nJoaqu\xEDn \xB7 Modelos 3D de
+    los karts, las piezas y el taller\nMicaela \xB7 Modelos 3D de la pista\n<size=55%>
     </size>\n<b><color=#DB1A1F>SONIDO</color></b>\nMotor: grabaci\xF3n de una Honda
     CRM 250 (Pixabay)\n<size=55%> </size>\n<b><color=#DB1A1F>HECHO CON</color></b>\nUnity
     \xB7 Blender \xB7 Ollama con Llama 3.2"
