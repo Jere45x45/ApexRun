@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: c57cb8fccb097a647b3347ca6a67b0cd
+guid: 111df17df6ae5cd46b005aeb9614ed4a
 ModelImporter:
   serializedVersion: 24300
   internalIDToNameTable: []
@@ -38,22 +38,22 @@ ModelImporter:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: Mapa UV normal azul y magenta
-    second: {fileID: 2800000, guid: 65894bfc863731a4295ad3ca5f188e4f, type: 3}
+    second: {fileID: 2800000, guid: e33349db604ab6f4ba87fec456f5371e, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: TexturaBaseMotorMoto
-    second: {fileID: 2800000, guid: 0d093aefed07dec48a966ec4e8f99b66, type: 3}
+    second: {fileID: 2800000, guid: 9dcc0bee03e38f643b9df57e701ce939, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: TexturaMotorMotoNegro
-    second: {fileID: 2800000, guid: e6b6aa54784de5d408e87f668113bd9d, type: 3}
+    second: {fileID: 2800000, guid: 7390aa012cce24c4183021c006ef521e, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: normal_metal_negro_2048_fondo_negro
-    second: {fileID: 2800000, guid: aa841ef08be7abf4296ec862c23dbf0a, type: 3}
+    second: {fileID: 2800000, guid: 367805f8b15889c4fbde8d14b8537e08, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0

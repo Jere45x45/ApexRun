@@ -20,7 +20,7 @@ MonoBehaviour:
   - "- Aceleraci\xF3n"
   - '- Le cuesta salir de las curvas lentas'
   icon: {fileID: 0}
-  modelPrefab: {fileID: 919132149155446097, guid: c57cb8fccb097a647b3347ca6a67b0cd,
+  modelPrefab: {fileID: 919132149155446097, guid: 111df17df6ae5cd46b005aeb9614ed4a,
     type: 3}
   rarity: 2
   motorTorque: 3000
