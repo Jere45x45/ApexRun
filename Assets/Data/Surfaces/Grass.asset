@@ -16,4 +16,4 @@ MonoBehaviour:
   validForTrack: 0
   gripMultiplier: 0.75
   rollingResistanceMultiplier: 5
-  wetGripMultiplier: 0.7
+  wetGripMultiplier: 0.9
