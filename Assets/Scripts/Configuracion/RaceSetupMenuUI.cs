@@ -1,4 +1,4 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -25,6 +25,19 @@ public class RaceSetupMenuUI : MonoBehaviour
     [SerializeField] private SessionMenuUI sessionMenu;
 
     [SerializeField] private TMP_Text titleText;
+
+    [Header("Cartel del título")]
+    [Tooltip("Imagen del cartel de arriba.")]
+    [SerializeField] private Image titleImage;
+
+    [Tooltip("Cartel al crear un servidor (ya trae el texto, así que el texto se oculta).")]
+    [SerializeField] private Sprite multiplayerTitle;
+
+    [Tooltip("Cartel para un jugador. Si queda vacío se usa el cartel liso con el texto UN JUGADOR encima.")]
+    [SerializeField] private Sprite singlePlayerTitle;
+
+    [Tooltip("Cartel liso (sin texto) para cuando falta el de arriba.")]
+    [SerializeField] private Sprite blankTitle;
 
     [Header("Vueltas")]
     [SerializeField] private Button lapsMinus;
@@ -188,6 +201,17 @@ public class RaceSetupMenuUI : MonoBehaviour
         if (titleText != null)
             titleText.text = multiplayer ? "CREAR SERVIDOR" : "UN JUGADOR";
 
+        // Si hay un cartel con el texto dibujado se usa ese; si no, el liso
+        // con el texto de TextMeshPro encima.
+        if (titleImage != null)
+        {
+            Sprite banner = multiplayer ? multiplayerTitle : singlePlayerTitle;
+            titleImage.sprite = banner != null ? banner : blankTitle;
+
+            if (titleText != null)
+                titleText.gameObject.SetActive(banner == null);
+        }
+
         if (confirmText != null)
             confirmText.text = multiplayer ? "CREAR SERVIDOR" : "¡A CORRER!";
 
@@ -195,8 +219,8 @@ public class RaceSetupMenuUI : MonoBehaviour
 
         int laps = RaceSetupStore.Laps;
         lapsValue.text = laps.ToString();
-        lapsMinus.interactable = laps > RaceSetupStore.MinLaps;
-        lapsPlus.interactable = laps < RaceSetupStore.MaxLaps;
+        SetUsable(lapsMinus, laps > RaceSetupStore.MinLaps);
+        SetUsable(lapsPlus, laps < RaceSetupStore.MaxLaps);
 
         weatherValue.text = WeatherChoiceStore.Label(WeatherChoiceStore.Current);
         timeValue.text = WeatherChoiceStore.Label(WeatherChoiceStore.Time);
@@ -207,11 +231,8 @@ public class RaceSetupMenuUI : MonoBehaviour
         if (botsValue != null)
             botsValue.text = bots == 0 ? "SIN BOTS" : bots.ToString();
 
-        if (botsMinus != null)
-            botsMinus.interactable = bots > 0;
-
-        if (botsPlus != null)
-            botsPlus.interactable = bots < RaceSetupStore.MaxBots;
+        SetUsable(botsMinus, bots > 0);
+        SetUsable(botsPlus, bots < RaceSetupStore.MaxBots);
 
         // Sin bots, el nivel no importa: se ve apagado.
         if (levelValue != null)
@@ -220,16 +241,32 @@ public class RaceSetupMenuUI : MonoBehaviour
             levelValue.alpha = bots > 0 ? 1f : 0.4f;
         }
 
-        if (levelPrevious != null)
-            levelPrevious.interactable = bots > 0;
-
-        if (levelNext != null)
-            levelNext.interactable = bots > 0;
+        SetUsable(levelPrevious, bots > 0);
+        SetUsable(levelNext, bots > 0);
 
         if (visibilityRow != null)
             visibilityRow.SetActive(multiplayer);
 
         if (visibilityValue != null)
             visibilityValue.text = RaceSetupStore.PrivateServer ? "PRIVADA" : "PÚBLICA";
+    }
+
+    /// <summary>
+    /// Habilita o deshabilita un botón. Los botones usan sprites (no cambian
+    /// de color solos), así que deshabilitado se ve semitransparente.
+    /// </summary>
+    private static void SetUsable(Button button, bool usable)
+    {
+        if (button == null)
+            return;
+
+        button.interactable = usable;
+
+        if (button.targetGraphic != null)
+        {
+            Color color = button.targetGraphic.color;
+            color.a = usable ? 1f : 0.35f;
+            button.targetGraphic.color = color;
+        }
     }
 }

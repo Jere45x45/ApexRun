@@ -1,15 +1,21 @@
+using System;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
-/// Fila de la lista de piezas del Catálogo: nombre, rareza (con su color),
-/// qué cambia en el manejo (ventajas en verde, desventajas en rojo) y el botón
-/// para equiparla. La pieza que el kart ya tiene puesta se marca como
-/// EQUIPADA y su botón queda deshabilitado.
+/// Una pieza en la lista del Catálogo. Hay dos formas de mostrarla:
+/// - Tarjeta (el taller nuevo): si tiene los sprites de rareza cargados, el
+///   fondo es el de su rareza (Común, Poco común, Rara, Épica o Legendaria),
+///   adentro va el ícono de la pieza (KartPart.icon) y abajo el nombre. Se
+///   equipa tocando la tarjeta; la que está puesta queda con el fondo de seleccionada.
+/// - Fila (la lista vieja): nombre, rareza, efectos y botón EQUIPAR.
+/// Al pasar el mouse por encima avisa (Hovered) para que el panel Data
+/// muestre esa pieza.
 /// </summary>
-public class CatalogPartItem : MonoBehaviour
+public class CatalogPartItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     [Header("UI")]
     [SerializeField] private Image icon;
@@ -23,11 +29,27 @@ public class CatalogPartItem : MonoBehaviour
     [Tooltip("Texto del botón: EQUIPAR o EQUIPADA.")]
     [SerializeField] private TMP_Text buttonLabel;
 
-    [Tooltip("Fondo de la fila: cambia cuando la pieza está equipada.")]
+    [Tooltip("Fondo de la fila o de la tarjeta.")]
     [SerializeField] private Image background;
 
     [Tooltip("Franja de la izquierda, del color de la rareza.")]
     [SerializeField] private Image rarityAccent;
+
+    [Header("Tarjeta")]
+    [Tooltip("Fondo de la tarjeta según la rareza, en este orden: Común, Poco común, Rara, Épica, Legendaria. Si está vacío, la pieza se muestra como fila.")]
+    [SerializeField] private Sprite[] raritySprites = new Sprite[0];
+
+    [Tooltip("Fondo de la tarjeta de la pieza puesta (el de seleccionada). Vacío: queda el de la rareza.")]
+    [SerializeField] private Sprite equippedSprite;
+
+    [Tooltip("Opcional: algo que se muestra solo en la pieza puesta.")]
+    [SerializeField] private GameObject equippedMark;
+
+    [Tooltip("Color del nombre en la tarjeta.")]
+    [SerializeField] private Color cardNameColor = new Color(0.11f, 0.11f, 0.13f, 1f);
+
+    [Tooltip("Color del nombre en la tarjeta de la pieza puesta.")]
+    [SerializeField] private Color equippedNameColor = Color.white;
 
     [Header("Colores")]
     [SerializeField] private Color normalBackground = new Color(0.14f, 0.15f, 0.19f, 1f);
@@ -46,6 +68,12 @@ public class CatalogPartItem : MonoBehaviour
 
     public KartPart Part => part;
 
+    /// <summary>El mouse entró (true) o salió (false) de la pieza.</summary>
+    public event Action<CatalogPartItem, bool> Hovered;
+
+    /// <summary>Tiene los sprites de rareza: se muestra como tarjeta.</summary>
+    private bool IsCard => raritySprites != null && raritySprites.Length > 0;
+
     public void Setup(
         KartPart part,
         CatalogController catalogController)
@@ -57,9 +85,30 @@ public class CatalogPartItem : MonoBehaviour
         ConfigureButton();
     }
 
-    /// <summary>Marca la fila como equipada (o no).</summary>
+    /// <summary>Marca la pieza como equipada (o no).</summary>
     public void SetEquipped(bool equipped)
     {
+        if (IsCard)
+        {
+            // La pieza puesta queda con el fondo de seleccionada y no se
+            // puede volver a tocar (deshabilitado, el botón muestra el fondo
+            // que tenga la tarjeta).
+            if (background != null)
+                background.sprite = equipped && equippedSprite != null ? equippedSprite : RaritySprite();
+
+            if (selectButton != null)
+                selectButton.interactable = !equipped;
+
+            if (equippedMark != null)
+                equippedMark.SetActive(equipped);
+
+            // Sobre el fondo rojo el nombre va en blanco.
+            if (partName != null)
+                partName.color = equipped ? equippedNameColor : cardNameColor;
+
+            return;
+        }
+
         if (background != null)
             background.color = equipped ? equippedBackground : normalBackground;
 
@@ -83,10 +132,26 @@ public class CatalogPartItem : MonoBehaviour
             buttonLabel.text = equipped ? "EQUIPADA" : "EQUIPAR";
     }
 
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        Hovered?.Invoke(this, true);
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        Hovered?.Invoke(this, false);
+    }
+
     private void UpdateVisuals()
     {
         if (partName != null)
             partName.text = part.partName;
+
+        if (IsCard)
+        {
+            UpdateCard();
+            return;
+        }
 
         Color rarityColor = GetRarityColor(part.rarity);
 
@@ -101,17 +166,56 @@ public class CatalogPartItem : MonoBehaviour
 
         if (effects != null)
         {
-            string text = BuildEffects(part.effects);
+            string text = BuildEffects(part.effects, advantage, disadvantage, neutralEffect, EffectSeparator);
             effects.text = text;
             effects.gameObject.SetActive(text.Length > 0);
         }
 
-        // Hoy ninguna pieza tiene ícono: sin ícono no se deja el hueco.
+        // Sin ícono no se deja el hueco.
         if (icon != null)
         {
             icon.sprite = part.icon;
             icon.gameObject.SetActive(part.icon != null);
         }
+    }
+
+    /// <summary>
+    /// Tarjeta: fondo de la rareza, ícono arriba y nombre abajo. Si la pieza
+    /// todavía no tiene ícono, el nombre ocupa toda la tarjeta.
+    /// </summary>
+    private void UpdateCard()
+    {
+        if (background != null)
+            background.sprite = RaritySprite();
+
+        bool hasIcon = part.icon != null;
+
+        if (icon != null)
+        {
+            icon.sprite = part.icon;
+            icon.preserveAspect = true;
+            icon.gameObject.SetActive(hasIcon);
+        }
+
+        if (partName != null)
+        {
+            RectTransform nameRect = partName.rectTransform;
+            nameRect.anchorMin = Vector2.zero;
+            nameRect.anchorMax = new Vector2(1f, hasIcon ? 0.32f : 1f);
+            partName.alignment = hasIcon ? TextAlignmentOptions.Bottom : TextAlignmentOptions.Center;
+        }
+
+        if (equippedMark != null)
+            equippedMark.SetActive(false);
+    }
+
+    /// <summary>Fondo de la rareza de la pieza (si falta, el que tenga la tarjeta).</summary>
+    private Sprite RaritySprite()
+    {
+        int index = Mathf.Clamp((int)part.rarity, 0, raritySprites.Length - 1);
+        Sprite sprite = raritySprites[index];
+
+        return sprite != null ? sprite : background.sprite;
     }
 
     private void ConfigureButton()
@@ -138,10 +242,10 @@ public class CatalogPartItem : MonoBehaviour
     }
 
     /// <summary>
-    /// Arma la línea de efectos: "+ Aceleración" en verde, "- Velocidad
-    /// máxima" en rojo y lo que no tiene signo en gris.
+    /// Arma los efectos: "+ Aceleración" con el color de ventaja, "- Velocidad
+    /// máxima" con el de desventaja y lo que no tiene signo con el neutro.
     /// </summary>
-    private string BuildEffects(string[] list)
+    public static string BuildEffects(string[] list, Color good, Color bad, Color neutral, string separator)
     {
         if (list == null || list.Length == 0)
             return string.Empty;
@@ -154,22 +258,22 @@ public class CatalogPartItem : MonoBehaviour
                 continue;
 
             string effect = raw.Trim();
-            Color color = neutralEffect;
+            Color color = neutral;
 
             if (effect[0] == '+')
             {
-                color = advantage;
+                color = good;
                 effect = "+ " + effect.Substring(1).TrimStart();
             }
             else if (effect[0] == '-' || effect[0] == '–' || effect[0] == '−')
             {
                 // Raya corta: la fuente del juego no tiene el signo menos (−).
-                color = disadvantage;
+                color = bad;
                 effect = "– " + effect.Substring(1).TrimStart();
             }
 
             if (builder.Length > 0)
-                builder.Append(EffectSeparator);
+                builder.Append(separator);
 
             // El texto de la pieza no puede meter etiquetas propias.
             builder.Append("<color=#").Append(ColorUtility.ToHtmlStringRGB(color)).Append("><noparse>")
@@ -179,7 +283,7 @@ public class CatalogPartItem : MonoBehaviour
         return builder.ToString();
     }
 
-    private static string GetRarityName(PartRarity value)
+    public static string GetRarityName(PartRarity value)
     {
         switch (value)
         {

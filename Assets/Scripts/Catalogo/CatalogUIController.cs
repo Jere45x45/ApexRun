@@ -1,12 +1,19 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Panel de piezas del Catálogo: pestañas por categoría y la lista de piezas
-/// de la categoría elegida. La pestaña activa y la pieza equipada se marcan.
+/// Panel de piezas del Catálogo:
+/// - Pestañas por categoría (Motor, Aero, Volante, Ruedas). La pestaña
+///   activa usa su sprite de "estado actual".
+/// - La lista de piezas de la categoría elegida, ordenadas por rareza: de
+///   Común a Legendaria (dentro de la misma rareza, en el orden del catálogo).
+/// - El panel Data: nombre, rareza, descripción y efectos de la pieza que
+///   está debajo del mouse o, si no hay ninguna, de la que está puesta.
 /// </summary>
 public class CatalogUIController : MonoBehaviour
 {
@@ -17,6 +24,12 @@ public class CatalogUIController : MonoBehaviour
         public PartType type;
         public Image background;
         public TMP_Text label;
+
+        [Tooltip("Sprite de la pestaña cuando no está elegida. Vacío: se usan los colores.")]
+        public Sprite normalSprite;
+
+        [Tooltip("Sprite de la pestaña elegida (estado actual).")]
+        public Sprite currentSprite;
     }
 
     [Header("Catalog")]
@@ -46,8 +59,35 @@ public class CatalogUIController : MonoBehaviour
     [SerializeField] private Color tabTextNormal = new Color(0.70f, 0.73f, 0.80f, 1f);
     [SerializeField] private Color tabTextSelected = Color.white;
 
+    [Header("Panel Data")]
+    [Tooltip("Nombre de la pieza.")]
+    [SerializeField] private TMP_Text dataName;
+
+    [Tooltip("Rareza, descripción y efectos.")]
+    [SerializeField] private TMP_Text dataBody;
+
+    [Tooltip("Colores de los efectos sobre el fondo claro del panel.")]
+    [SerializeField] private Color dataAdvantage = new Color(0.10f, 0.50f, 0.20f, 1f);
+    [SerializeField] private Color dataDisadvantage = new Color(0.72f, 0.07f, 0.09f, 1f);
+    [SerializeField] private Color dataNeutral = new Color(0.30f, 0.32f, 0.38f, 1f);
+
+    [Tooltip("Color del nombre de cada rareza en el panel: Común, Poco común, Rara, Épica, Legendaria.")]
+    [SerializeField] private Color[] dataRarityColors =
+    {
+        new Color(0.36f, 0.37f, 0.40f),
+        new Color(0.20f, 0.45f, 0.24f),
+        new Color(0.20f, 0.36f, 0.52f),
+        new Color(0.50f, 0.33f, 0.31f),
+        new Color(0.44f, 0.42f, 0.18f)
+    };
+
     private readonly List<CatalogPartItem> activeItems =
         new List<CatalogPartItem>();
+
+    private readonly StringBuilder builder = new StringBuilder();
+
+    // La pieza que está debajo del mouse (null: ninguna).
+    private KartPart hoveredPart;
 
     public PartType CurrentCategory { get; private set; }
 
@@ -77,6 +117,7 @@ public class CatalogUIController : MonoBehaviour
             return;
 
         CurrentCategory = type;
+        hoveredPart = null;
 
         ClearItems();
         RefreshTabs();
@@ -111,7 +152,12 @@ public class CatalogUIController : MonoBehaviour
             return;
         }
 
-        foreach (KartPart part in catalogController.GetParts(type))
+        // De la más común a la legendaria. OrderBy respeta el orden del
+        // catálogo entre las piezas de la misma rareza.
+        IEnumerable<KartPart> sorted = catalogController.GetParts(type)
+            .OrderBy(part => (int)part.rarity);
+
+        foreach (KartPart part in sorted)
         {
             CatalogPartItem item =
                 Instantiate(
@@ -123,6 +169,8 @@ public class CatalogUIController : MonoBehaviour
                 part,
                 catalogController
             );
+
+            item.Hovered += OnItemHovered;
 
             activeItems.Add(item);
         }
@@ -175,6 +223,70 @@ public class CatalogUIController : MonoBehaviour
             bool equipped = installed != null && item.Part != null && item.Part.partID == installed.partID;
             item.SetEquipped(equipped);
         }
+
+        RefreshData();
+    }
+
+    private void OnItemHovered(CatalogPartItem item, bool inside)
+    {
+        if (inside)
+            hoveredPart = item.Part;
+        else if (hoveredPart == item.Part)
+            hoveredPart = null;
+
+        RefreshData();
+    }
+
+    /// <summary>Panel Data: la pieza debajo del mouse o, si no hay, la puesta.</summary>
+    private void RefreshData()
+    {
+        if (dataName == null && dataBody == null)
+            return;
+
+        KartPart part = hoveredPart;
+
+        if (part == null && catalogController != null)
+            part = catalogController.GetInstalledPart(CurrentCategory);
+
+        if (part == null)
+        {
+            if (dataName != null)
+                dataName.text = "";
+
+            if (dataBody != null)
+                dataBody.text = "";
+
+            return;
+        }
+
+        if (dataName != null)
+        {
+            dataName.text = "<noparse>" + part.partName + "</noparse>";
+        }
+
+        if (dataBody == null)
+            return;
+
+        builder.Clear();
+
+        int rarityIndex = Mathf.Clamp((int)part.rarity, 0, dataRarityColors.Length - 1);
+        Color rarityColor = dataRarityColors.Length > 0 ? dataRarityColors[rarityIndex] : dataNeutral;
+
+        builder.Append("<b><color=#").Append(ColorUtility.ToHtmlStringRGB(rarityColor)).Append(">")
+            .Append(CatalogPartItem.GetRarityName(part.rarity)).Append("</color></b>");
+
+        if (!string.IsNullOrWhiteSpace(part.description))
+        {
+            builder.Append("\n<size=40%>\n</size><color=#").Append(ColorUtility.ToHtmlStringRGB(dataNeutral)).Append("><noparse>")
+                .Append(part.description.Trim()).Append("</noparse></color>");
+        }
+
+        string effects = CatalogPartItem.BuildEffects(part.effects, dataAdvantage, dataDisadvantage, dataNeutral, "\n");
+
+        if (effects.Length > 0)
+            builder.Append("\n<size=40%>\n</size><b>").Append(effects).Append("</b>");
+
+        dataBody.text = builder.ToString();
     }
 
     private void RefreshTabs()
@@ -184,7 +296,26 @@ public class CatalogUIController : MonoBehaviour
             bool selected = tab.type == CurrentCategory;
 
             if (tab.background != null)
-                tab.background.color = selected ? tabSelected : tabNormal;
+            {
+                if (tab.normalSprite != null)
+                {
+                    // Pestañas con sprites: la elegida usa el de estado actual.
+                    tab.background.sprite = selected && tab.currentSprite != null ? tab.currentSprite : tab.normalSprite;
+                    tab.background.color = Color.white;
+
+                    // La pestaña elegida queda fija en su estado actual: no
+                    // responde al mouse, así no se le pone encima el sprite de
+                    // seleccionada.
+                    Button button = tab.background.GetComponent<Button>();
+
+                    if (button != null)
+                        button.interactable = !selected;
+                }
+                else
+                {
+                    tab.background.color = selected ? tabSelected : tabNormal;
+                }
+            }
 
             if (tab.label != null)
                 tab.label.color = selected ? tabTextSelected : tabTextNormal;
@@ -197,6 +328,7 @@ public class CatalogUIController : MonoBehaviour
         {
             if (item != null)
             {
+                item.Hovered -= OnItemHovered;
                 Destroy(item.gameObject);
             }
         }
