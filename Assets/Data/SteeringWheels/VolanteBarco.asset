@@ -20,6 +20,6 @@ MonoBehaviour:
   icon: {fileID: 0}
   modelPrefab: {fileID: 919132149155446097, guid: 262bd7da57e937f4c83dd370e68ce032,
     type: 3}
-  rarity: 0
+  rarity: 2
   hubPosition: {x: 0, y: 0.311, z: -0.159}
   tilt: -25

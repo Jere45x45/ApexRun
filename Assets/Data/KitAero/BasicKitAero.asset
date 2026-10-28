@@ -22,7 +22,7 @@ MonoBehaviour:
   icon: {fileID: 0}
   modelPrefab: {fileID: 919132149155446097, guid: 2224745baedfe6c4ebeeb2620b4ae6c6,
     type: 3}
-  rarity: 0
+  rarity: 4
   downforce: 300
   aerodynamicDrag: 0.022
   aeroSettings:
