@@ -18,7 +18,7 @@ using UnityEngine;
 /// - Entre estaciones el kart hace una curva por el centro libre del taller
 ///   (transitPoint), y la cámara nunca atraviesa el taller: si algo la tapa,
 ///   se acerca al kart (workshopModel).
-/// - Con la R apretada el kart gira sobre su centro; al cambiar de pestaña
+/// - Con la R apretada, el mouse gira el kart sobre su centro; al cambiar de pestaña
 ///   vuelve derecho.
 /// </summary>
 public class CatalogWorkshop : MonoBehaviour
@@ -83,12 +83,12 @@ public class CatalogWorkshop : MonoBehaviour
     [SerializeField] private Vector2 lensShift = new Vector2(-0.25f, 0f);
 
     [Header("Girar el kart (tecla R)")]
-    [Tooltip("Mientras se mantiene apretada la R, el kart gira sobre su centro para verlo de todos lados. " +
+    [Tooltip("Mientras se mantiene apretada la R, mover el mouse a los costados gira el kart sobre su centro. " +
              "Al cambiar de pestaña vuelve a su posición. En la toma del volante (de cerca) no gira.")]
     [SerializeField] private bool allowSpin = true;
 
-    [Tooltip("Velocidad del giro (grados por segundo).")]
-    [SerializeField, Min(0f)] private float spinSpeed = 90f;
+    [Tooltip("Grados que gira el kart por cada píxel que se mueve el mouse.")]
+    [SerializeField, Min(0f)] private float spinSensitivity = 0.4f;
 
     // Cuánto giró el kart con la R (grados) y alrededor de qué punto (su centro, en coordenadas del kart).
     private float spinAngle;
@@ -228,8 +228,9 @@ public class CatalogWorkshop : MonoBehaviour
 
         // Tecla R: el kart gira sobre su centro (no sobre su origen, que está
         // atrás), así no se va del encuadre. Solo quieto en una estación.
+        // Con la R apretada, mover el mouse a los costados gira el kart.
         if (!moving && !CameraHeld && allowSpin && !IsCloseShot(current) && SpinPressed())
-            spinAngle = Mathf.Repeat(spinAngle + spinSpeed * Time.deltaTime, 360f);
+            spinAngle = Mathf.Repeat(spinAngle - MouseDeltaX() * spinSensitivity, 360f);
 
         if (spinAngle != 0f)
         {
@@ -496,6 +497,17 @@ public class CatalogWorkshop : MonoBehaviour
         return keyboard != null && keyboard.rKey.isPressed;
 #else
         return Input.GetKey(KeyCode.R);
+#endif
+    }
+
+    /// <summary>Cuánto se movió el mouse a los costados en este cuadro (píxeles).</summary>
+    private static float MouseDeltaX()
+    {
+#if ENABLE_INPUT_SYSTEM
+        UnityEngine.InputSystem.Mouse mouse = UnityEngine.InputSystem.Mouse.current;
+        return mouse != null ? mouse.delta.ReadValue().x : 0f;
+#else
+        return Input.GetAxisRaw("Mouse X") * 20f;
 #endif
     }
 
