@@ -23,6 +23,12 @@ MonoBehaviour:
   modelPrefab: {fileID: 919132149155446097, guid: 2224745baedfe6c4ebeeb2620b4ae6c6,
     type: 3}
   rarity: 4
+  partNameEn: Basic Aero Kit
+  descriptionEn: 'Formula 1 style front and rear wings, with sidepods: medium downforce
+    and drag.'
+  effectsEn:
+  - Balanced
+  - + Grip in fast corners
   downforce: 300
   aerodynamicDrag: 0.022
   aeroSettings:

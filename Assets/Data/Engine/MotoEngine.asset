@@ -23,6 +23,12 @@ MonoBehaviour:
   modelPrefab: {fileID: 919132149155446097, guid: 111df17df6ae5cd46b005aeb9614ed4a,
     type: 3}
   rarity: 2
+  partNameEn: Motorcycle Engine
+  descriptionEn: 'Motorcycle engine: revs very high, but has no power down low.'
+  effectsEn:
+  - + Top speed (the highest)
+  - '- Acceleration'
+  - '- Slow out of tight corners'
   motorTorque: 3000
   maxSpeed: 95
   engineSettings:

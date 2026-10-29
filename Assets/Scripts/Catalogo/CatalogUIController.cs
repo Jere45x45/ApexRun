@@ -264,7 +264,7 @@ public class CatalogUIController : MonoBehaviour
 
         if (dataName != null)
         {
-            dataName.text = "<noparse>" + part.partName + "</noparse>";
+            dataName.text = "<noparse>" + part.DisplayName + "</noparse>";
         }
 
         if (dataBody == null)
@@ -278,13 +278,15 @@ public class CatalogUIController : MonoBehaviour
         builder.Append("<b><color=#").Append(ColorUtility.ToHtmlStringRGB(rarityColor)).Append(">")
             .Append(CatalogPartItem.GetRarityName(part.rarity)).Append("</color></b>");
 
-        if (!string.IsNullOrWhiteSpace(part.description))
+        string description = part.DisplayDescription;
+
+        if (!string.IsNullOrWhiteSpace(description))
         {
             builder.Append("\n<size=40%>\n</size><color=#").Append(ColorUtility.ToHtmlStringRGB(dataNeutral)).Append("><noparse>")
-                .Append(part.description.Trim()).Append("</noparse></color>");
+                .Append(description.Trim()).Append("</noparse></color>");
         }
 
-        string effects = CatalogPartItem.BuildEffects(part.effects, dataAdvantage, dataDisadvantage, dataNeutral, "\n");
+        string effects = CatalogPartItem.BuildEffects(part.DisplayEffects, dataAdvantage, dataDisadvantage, dataNeutral, "\n");
 
         if (effects.Length > 0)
             builder.Append("\n<size=40%>\n</size><b>").Append(effects).Append("</b>");

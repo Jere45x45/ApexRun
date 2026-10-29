@@ -24,6 +24,13 @@ MonoBehaviour:
   modelPrefab: {fileID: 919132149155446097, guid: 49ec2151ccebb224a969521e96483d42,
     type: 3}
   rarity: 1
+  partNameEn: Electric Engine
+  descriptionEn: 'Electric motor: full power from zero revs and no clutch. It runs
+    out of push up top.'
+  effectsEn:
+  - + Acceleration from a standstill
+  - + Strong out of corners
+  - '- Top speed'
   motorTorque: 3600
   maxSpeed: 80
   engineSettings:

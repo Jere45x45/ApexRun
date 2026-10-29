@@ -23,6 +23,12 @@ MonoBehaviour:
   modelPrefab: {fileID: 919132149155446097, guid: 85513ca6a7ed47a4f8d2deee3f7f8fd4,
     type: 3}
   rarity: 3
+  partNameEn: Time Attack Aero Kit
+  descriptionEn: 'Huge rear wing and front splitter, like time attack cars: lots
+    of downforce and lots of drag.'
+  effectsEn:
+  - + Grip in fast corners (the most)
+  - '- Straight-line speed'
   downforce: 500
   aerodynamicDrag: 0.03
   aeroSettings:

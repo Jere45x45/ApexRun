@@ -345,6 +345,8 @@ MonoBehaviour:
   workshopModel: {fileID: 2003008952}
   cameraClearance: 0.15
   lensShift: {x: -0.03, y: 0.06}
+  allowSpin: 1
+  spinSensitivity: 0.4
 --- !u!4 &28193218
 Transform:
   m_ObjectHideFlags: 0
@@ -756,6 +758,7 @@ GameObject:
   - component: {fileID: 174461234}
   - component: {fileID: 174461235}
   - component: {fileID: 174461236}
+  - component: {fileID: 174461237}
   m_Layer: 0
   m_Name: Texto
   m_TagString: Untagged
@@ -841,9 +844,9 @@ MonoBehaviour:
   m_fontSize: 19.5
   m_fontSizeBase: 19.5
   m_fontWeight: 400
-  m_enableAutoSizing: 0
-  m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 12
+  m_fontSizeMax: 19.5
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 8192
@@ -883,6 +886,20 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &174461237
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 174461233}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf97f3e0fd1e6674898a0d45a3b71af5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  spanish: Ruedas
+  english: Wheels
 --- !u!1001 &175666986
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2383,6 +2400,7 @@ GameObject:
   - component: {fileID: 456378374}
   - component: {fileID: 456378376}
   - component: {fileID: 456378375}
+  - component: {fileID: 456378377}
   m_Layer: 0
   m_Name: Titulo
   m_TagString: Untagged
@@ -2429,7 +2447,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Data
+  m_text: Datos
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 3158a27e0c6fbc14ab8538cbe61724c4, type: 2}
   m_sharedMaterial: {fileID: 8110862260727370267, guid: 3158a27e0c6fbc14ab8538cbe61724c4,
@@ -2460,9 +2478,9 @@ MonoBehaviour:
   m_fontSize: 19.9
   m_fontSizeBase: 19.9
   m_fontWeight: 400
-  m_enableAutoSizing: 0
-  m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 12
+  m_fontSizeMax: 19.9
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 8192
@@ -2510,6 +2528,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 456378373}
   m_CullTransparentMesh: 1
+--- !u!114 &456378377
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 456378373}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf97f3e0fd1e6674898a0d45a3b71af5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  spanish: Datos
+  english: Data
 --- !u!1 &475635253
 GameObject:
   m_ObjectHideFlags: 0
@@ -2997,6 +3029,7 @@ GameObject:
   - component: {fileID: 568765074}
   - component: {fileID: 568765075}
   - component: {fileID: 568765076}
+  - component: {fileID: 568765077}
   m_Layer: 0
   m_Name: Texto
   m_TagString: Untagged
@@ -3082,9 +3115,9 @@ MonoBehaviour:
   m_fontSize: 19.5
   m_fontSizeBase: 19.5
   m_fontWeight: 400
-  m_enableAutoSizing: 0
-  m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 12
+  m_fontSizeMax: 19.5
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 8192
@@ -3124,6 +3157,20 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &568765077
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 568765073}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf97f3e0fd1e6674898a0d45a3b71af5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  spanish: Motor
+  english: Engine
 --- !u!1 &577062968
 GameObject:
   m_ObjectHideFlags: 0
@@ -3696,6 +3743,7 @@ GameObject:
   - component: {fileID: 656195824}
   - component: {fileID: 656195826}
   - component: {fileID: 656195825}
+  - component: {fileID: 656195827}
   m_Layer: 5
   m_Name: Texto
   m_TagString: Untagged
@@ -3742,7 +3790,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Start
+  m_text: Empezar
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 3158a27e0c6fbc14ab8538cbe61724c4, type: 2}
   m_sharedMaterial: {fileID: 8110862260727370267, guid: 3158a27e0c6fbc14ab8538cbe61724c4,
@@ -3773,9 +3821,9 @@ MonoBehaviour:
   m_fontSize: 19.6
   m_fontSizeBase: 19.6
   m_fontWeight: 400
-  m_enableAutoSizing: 0
-  m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 12
+  m_fontSizeMax: 19.6
   m_fontStyle: 0
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 8192
@@ -3823,6 +3871,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 656195823}
   m_CullTransparentMesh: 1
+--- !u!114 &656195827
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 656195823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf97f3e0fd1e6674898a0d45a3b71af5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  spanish: Empezar
+  english: Start
 --- !u!1 &702482711
 GameObject:
   m_ObjectHideFlags: 0
@@ -6123,6 +6185,7 @@ GameObject:
   - component: {fileID: 1301237310}
   - component: {fileID: 1301237311}
   - component: {fileID: 1301237312}
+  - component: {fileID: 1301237313}
   m_Layer: 0
   m_Name: Texto
   m_TagString: Untagged
@@ -6208,9 +6271,9 @@ MonoBehaviour:
   m_fontSize: 19.5
   m_fontSizeBase: 19.5
   m_fontWeight: 400
-  m_enableAutoSizing: 0
-  m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 12
+  m_fontSizeMax: 19.5
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 8192
@@ -6250,6 +6313,20 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1301237313
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1301237309}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf97f3e0fd1e6674898a0d45a3b71af5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  spanish: Volante
+  english: Steering
 --- !u!1 &1307129073
 GameObject:
   m_ObjectHideFlags: 0
@@ -6695,6 +6772,7 @@ GameObject:
   - component: {fileID: 1421664268}
   - component: {fileID: 1421664269}
   - component: {fileID: 1421664270}
+  - component: {fileID: 1421664271}
   m_Layer: 0
   m_Name: Texto
   m_TagString: Untagged
@@ -6780,9 +6858,9 @@ MonoBehaviour:
   m_fontSize: 19.5
   m_fontSizeBase: 19.5
   m_fontWeight: 400
-  m_enableAutoSizing: 0
-  m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 12
+  m_fontSizeMax: 19.5
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 8192
@@ -6822,6 +6900,20 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1421664271
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1421664267}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf97f3e0fd1e6674898a0d45a3b71af5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  spanish: Aero
+  english: Aero
 --- !u!1 &1427677852
 GameObject:
   m_ObjectHideFlags: 0
@@ -7074,6 +7166,7 @@ GameObject:
   - component: {fileID: 1499233431}
   - component: {fileID: 1499233433}
   - component: {fileID: 1499233432}
+  - component: {fileID: 1499233434}
   m_Layer: 5
   m_Name: Texto
   m_TagString: Untagged
@@ -7120,7 +7213,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Back
+  m_text: Volver
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 3158a27e0c6fbc14ab8538cbe61724c4, type: 2}
   m_sharedMaterial: {fileID: 8110862260727370267, guid: 3158a27e0c6fbc14ab8538cbe61724c4,
@@ -7151,9 +7244,9 @@ MonoBehaviour:
   m_fontSize: 19.5
   m_fontSizeBase: 19.5
   m_fontWeight: 400
-  m_enableAutoSizing: 0
-  m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 12
+  m_fontSizeMax: 19.5
   m_fontStyle: 0
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 8192
@@ -7201,6 +7294,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1499233430}
   m_CullTransparentMesh: 1
+--- !u!114 &1499233434
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1499233430}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf97f3e0fd1e6674898a0d45a3b71af5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  spanish: Volver
+  english: Back
 --- !u!1 &1562160774
 GameObject:
   m_ObjectHideFlags: 0

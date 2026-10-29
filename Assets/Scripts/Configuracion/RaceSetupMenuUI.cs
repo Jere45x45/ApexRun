@@ -36,7 +36,7 @@ public class RaceSetupMenuUI : MonoBehaviour
     [SerializeField] private Sprite singlePlayerIcon;
 
     [Tooltip("Título al crear un servidor: en español y en inglés.")]
-    [SerializeField] private string multiplayerTitleEs = "Create Server";
+    [SerializeField] private string multiplayerTitleEs = "Crear servidor";
     [SerializeField] private string multiplayerTitleEn = "Create Server";
 
     [Tooltip("Título en un jugador: en español y en inglés.")]
@@ -236,7 +236,7 @@ public class RaceSetupMenuUI : MonoBehaviour
         int bots = RaceSetupStore.GetBots(multiplayer);
 
         if (botsValue != null)
-            botsValue.text = bots == 0 ? "SIN BOTS" : bots.ToString();
+            botsValue.text = bots == 0 ? GameLanguage.Text("SIN BOTS", "NO BOTS") : bots.ToString();
 
         SetUsable(botsMinus, bots > 0);
         SetUsable(botsPlus, bots < RaceSetupStore.MaxBots);
@@ -244,7 +244,7 @@ public class RaceSetupMenuUI : MonoBehaviour
         // Sin bots, el nivel no importa: se ve apagado.
         if (levelValue != null)
         {
-            levelValue.text = RaceDifficultySettings.Label(RaceSetupStore.BotDifficulty);
+            levelValue.text = LevelLabel(RaceSetupStore.BotDifficulty);
             levelValue.alpha = bots > 0 ? 1f : 0.4f;
         }
 
@@ -261,7 +261,18 @@ public class RaceSetupMenuUI : MonoBehaviour
             visibilityRow.SetActive(multiplayer);
 
         if (visibilityValue != null)
-            visibilityValue.text = RaceSetupStore.PrivateServer ? "PRIVADA" : "PÚBLICA";
+            visibilityValue.text = RaceSetupStore.PrivateServer ? GameLanguage.Text("PRIVADA", "PRIVATE") : GameLanguage.Text("PÚBLICA", "PUBLIC");
+    }
+
+    /// <summary>Nivel de los bots en el idioma del juego.</summary>
+    private static string LevelLabel(RaceDifficulty difficulty)
+    {
+        switch (difficulty)
+        {
+            case RaceDifficulty.Easy: return GameLanguage.Text("FÁCIL", "EASY");
+            case RaceDifficulty.Hard: return GameLanguage.Text("DIFÍCIL", "HARD");
+            default: return GameLanguage.Text("MEDIO", "MEDIUM");
+        }
     }
 
     /// <summary>

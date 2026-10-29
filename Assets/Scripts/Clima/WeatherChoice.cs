@@ -126,32 +126,32 @@ public static class WeatherChoiceStore
     {
         switch (choice)
         {
-            case WeatherChoice.Random: return "AL AZAR";
-            case WeatherChoice.Dynamic: return "DINÁMICO";
+            case WeatherChoice.Random: return GameLanguage.Text("AL AZAR", "RANDOM");
+            case WeatherChoice.Dynamic: return GameLanguage.Text("DINÁMICO", "DYNAMIC");
             default: return Label((WeatherScenario)((int)choice - 1)).ToUpperInvariant();
         }
     }
 
     public static string Label(TimeOfDayChoice choice)
     {
-        return choice == TimeOfDayChoice.Random ? "AL AZAR" : Label((TimeOfDay)((int)choice - 1)).ToUpperInvariant();
+        return choice == TimeOfDayChoice.Random ? GameLanguage.Text("AL AZAR", "RANDOM") : Label((TimeOfDay)((int)choice - 1)).ToUpperInvariant();
     }
 
     public static string Label(FogChoice choice)
     {
-        return choice == FogChoice.Random ? "AL AZAR" : Label((FogLevel)((int)choice - 1)).ToUpperInvariant();
+        return choice == FogChoice.Random ? GameLanguage.Text("AL AZAR", "RANDOM") : Label((FogLevel)((int)choice - 1)).ToUpperInvariant();
     }
 
     public static string Label(WeatherScenario scenario)
     {
         switch (scenario)
         {
-            case WeatherScenario.Cloudy: return "nublado";
-            case WeatherScenario.Rain: return "lluvia";
-            case WeatherScenario.Storm: return "tormenta";
-            case WeatherScenario.RainStops: return "lluvia que para";
-            case WeatherScenario.RainStarts: return "se larga a llover";
-            default: return "despejado";
+            case WeatherScenario.Cloudy: return GameLanguage.Text("nublado", "cloudy");
+            case WeatherScenario.Rain: return GameLanguage.Text("lluvia", "rain");
+            case WeatherScenario.Storm: return GameLanguage.Text("tormenta", "storm");
+            case WeatherScenario.RainStops: return GameLanguage.Text("lluvia que para", "rain stops");
+            case WeatherScenario.RainStarts: return GameLanguage.Text("se larga a llover", "rain starts");
+            default: return GameLanguage.Text("despejado", "clear");
         }
     }
 
@@ -159,10 +159,10 @@ public static class WeatherChoiceStore
     {
         switch (timeOfDay)
         {
-            case TimeOfDay.Morning: return "mañana";
-            case TimeOfDay.Sunset: return "atardecer";
-            case TimeOfDay.Night: return "noche";
-            default: return "mediodía";
+            case TimeOfDay.Morning: return GameLanguage.Text("mañana", "morning");
+            case TimeOfDay.Sunset: return GameLanguage.Text("atardecer", "sunset");
+            case TimeOfDay.Night: return GameLanguage.Text("noche", "night");
+            default: return GameLanguage.Text("mediodía", "noon");
         }
     }
 
@@ -170,19 +170,19 @@ public static class WeatherChoiceStore
     {
         switch (level)
         {
-            case FogLevel.Light: return "niebla leve";
-            case FogLevel.Dense: return "niebla densa";
-            default: return "sin niebla";
+            case FogLevel.Light: return GameLanguage.Text("niebla leve", "light fog");
+            case FogLevel.Dense: return GameLanguage.Text("niebla densa", "dense fog");
+            default: return GameLanguage.Text("sin niebla", "no fog");
         }
     }
 
     /// <summary>Resumen para la lista de servidores, por ejemplo "LLUVIA · NOCHE · NIEBLA LEVE".</summary>
     public static string Summary()
     {
-        string text = (Current == WeatherChoice.Dynamic ? "CLIMA DINÁMICO" : Label(Current)) + "  ·  " + Label(Time);
+        string text = (Current == WeatherChoice.Dynamic ? GameLanguage.Text("CLIMA DINÁMICO", "DYNAMIC WEATHER") : Label(Current)) + "  ·  " + Label(Time);
 
         if (Fog != FogChoice.None)
-            text += "  ·  " + (Fog == FogChoice.Random ? "NIEBLA AL AZAR" : Label(Fog));
+            text += "  ·  " + (Fog == FogChoice.Random ? GameLanguage.Text("NIEBLA AL AZAR", "RANDOM FOG") : Label(Fog));
 
         return text;
     }

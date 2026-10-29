@@ -105,7 +105,7 @@ public class GameSession : MonoBehaviour
 
         if (!manager.StartHost())
         {
-            PendingMessage = "No se pudo arrancar el juego.";
+            PendingMessage = GameLanguage.Text("No se pudo arrancar el juego.", "The game couldn't start.");
             Changed?.Invoke();
             return;
         }
@@ -150,7 +150,7 @@ public class GameSession : MonoBehaviour
         code = (code ?? "").Trim().ToUpperInvariant();
 
         if (code.Length == 0)
-            return "Escribí el código de la partida.";
+            return GameLanguage.Text("Escribí el código de la partida.", "Type the match code.");
 
         return await RunSessionTask(playerName, () =>
         {
@@ -164,7 +164,7 @@ public class GameSession : MonoBehaviour
     public async Task<string> JoinSessionByIdAsync(string sessionId, string playerName)
     {
         if (string.IsNullOrEmpty(sessionId))
-            return "Elegí una partida.";
+            return GameLanguage.Text("Elegí una partida.", "Pick a match.");
 
         return await RunSessionTask(playerName, () =>
         {
@@ -216,7 +216,7 @@ public class GameSession : MonoBehaviour
         catch (Exception exception)
         {
             Debug.LogWarning($"GameSession: no se pudo buscar partidas ({exception.Message}).", this);
-            error?.Invoke("No se pudieron buscar partidas. Revisá la conexión a internet.");
+            error?.Invoke(GameLanguage.Text("No se pudieron buscar partidas. Revisá la conexión a internet.", "Couldn't look for matches. Check your internet connection."));
             return null;
         }
     }
@@ -331,7 +331,7 @@ public class GameSession : MonoBehaviour
     private async Task<string> RunSessionTask(string playerName, Func<Task<ISession>> createSession)
     {
         if (IsBusy)
-            return "Esperá un momento...";
+            return GameLanguage.Text("Esperá un momento...", "Wait a moment...");
 
         IsBusy = true;
         leaving = false;
@@ -358,7 +358,7 @@ public class GameSession : MonoBehaviour
         catch (Exception exception)
         {
             Debug.LogWarning($"GameSession: {exception}", this);
-            return "No se pudo conectar. Revisá la conexión a internet.";
+            return GameLanguage.Text("No se pudo conectar. Revisá la conexión a internet.", "Couldn't connect. Check your internet connection.");
         }
         finally
         {
@@ -430,7 +430,7 @@ public class GameSession : MonoBehaviour
         NetworkManager manager = NetworkManager.Singleton;
         string reason = manager != null ? manager.DisconnectReason : null;
 
-        LeaveToMenu(string.IsNullOrEmpty(reason) ? "Se perdió la conexión con la partida." : reason);
+        LeaveToMenu(string.IsNullOrEmpty(reason) ? GameLanguage.Text("Se perdió la conexión con la partida.", "The connection to the match was lost.") : reason);
     }
 
     private void SubscribeSession(ISession session)
@@ -458,7 +458,7 @@ public class GameSession : MonoBehaviour
     private void HandleRemovedFromSession()
     {
         if (!leaving)
-            LeaveToMenu("Saliste de la partida.");
+            LeaveToMenu(GameLanguage.Text("Saliste de la partida.", "You left the match."));
     }
 
     private static string DescribeError(SessionException exception)
@@ -467,25 +467,25 @@ public class GameSession : MonoBehaviour
         string inner = exception.Message + " " + (exception.InnerException != null ? exception.InnerException.Message : "");
 
         if (inner.IndexOf("full", StringComparison.OrdinalIgnoreCase) >= 0)
-            return "La partida está llena.";
+            return GameLanguage.Text("La partida está llena.", "The match is full.");
 
         if (inner.IndexOf("locked", StringComparison.OrdinalIgnoreCase) >= 0)
-            return "La partida ya empezó.";
+            return GameLanguage.Text("La partida ya empezó.", "The match already started.");
 
         // Código con letras que no se usan, o que no existe.
         if (inner.IndexOf("invalid character", StringComparison.OrdinalIgnoreCase) >= 0 ||
             inner.IndexOf("not found", StringComparison.OrdinalIgnoreCase) >= 0)
-            return "No existe una partida con ese código.";
+            return GameLanguage.Text("No existe una partida con ese código.", "There's no match with that code.");
 
         switch (exception.Error)
         {
             case SessionError.SessionNotFound:
             case SessionError.InvalidSessionIdentifier:
-                return "No existe una partida con ese código.";
+                return GameLanguage.Text("No existe una partida con ese código.", "There's no match with that code.");
             case SessionError.InvalidPlayerName:
-                return "Ese nombre no se puede usar.";
+                return GameLanguage.Text("Ese nombre no se puede usar.", "That name can't be used.");
             default:
-                return "No se pudo conectar (" + exception.Error + ").";
+                return GameLanguage.Text("No se pudo conectar (", "Couldn't connect (") + exception.Error + ").";
         }
     }
 

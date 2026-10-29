@@ -24,6 +24,13 @@ MonoBehaviour:
   modelPrefab: {fileID: 919132149155446097, guid: 9e80c52f5fe623c47a5964211e1237a1,
     type: 3}
   rarity: 0
+  partNameEn: Cardboard Kit
+  descriptionEn: 'Bodywork made of cardboard boxes: it slows the air more than a
+    real kit and barely presses the kart to the ground.'
+  effectsEn:
+  - Starter kit
+  - '- Straight-line speed'
+  - '- Grip in fast corners'
   downforce: 90
   aerodynamicDrag: 0.025
   aeroSettings:

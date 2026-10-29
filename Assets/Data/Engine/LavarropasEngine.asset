@@ -24,6 +24,13 @@ MonoBehaviour:
   modelPrefab: {fileID: 919132149155446097, guid: 7535a5a4f538ce847a31bbe14d8ce5e4,
     type: 3}
   rarity: 0
+  partNameEn: Washing Machine Engine
+  descriptionEn: 'Washing machine motor: the starter engine. It revs high, but it
+    has little power.'
+  effectsEn:
+  - Starter engine
+  - '- Acceleration'
+  - '- Top speed'
   motorTorque: 2500
   maxSpeed: 70
   engineSettings:

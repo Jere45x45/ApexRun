@@ -3910,6 +3910,7 @@ GameObject:
   - component: {fileID: 675193951}
   - component: {fileID: 675193953}
   - component: {fileID: 675193952}
+  - component: {fileID: 675193954}
   m_Layer: 5
   m_Name: Titulo
   m_TagString: Untagged
@@ -4037,6 +4038,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 675193950}
   m_CullTransparentMesh: 1
+--- !u!114 &675193954
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 675193950}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf97f3e0fd1e6674898a0d45a3b71af5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  spanish: PAUSA
+  english: PAUSED
 --- !u!1 &686413737
 GameObject:
   m_ObjectHideFlags: 0
@@ -5811,6 +5826,7 @@ GameObject:
   - component: {fileID: 985158888}
   - component: {fileID: 985158890}
   - component: {fileID: 985158889}
+  - component: {fileID: 985158891}
   m_Layer: 5
   m_Name: Texto
   m_TagString: Untagged
@@ -5938,6 +5954,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 985158887}
   m_CullTransparentMesh: 1
+--- !u!114 &985158891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 985158887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf97f3e0fd1e6674898a0d45a3b71af5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  spanish: REINTENTAR
+  english: RETRY
 --- !u!1 &989628389
 GameObject:
   m_ObjectHideFlags: 0
@@ -6563,6 +6593,7 @@ GameObject:
   - component: {fileID: 1110435791}
   - component: {fileID: 1110435793}
   - component: {fileID: 1110435792}
+  - component: {fileID: 1110435794}
   m_Layer: 5
   m_Name: Texto
   m_TagString: Untagged
@@ -6690,6 +6721,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1110435790}
   m_CullTransparentMesh: 1
+--- !u!114 &1110435794
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1110435790}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf97f3e0fd1e6674898a0d45a3b71af5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  spanish: CONTINUAR
+  english: RESUME
 --- !u!1 &1143097610
 GameObject:
   m_ObjectHideFlags: 0
@@ -8254,6 +8299,7 @@ GameObject:
   - component: {fileID: 1389960199}
   - component: {fileID: 1389960201}
   - component: {fileID: 1389960200}
+  - component: {fileID: 1389960202}
   m_Layer: 5
   m_Name: Texto
   m_TagString: Untagged
@@ -8381,6 +8427,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1389960198}
   m_CullTransparentMesh: 1
+--- !u!114 &1389960202
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1389960198}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf97f3e0fd1e6674898a0d45a3b71af5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  spanish: "SALIR AL MEN\xDA"
+  english: QUIT TO MENU
 --- !u!1 &1428757346
 GameObject:
   m_ObjectHideFlags: 0
@@ -10214,6 +10274,7 @@ GameObject:
   - component: {fileID: 1805478236}
   - component: {fileID: 1805478238}
   - component: {fileID: 1805478237}
+  - component: {fileID: 1805478239}
   m_Layer: 5
   m_Name: Texto
   m_TagString: Untagged
@@ -10341,6 +10402,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1805478235}
   m_CullTransparentMesh: 1
+--- !u!114 &1805478239
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1805478235}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf97f3e0fd1e6674898a0d45a3b71af5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  spanish: REINICIAR
+  english: RESTART
 --- !u!1 &1806589489
 GameObject:
   m_ObjectHideFlags: 0
@@ -12131,6 +12206,7 @@ GameObject:
   - component: {fileID: 1963231285}
   - component: {fileID: 1963231287}
   - component: {fileID: 1963231286}
+  - component: {fileID: 1963231288}
   m_Layer: 5
   m_Name: Texto
   m_TagString: Untagged
@@ -12258,6 +12334,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1963231284}
   m_CullTransparentMesh: 1
+--- !u!114 &1963231288
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1963231284}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf97f3e0fd1e6674898a0d45a3b71af5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  spanish: "MEN\xDA"
+  english: MENU
 --- !u!1 &1969527781
 GameObject:
   m_ObjectHideFlags: 0

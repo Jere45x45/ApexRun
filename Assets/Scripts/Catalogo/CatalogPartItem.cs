@@ -132,7 +132,7 @@ public class CatalogPartItem : MonoBehaviour, IPointerEnterHandler, IPointerExit
         }
 
         if (buttonLabel != null)
-            buttonLabel.text = equipped ? "EQUIPADA" : "EQUIPAR";
+            buttonLabel.text = equipped ? GameLanguage.Text("EQUIPADA", "EQUIPPED") : GameLanguage.Text("EQUIPAR", "EQUIP");
     }
 
     public void OnPointerEnter(PointerEventData eventData)
@@ -148,7 +148,7 @@ public class CatalogPartItem : MonoBehaviour, IPointerEnterHandler, IPointerExit
     private void UpdateVisuals()
     {
         if (partName != null)
-            partName.text = part.partName;
+            partName.text = part.DisplayName;
 
         if (IsCard)
         {
@@ -169,7 +169,7 @@ public class CatalogPartItem : MonoBehaviour, IPointerEnterHandler, IPointerExit
 
         if (effects != null)
         {
-            string text = BuildEffects(part.effects, advantage, disadvantage, neutralEffect, EffectSeparator);
+            string text = BuildEffects(part.DisplayEffects, advantage, disadvantage, neutralEffect, EffectSeparator);
             effects.text = text;
             effects.gameObject.SetActive(text.Length > 0);
         }
@@ -287,11 +287,11 @@ public class CatalogPartItem : MonoBehaviour, IPointerEnterHandler, IPointerExit
     {
         switch (value)
         {
-            case PartRarity.Uncommon: return "POCO COMÚN";
-            case PartRarity.Rare: return "RARA";
-            case PartRarity.Epic: return "ÉPICA";
-            case PartRarity.Legendary: return "LEGENDARIA";
-            default: return "COMÚN";
+            case PartRarity.Uncommon: return GameLanguage.Text("POCO COMÚN", "UNCOMMON");
+            case PartRarity.Rare: return GameLanguage.Text("RARA", "RARE");
+            case PartRarity.Epic: return GameLanguage.Text("ÉPICA", "EPIC");
+            case PartRarity.Legendary: return GameLanguage.Text("LEGENDARIA", "LEGENDARY");
+            default: return GameLanguage.Text("COMÚN", "COMMON");
         }
     }
 

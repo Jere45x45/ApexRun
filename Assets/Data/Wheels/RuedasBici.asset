@@ -24,6 +24,13 @@ MonoBehaviour:
   modelPrefab: {fileID: 919132149155446097, guid: 3b3f1f8b418476e48baa7197155c401c,
     type: 3}
   rarity: 0
+  partNameEn: Bike Wheels
+  descriptionEn: 
+  effectsEn:
+  - + Top speed
+  - + Low rolling resistance
+  - '- Cornering grip'
+  - '- Braking'
   maxSteeringAngle: 35
   minSteeringAngle: 20
   steeringReductionSpeed: 80

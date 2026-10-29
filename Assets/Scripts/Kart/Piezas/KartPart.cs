@@ -22,6 +22,27 @@ public abstract class KartPart : ScriptableObject
     [Header("Rareza")]
     public PartRarity rarity = PartRarity.Common;
 
+    [Header("Inglés (si queda vacío, se usa el texto en español)")]
+    public string partNameEn;
+
+    [TextArea]
+    public string descriptionEn;
+
+    [Tooltip("Los mismos efectos en inglés, en el mismo orden y con el mismo signo.")]
+    public string[] effectsEn = new string[0];
+
+    /// <summary>Nombre en el idioma del juego.</summary>
+    public string DisplayName =>
+        GameLanguage.IsEnglish && !string.IsNullOrWhiteSpace(partNameEn) ? partNameEn : partName;
+
+    /// <summary>Descripción en el idioma del juego.</summary>
+    public string DisplayDescription =>
+        GameLanguage.IsEnglish && !string.IsNullOrWhiteSpace(descriptionEn) ? descriptionEn : description;
+
+    /// <summary>Efectos en el idioma del juego.</summary>
+    public string[] DisplayEffects =>
+        GameLanguage.IsEnglish && effectsEn != null && effectsEn.Length > 0 ? effectsEn : effects;
+
     public abstract PartType PartType { get; }
 
     public abstract void Install(RuntimeKartConfiguration configuration);

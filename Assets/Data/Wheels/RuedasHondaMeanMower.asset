@@ -23,6 +23,12 @@ MonoBehaviour:
   modelPrefab: {fileID: 919132149155446097, guid: f3aaa4956b65c35418ab615ba47da7e1,
     type: 3}
   rarity: 4
+  partNameEn: Mean Mower Wheels
+  descriptionEn: 
+  effectsEn:
+  - + Easy to control
+  - + Soak up bumps
+  - '- Top speed'
   maxSteeringAngle: 35
   minSteeringAngle: 20
   steeringReductionSpeed: 80

@@ -132,8 +132,8 @@ public class RaceHUD : MonoBehaviour
         int totalLaps = timingManager.TotalLaps;
 
         SetText(lapText, finished
-            ? "TERMINADO"
-            : $"VUELTA {Mathf.Min(lap, totalLaps)}/{totalLaps}");
+            ? GameLanguage.Text("TERMINADO", "FINISHED")
+            : GameLanguage.Text("VUELTA ", "LAP ") + $"{Mathf.Min(lap, totalLaps)}/{totalLaps}");
     }
 
     private void UpdatePosition()
@@ -148,7 +148,7 @@ public class RaceHUD : MonoBehaviour
         shownKartCount = kartCount;
 
         SetText(positionText, position > 0
-            ? $"{position}<size=50%>.º / {kartCount}</size>"
+            ? $"{position}<size=50%>{(GameLanguage.IsEnglish ? Ordinal(position) : ".º")} / {kartCount}</size>"
             : "-");
     }
 
@@ -177,10 +177,10 @@ public class RaceHUD : MonoBehaviour
         string last = lastLap >= 0f ? FormatTime(lastLap) : "--:--.---";
         string best = bestLap >= 0f ? FormatTime(bestLap) : "--:--.---";
 
-        string text = $"ÚLTIMA {last}\nMEJOR  {best}";
+        string text = GameLanguage.Text("ÚLTIMA ", "LAST ") + last + "\n" + GameLanguage.Text("MEJOR  ", "BEST  ") + best;
 
         if (penalty > 0f)
-            text += "\n<color=#FF5A4A>PENALIZACIÓN +" + FormatSeconds(penalty) + " s</color>";
+            text += "\n<color=#FF5A4A>" + GameLanguage.Text("PENALIZACIÓN +", "PENALTY +") + FormatSeconds(penalty) + " s</color>";
 
         SetText(lapTimesText, text);
     }
@@ -219,14 +219,31 @@ public class RaceHUD : MonoBehaviour
             warningPanel.SetActive(warning != 0);
 
         if (warning == 2)
-            SetText(warningText, "<color=#FF5A4A>+" + FormatSeconds(lastPenaltySeconds) + " s</color>  LÍMITES DE PISTA");
+            SetText(warningText, "<color=#FF5A4A>+" + FormatSeconds(lastPenaltySeconds) + " s</color>  " + GameLanguage.Text("LÍMITES DE PISTA", "TRACK LIMITS"));
         else if (warning == 1)
-            SetText(warningText, "<color=#FFC23D>FUERA DE PISTA</color>");
+            SetText(warningText, "<color=#FFC23D>" + GameLanguage.Text("FUERA DE PISTA", "OFF TRACK") + "</color>");
         else
             SetText(warningText, "");
     }
 
     /// <summary>Formato de carrera: m:ss.mmm, siempre con punto decimal.</summary>
+    /// <summary>Terminación de los ordinales en inglés: 1st, 2nd, 3rd, 4th...</summary>
+    public static string Ordinal(int number)
+    {
+        int lastTwo = number % 100;
+
+        if (lastTwo >= 11 && lastTwo <= 13)
+            return "th";
+
+        switch (number % 10)
+        {
+            case 1: return "st";
+            case 2: return "nd";
+            case 3: return "rd";
+            default: return "th";
+        }
+    }
+
     private static string FormatTime(float seconds)
     {
         int minutes = Mathf.FloorToInt(seconds / 60f);

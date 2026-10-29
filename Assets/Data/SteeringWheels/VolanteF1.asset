@@ -21,5 +21,9 @@ MonoBehaviour:
   modelPrefab: {fileID: 919132149155446097, guid: 4b74f724908424743a7dd6a0d0098a78,
     type: 3}
   rarity: 4
+  partNameEn: F1 Steering Wheel
+  descriptionEn: Carbon fiber Formula 1 style steering wheel.
+  effectsEn:
+  - Cosmetic only
   hubPosition: {x: 0, y: 0.317, z: -0.162}
   tilt: 25

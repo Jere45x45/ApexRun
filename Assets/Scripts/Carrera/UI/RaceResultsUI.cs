@@ -149,7 +149,7 @@ public class RaceResultsUI : MonoBehaviour
         int playerPosition = 0;
 
         builder.Clear();
-        builder.Append("<b>POS<pos=10%>PILOTO<pos=36%>TIEMPO<pos=54%>PENAL.<pos=67%>FINAL<pos=85%>MEJOR V.</b>\n");
+        builder.Append(GameLanguage.Text("<b>POS<pos=10%>PILOTO<pos=36%>TIEMPO<pos=54%>PENAL.<pos=67%>FINAL<pos=85%>MEJOR V.</b>\n", "<b>POS<pos=10%>DRIVER<pos=36%>TIME<pos=54%>PEN.<pos=67%>FINAL<pos=85%>BEST LAP</b>\n"));
 
         foreach (RaceTimingManager.Result result in results)
         {
@@ -161,8 +161,8 @@ public class RaceResultsUI : MonoBehaviour
                 builder.Append("<color=").Append(PlayerColor).Append('>');
             }
 
-            builder.Append(result.Position).Append(".º");
-            builder.Append("<pos=10%>").Append(isPlayer ? "VOS" : GetDisplayName(result.Kart));
+            builder.Append(result.Position).Append(GameLanguage.IsEnglish ? RaceHUD.Ordinal(result.Position) : ".º");
+            builder.Append("<pos=10%>").Append(isPlayer ? GameLanguage.Text("VOS", "YOU") : GetDisplayName(result.Kart));
 
             if (result.Finished)
             {
@@ -172,7 +172,7 @@ public class RaceResultsUI : MonoBehaviour
             }
             else
             {
-                builder.Append("<pos=36%>EN CARRERA (VUELTA ").Append(result.Lap).Append(')');
+                builder.Append("<pos=36%>").Append(GameLanguage.Text("EN CARRERA (VUELTA ", "RACING (LAP ")).Append(result.Lap).Append(')');
             }
 
             builder.Append("<pos=85%>").Append(result.BestLap >= 0f ? FormatTime(result.BestLap) : "--:--.---");
@@ -186,7 +186,7 @@ public class RaceResultsUI : MonoBehaviour
         tableText.text = builder.ToString();
 
         if (titleText != null)
-            titleText.text = playerPosition > 0 ? $"TERMINASTE {playerPosition}.º" : "RESULTADOS";
+            titleText.text = playerPosition > 0 ? (GameLanguage.IsEnglish ? $"YOU FINISHED {playerPosition}{RaceHUD.Ordinal(playerPosition)}" : $"TERMINASTE {playerPosition}.º") : GameLanguage.Text("RESULTADOS", "RESULTS");
     }
 
     private static string GetDisplayName(Rigidbody kart)

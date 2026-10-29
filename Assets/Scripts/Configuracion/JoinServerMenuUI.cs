@@ -102,7 +102,7 @@ public class JoinServerMenuUI : MonoBehaviour
         nextRefresh = Time.unscaledTime + refreshInterval;
 
         if (entries.Count == 0)
-            ShowEmpty("Buscando partidas...");
+            ShowEmpty(GameLanguage.Text("Buscando partidas...", "Looking for matches..."));
 
         string error = null;
         List<ISessionInfo> sessions = await GameSession.Instance.QuerySessionsAsync(sessionMenu.PlayerName, message => error = message);
@@ -126,13 +126,13 @@ public class JoinServerMenuUI : MonoBehaviour
 
         if (sessions == null)
         {
-            ShowEmpty(error ?? "No se pudieron buscar partidas.");
+            ShowEmpty(error ?? GameLanguage.Text("No se pudieron buscar partidas.", "Couldn't look for matches."));
             return;
         }
 
         if (sessions.Count == 0)
         {
-            ShowEmpty("No hay partidas abiertas.\nCreá una o entrá con un PIN.");
+            ShowEmpty(GameLanguage.Text("No hay partidas abiertas.\nCreá una o entrá con un PIN.", "No open matches.\nCreate one or join with a PIN."));
             return;
         }
 
@@ -162,8 +162,8 @@ public class JoinServerMenuUI : MonoBehaviour
         string laps = GetProperty(info, GameSession.LapsProperty);
         string weather = GetProperty(info, GameSession.WeatherProperty);
 
-        string name = string.IsNullOrWhiteSpace(info.Name) ? "PARTIDA" : info.Name.ToUpperInvariant();
-        string details = (laps != null ? laps + (laps == "1" ? " VUELTA" : " VUELTAS") : "") +
+        string name = string.IsNullOrWhiteSpace(info.Name) ? GameLanguage.Text("PARTIDA", "MATCH") : info.Name.ToUpperInvariant();
+        string details = (laps != null ? laps + (laps == "1" ? GameLanguage.Text(" VUELTA", " LAP") : GameLanguage.Text(" VUELTAS", " LAPS")) : "") +
                          (weather != null ? (laps != null ? "  ·  " : "") + weather : "");
 
         return $"<b>{name}</b>  <color=#9AA4B2>{players}/{info.MaxPlayers}</color>\n<size=75%><color=#9AA4B2>{details}</color></size>";

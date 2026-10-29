@@ -6,7 +6,8 @@ using UnityEngine.UI;
 /// Pantalla de Configuración (Panel_Settings de Inicio).
 /// - Efectos de sonido y Música: barras de 0 a 100 %. Se aplican en el momento
 ///   y se guardan (GameSettings).
-/// - Controles e Idioma: todavía no se pueden cambiar; se ven apagados.
+/// - Idioma: español o inglés, con &lt; y &gt; (GameLanguage). Se aplica en el
+///   momento: los textos con LocalizedText cambian solos.
 /// </summary>
 public class SettingsMenuUI : MonoBehaviour
 {
@@ -16,6 +17,11 @@ public class SettingsMenuUI : MonoBehaviour
     [SerializeField] private Slider musicSlider;
     [SerializeField] private TMP_Text musicValue;
 
+    [Header("Idioma")]
+    [SerializeField] private TMP_Text languageValue;
+    [SerializeField] private Button languagePrevious;
+    [SerializeField] private Button languageNext;
+
     private void Awake()
     {
         if (effectsSlider != null)
@@ -23,6 +29,13 @@ public class SettingsMenuUI : MonoBehaviour
 
         if (musicSlider != null)
             musicSlider.onValueChanged.AddListener(HandleMusicChanged);
+
+        // Hay dos idiomas: < y > hacen lo mismo.
+        if (languagePrevious != null)
+            languagePrevious.onClick.AddListener(ChangeLanguage);
+
+        if (languageNext != null)
+            languageNext.onClick.AddListener(ChangeLanguage);
     }
 
     private void OnEnable()
@@ -30,6 +43,7 @@ public class SettingsMenuUI : MonoBehaviour
         // Muestra lo guardado sin volver a disparar los cambios.
         Show(effectsSlider, effectsValue, GameSettings.EffectsVolume);
         Show(musicSlider, musicValue, GameSettings.MusicVolume);
+        ShowLanguage();
     }
 
     private void OnDisable()
@@ -47,6 +61,18 @@ public class SettingsMenuUI : MonoBehaviour
     {
         GameSettings.MusicVolume = value / 100f;
         ShowValue(musicValue, value);
+    }
+
+    private void ChangeLanguage()
+    {
+        GameLanguage.Next();
+        ShowLanguage();
+    }
+
+    private void ShowLanguage()
+    {
+        if (languageValue != null)
+            languageValue.text = GameLanguage.NameOf(GameLanguage.Current);
     }
 
     private static void Show(Slider slider, TMP_Text label, float volume)

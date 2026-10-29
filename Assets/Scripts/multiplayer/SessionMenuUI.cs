@@ -158,7 +158,7 @@ public class SessionMenuUI : MonoBehaviour
     /// <summary>La pantalla de Unirse eligió entrar con un código.</summary>
     public async void JoinByCode(string code)
     {
-        SetStatus("Uniéndose...");
+        SetStatus(GameLanguage.Text("Uniéndose...", "Joining..."));
 
         string error = await Session.JoinSessionAsync(code, nameInput.text);
 
@@ -169,7 +169,7 @@ public class SessionMenuUI : MonoBehaviour
     /// <summary>La pantalla de Unirse eligió una partida de la lista.</summary>
     public async void JoinById(string sessionId)
     {
-        SetStatus("Uniéndose...");
+        SetStatus(GameLanguage.Text("Uniéndose...", "Joining..."));
 
         string error = await Session.JoinSessionByIdAsync(sessionId, nameInput.text);
 
@@ -194,7 +194,7 @@ public class SessionMenuUI : MonoBehaviour
     private async void HandleCreate()
     {
         SaveName();
-        SetStatus("Creando partida...");
+        SetStatus(GameLanguage.Text("Creando partida...", "Creating match..."));
 
         string error = await Session.CreateSessionAsync(nameInput.text);
 
@@ -205,7 +205,7 @@ public class SessionMenuUI : MonoBehaviour
     private async void HandleJoin()
     {
         SaveName();
-        SetStatus("Uniéndose...");
+        SetStatus(GameLanguage.Text("Uniéndose...", "Joining..."));
 
         string error = await Session.JoinSessionAsync(codeInput.text, nameInput.text);
 
@@ -227,7 +227,7 @@ public class SessionMenuUI : MonoBehaviour
             return;
 
         GUIUtility.systemCopyBuffer = Session.Session.Code;
-        SetStatus("Código copiado.");
+        SetStatus(GameLanguage.Text("Código copiado.", "Code copied."));
     }
 
     /// <summary>Muestra la sala si hay sesión, y bloquea los botones mientras se conecta.</summary>
@@ -273,7 +273,7 @@ public class SessionMenuUI : MonoBehaviour
         int maxPlayers = Session.Session.MaxPlayers;
 
         if (playersText != null)
-            playersText.text = "JUGADORES (" + names.Count + "/" + maxPlayers + ")\n• " + string.Join("\n• ", names);
+            playersText.text = GameLanguage.Text("JUGADORES (", "PLAYERS (") + names.Count + "/" + maxPlayers + ")\n• " + string.Join("\n• ", names);
 
         if (playersCountText != null)
             playersCountText.text = GameLanguage.Text("Jugadores", "Players") + " (" + names.Count + "/" + maxPlayers + ")";

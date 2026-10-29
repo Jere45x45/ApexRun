@@ -22,5 +22,9 @@ MonoBehaviour:
   modelPrefab: {fileID: 919132149155446097, guid: 8acb0f98bfa09f84cbf525dc76d5bad2,
     type: 3}
   rarity: 3
+  partNameEn: Karting Steering Wheel
+  descriptionEn: Classic karting steering wheel, with red fabric on the sides.
+  effectsEn:
+  - Cosmetic only
   hubPosition: {x: 0, y: 0.324, z: -0.186}
   tilt: 23
