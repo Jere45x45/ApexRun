@@ -45,7 +45,17 @@ public class SessionMenuUI : MonoBehaviour
     [SerializeField] private Button joinCancelButton;
 
     [Header("Sala")]
+    [Tooltip("Contenido de la sala. Con la pantalla propia (MenuPanel.Room) es el panel de la sala.")]
     [SerializeField] private GameObject lobbyBox;
+
+    [Tooltip("La sala tiene su propia pantalla (MenuPanel.Room). Si no, se ve dentro de Multijugador.")]
+    [SerializeField] private bool useRoomPanel;
+
+    [Tooltip("Casilleros con los nombres (opcional).")]
+    [SerializeField] private PlayerNameGrid playerGrid;
+
+    [Tooltip("Texto \"Jugadores (X/X)\" (opcional).")]
+    [SerializeField] private TMP_Text playersCountText;
 
     [SerializeField] private TMP_Text codeText;
 
@@ -240,21 +250,36 @@ public class SessionMenuUI : MonoBehaviour
         nameInput.gameObject.SetActive(!inSession);
         backButton.gameObject.SetActive(!inSession);
 
-        lobbyBox.SetActive(inSession);
+        // Con pantalla propia, la sala la muestra el MenuManager.
+        if (!useRoomPanel)
+            lobbyBox.SetActive(inSession);
 
         if (!inSession)
             return;
 
-        menuManager.Show(MenuPanel.Multiplayer);
+        menuManager.Show(useRoomPanel ? MenuPanel.Room : MenuPanel.Multiplayer);
         joinBox.SetActive(false);
 
-        codeText.text = "CÓDIGO  <b>" + Session.Session.Code + "</b>";
+        codeText.text = GameLanguage.Text("Código: ", "Code: ") + Session.Session.Code;
 
         if (lobbyTitleText != null)
-            lobbyTitleText.text = Session.Session.IsPrivate ? "SALA PRIVADA" : "SALA PÚBLICA";
+        {
+            lobbyTitleText.text = Session.Session.IsPrivate
+                ? GameLanguage.Text("Sala privada", "Private room")
+                : GameLanguage.Text("Sala pública", "Public room");
+        }
 
         var names = Session.GetPlayerNames();
-        playersText.text = "JUGADORES (" + names.Count + "/" + Session.Session.MaxPlayers + ")\n• " + string.Join("\n• ", names);
+        int maxPlayers = Session.Session.MaxPlayers;
+
+        if (playersText != null)
+            playersText.text = "JUGADORES (" + names.Count + "/" + maxPlayers + ")\n• " + string.Join("\n• ", names);
+
+        if (playersCountText != null)
+            playersCountText.text = GameLanguage.Text("Jugadores", "Players") + " (" + names.Count + "/" + maxPlayers + ")";
+
+        if (playerGrid != null)
+            playerGrid.Show(names, null, maxPlayers);
 
         bool isHost = Session.Session.IsHost;
         startButton.gameObject.SetActive(isHost);

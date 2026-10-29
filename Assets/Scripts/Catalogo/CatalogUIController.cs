@@ -59,6 +59,9 @@ public class CatalogUIController : MonoBehaviour
     [SerializeField] private Color tabTextNormal = new Color(0.70f, 0.73f, 0.80f, 1f);
     [SerializeField] private Color tabTextSelected = Color.white;
 
+    [Tooltip("Color del texto de las pestañas con sprites.")]
+    [SerializeField] private Color spriteTabText = Color.black;
+
     [Header("Panel Data")]
     [Tooltip("Nombre de la pieza.")]
     [SerializeField] private TMP_Text dataName;
@@ -317,7 +320,13 @@ public class CatalogUIController : MonoBehaviour
                 }
             }
 
-            if (tab.label != null)
+            if (tab.label == null)
+                continue;
+
+            // Con sprites el texto va siempre del mismo color (negro, como en el diseño).
+            if (tab.normalSprite != null)
+                tab.label.color = spriteTabText;
+            else
                 tab.label.color = selected ? tabTextSelected : tabTextNormal;
         }
     }

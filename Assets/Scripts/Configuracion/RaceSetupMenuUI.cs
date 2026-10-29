@@ -17,27 +17,31 @@ using UnityEngine.UI;
 /// - Pista se ve pero todavía no se puede cambiar.
 /// Lo elegido queda guardado (RaceSetupStore, WeatherChoiceStore) y lo
 /// aplican en la carrera RaceSetupSync y RaceWeather.
-/// El botón de abajo dice ¡A CORRER! (un jugador) o CREAR SERVIDOR (red).
+/// El cartel de arriba dice Create Server o Un jugador (con su ícono); los
+/// textos están en el Inspector, en español y en inglés (GameLanguage).
 /// </summary>
 public class RaceSetupMenuUI : MonoBehaviour
 {
     [SerializeField] private MenuManager menuManager;
     [SerializeField] private SessionMenuUI sessionMenu;
 
+    [Header("Cartel del título")]
+    [Tooltip("Texto del cartel de arriba.")]
     [SerializeField] private TMP_Text titleText;
 
-    [Header("Cartel del título")]
-    [Tooltip("Imagen del cartel de arriba.")]
-    [SerializeField] private Image titleImage;
+    [Tooltip("Ícono al lado del título (opcional).")]
+    [SerializeField] private Image titleIcon;
 
-    [Tooltip("Cartel al crear un servidor (ya trae el texto, así que el texto se oculta).")]
-    [SerializeField] private Sprite multiplayerTitle;
+    [SerializeField] private Sprite multiplayerIcon;
+    [SerializeField] private Sprite singlePlayerIcon;
 
-    [Tooltip("Cartel para un jugador. Si queda vacío se usa el cartel liso con el texto UN JUGADOR encima.")]
-    [SerializeField] private Sprite singlePlayerTitle;
+    [Tooltip("Título al crear un servidor: en español y en inglés.")]
+    [SerializeField] private string multiplayerTitleEs = "Create Server";
+    [SerializeField] private string multiplayerTitleEn = "Create Server";
 
-    [Tooltip("Cartel liso (sin texto) para cuando falta el de arriba.")]
-    [SerializeField] private Sprite blankTitle;
+    [Tooltip("Título en un jugador: en español y en inglés.")]
+    [SerializeField] private string singlePlayerTitleEs = "Un jugador";
+    [SerializeField] private string singlePlayerTitleEn = "Single Player";
 
     [Header("Vueltas")]
     [SerializeField] private Button lapsMinus;
@@ -68,6 +72,12 @@ public class RaceSetupMenuUI : MonoBehaviour
     [SerializeField] private Button levelPrevious;
     [SerializeField] private Button levelNext;
     [SerializeField] private TMP_Text levelValue;
+
+    [Tooltip("Fondo de la fila Nivel: sin bots usa el recuadro deshabilitado.")]
+    [SerializeField] private Image levelRow;
+    [SerializeField] private TMP_Text levelLabel;
+    [SerializeField] private Sprite rowSprite;
+    [SerializeField] private Sprite disabledRowSprite;
 
     [Header("Partida (solo Crear servidor)")]
     [Tooltip("Fila entera: se muestra solo al crear un servidor.")]
@@ -198,22 +208,19 @@ public class RaceSetupMenuUI : MonoBehaviour
 
     private void Refresh()
     {
+        // El cartel es liso: el texto y el ícono van encima.
         if (titleText != null)
-            titleText.text = multiplayer ? "CREAR SERVIDOR" : "UN JUGADOR";
-
-        // Si hay un cartel con el texto dibujado se usa ese; si no, el liso
-        // con el texto de TextMeshPro encima.
-        if (titleImage != null)
         {
-            Sprite banner = multiplayer ? multiplayerTitle : singlePlayerTitle;
-            titleImage.sprite = banner != null ? banner : blankTitle;
-
-            if (titleText != null)
-                titleText.gameObject.SetActive(banner == null);
+            titleText.text = multiplayer
+                ? GameLanguage.Text(multiplayerTitleEs, multiplayerTitleEn)
+                : GameLanguage.Text(singlePlayerTitleEs, singlePlayerTitleEn);
         }
 
-        if (confirmText != null)
-            confirmText.text = multiplayer ? "CREAR SERVIDOR" : "¡A CORRER!";
+        if (titleIcon != null)
+        {
+            titleIcon.sprite = multiplayer ? multiplayerIcon : singlePlayerIcon;
+            titleIcon.gameObject.SetActive(titleIcon.sprite != null);
+        }
 
         confirmButton.interactable = true;
 
@@ -243,6 +250,12 @@ public class RaceSetupMenuUI : MonoBehaviour
 
         SetUsable(levelPrevious, bots > 0);
         SetUsable(levelNext, bots > 0);
+
+        if (levelRow != null && rowSprite != null && disabledRowSprite != null)
+            levelRow.sprite = bots > 0 ? rowSprite : disabledRowSprite;
+
+        if (levelLabel != null)
+            levelLabel.alpha = bots > 0 ? 1f : 0.4f;
 
         if (visibilityRow != null)
             visibilityRow.SetActive(multiplayer);

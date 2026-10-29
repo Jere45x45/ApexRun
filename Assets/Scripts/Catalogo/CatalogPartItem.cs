@@ -9,7 +9,7 @@ using UnityEngine.UI;
 /// Una pieza en la lista del Catálogo. Hay dos formas de mostrarla:
 /// - Tarjeta (el taller nuevo): si tiene los sprites de rareza cargados, el
 ///   fondo es el de su rareza (Común, Poco común, Rara, Épica o Legendaria),
-///   adentro va el ícono de la pieza (KartPart.icon) y abajo el nombre. Se
+///   adentro va el ícono de la pieza (KartPart.icon); sin ícono, el nombre. Se
 ///   equipa tocando la tarjeta; la que está puesta queda con el fondo de seleccionada.
 /// - Fila (la lista vieja): nombre, rareza, efectos y botón EQUIPAR.
 /// Al pasar el mouse por encima avisa (Hovered) para que el panel Data
@@ -50,6 +50,9 @@ public class CatalogPartItem : MonoBehaviour, IPointerEnterHandler, IPointerExit
 
     [Tooltip("Color del nombre en la tarjeta de la pieza puesta.")]
     [SerializeField] private Color equippedNameColor = Color.white;
+
+    [Tooltip("Mostrar el nombre también cuando la pieza tiene ícono.")]
+    [SerializeField] private bool showNameWithIcon;
 
     [Header("Colores")]
     [SerializeField] private Color normalBackground = new Color(0.14f, 0.15f, 0.19f, 1f);
@@ -197,13 +200,10 @@ public class CatalogPartItem : MonoBehaviour, IPointerEnterHandler, IPointerExit
             icon.gameObject.SetActive(hasIcon);
         }
 
+        // Con ícono, la tarjeta muestra solo el ícono (el nombre está en el
+        // panel Data). Sin ícono, el nombre va centrado.
         if (partName != null)
-        {
-            RectTransform nameRect = partName.rectTransform;
-            nameRect.anchorMin = Vector2.zero;
-            nameRect.anchorMax = new Vector2(1f, hasIcon ? 0.32f : 1f);
-            partName.alignment = hasIcon ? TextAlignmentOptions.Bottom : TextAlignmentOptions.Center;
-        }
+            partName.gameObject.SetActive(!hasIcon || showNameWithIcon);
 
         if (equippedMark != null)
             equippedMark.SetActive(false);

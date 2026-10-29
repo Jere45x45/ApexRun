@@ -35,6 +35,9 @@ public class CatalogFlowUI : MonoBehaviour
 
     [SerializeField] private TMP_Text playersText;
 
+    [Tooltip("Casilleros con los nombres: verde si está listo, rojo si no. El anfitrión va en el normal.")]
+    [SerializeField] private PlayerNameGrid playerGrid;
+
     [Tooltip("Lista de piezas: se bloquea mientras el jugador está listo.")]
     [SerializeField] private CanvasGroup selectionGroup;
 
@@ -114,7 +117,7 @@ public class CatalogFlowUI : MonoBehaviour
         else
         {
             readyButton.interactable = multiplayer;
-            SetText(readyButtonText, localReady ? "CANCELAR" : "¡LISTO!");
+            SetText(readyButtonText, localReady ? GameLanguage.Text("Cancelar", "Cancel") : GameLanguage.Text("¡Listo!", "Ready!"));
             status = localReady ? "Esperando al anfitrión..." : "Elegí tus piezas y tocá ¡LISTO!";
         }
 
@@ -124,7 +127,41 @@ public class CatalogFlowUI : MonoBehaviour
             waitingText.gameObject.SetActive(status.Length > 0);
 
         if (multiplayer)
-            SetText(playersText, BuildPlayerList());
+        {
+            if (playersText != null)
+                SetText(playersText, BuildPlayerList());
+
+            if (playerGrid != null)
+                RefreshPlayerGrid();
+        }
+    }
+
+    private readonly System.Collections.Generic.List<string> gridNames = new System.Collections.Generic.List<string>();
+    private readonly System.Collections.Generic.List<PlayerNameGrid.SlotState> gridStates = new System.Collections.Generic.List<PlayerNameGrid.SlotState>();
+
+    /// <summary>Nombres arriba del Taller: verde listo, rojo no listo; el anfitrión, normal.</summary>
+    private void RefreshPlayerGrid()
+    {
+        gridNames.Clear();
+        gridStates.Clear();
+
+        for (int i = 0; i < lobby.Count; i++)
+        {
+            CatalogLobby.Player player = lobby[i];
+            gridNames.Add(player.Name.ToString());
+
+            if (lobby.IsHostPlayer(player.ClientId))
+                gridStates.Add(PlayerNameGrid.SlotState.Normal);
+            else
+                gridStates.Add(player.IsReady ? PlayerNameGrid.SlotState.Ready : PlayerNameGrid.SlotState.NotReady);
+        }
+
+        int slots = playerGrid.Capacity;
+
+        if (GameSession.Instance != null && GameSession.Instance.Session != null)
+            slots = GameSession.Instance.Session.MaxPlayers;
+
+        playerGrid.Show(gridNames, gridStates, slots);
     }
 
     private string BuildPlayerList()

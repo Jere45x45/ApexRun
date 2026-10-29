@@ -12,5 +12,8 @@ public enum MenuPanel
     JoinServer,
 
     /// <summary>Créditos: se abre desde Configuración.</summary>
-    Credits
-}
+    Credits,
+
+    /// <summary>Sala de la partida en red: código, jugadores y Start (solo el anfitrión).</summary>
+    Room
+}
