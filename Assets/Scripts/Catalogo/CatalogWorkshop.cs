@@ -18,6 +18,8 @@ using UnityEngine;
 /// - Entre estaciones el kart hace una curva por el centro libre del taller
 ///   (transitPoint), y la cámara nunca atraviesa el taller: si algo la tapa,
 ///   se acerca al kart (workshopModel).
+/// - Con la R apretada el kart gira sobre su centro; al cambiar de pestaña
+///   vuelve derecho.
 /// </summary>
 public class CatalogWorkshop : MonoBehaviour
 {
@@ -79,6 +81,18 @@ public class CatalogWorkshop : MonoBehaviour
     [Tooltip("Corrimiento del encuadre (fracción de la pantalla). x = -0,25 deja el kart en la mitad derecha, " +
              "libre de la lista de piezas.")]
     [SerializeField] private Vector2 lensShift = new Vector2(-0.25f, 0f);
+
+    [Header("Girar el kart (tecla R)")]
+    [Tooltip("Mientras se mantiene apretada la R, el kart gira sobre su centro para verlo de todos lados. " +
+             "Al cambiar de pestaña vuelve a su posición. En la toma del volante (de cerca) no gira.")]
+    [SerializeField] private bool allowSpin = true;
+
+    [Tooltip("Velocidad del giro (grados por segundo).")]
+    [SerializeField, Min(0f)] private float spinSpeed = 90f;
+
+    // Cuánto giró el kart con la R (grados) y alrededor de qué punto (su centro, en coordenadas del kart).
+    private float spinAngle;
+    private Vector3 spinPivotLocal;
 
     private Station current;
     private PartType currentPart;
@@ -211,6 +225,18 @@ public class CatalogWorkshop : MonoBehaviour
 
         Vector3 kartTargetPosition = GetKartPosition(current);
         Quaternion kartTargetRotation = current.kartPoint.rotation;
+
+        // Tecla R: el kart gira sobre su centro (no sobre su origen, que está
+        // atrás), así no se va del encuadre. Solo quieto en una estación.
+        if (!moving && !CameraHeld && allowSpin && !IsCloseShot(current) && SpinPressed())
+            spinAngle = Mathf.Repeat(spinAngle + spinSpeed * Time.deltaTime, 360f);
+
+        if (spinAngle != 0f)
+        {
+            Quaternion spun = Quaternion.AngleAxis(spinAngle, current.kartPoint.up) * kartTargetRotation;
+            kartTargetPosition += kartTargetRotation * spinPivotLocal - spun * spinPivotLocal;
+            kartTargetRotation = spun;
+        }
 
         Vector3 kartPosition = GetPathPosition(kartFromPosition, kartTargetPosition, t);
         Quaternion kartRotation = Quaternion.Slerp(kartFromRotation, kartTargetRotation, t);
@@ -348,6 +374,9 @@ public class CatalogWorkshop : MonoBehaviour
 
         current = station;
 
+        // El giro de la R se deshace en el viaje: llega derecho a la estación nueva.
+        spinAngle = 0f;
+
         if (kart != null)
         {
             kartFromPosition = kart.position;
@@ -426,6 +455,7 @@ public class CatalogWorkshop : MonoBehaviour
         Renderer[] renderers = kart.GetComponentsInChildren<Renderer>();
         bool found = false;
         float lowest = float.MaxValue;
+        Bounds all = new Bounds();
 
         foreach (Renderer renderer in renderers)
         {
@@ -433,11 +463,40 @@ public class CatalogWorkshop : MonoBehaviour
                 continue;
 
             lowest = Mathf.Min(lowest, renderer.bounds.min.y);
+
+            if (found)
+                all.Encapsulate(renderer.bounds);
+            else
+                all = renderer.bounds;
+
             found = true;
         }
 
-        if (found)
-            floorOffset = Mathf.Max(0f, kart.position.y - lowest);
+        if (!found)
+            return;
+
+        floorOffset = Mathf.Max(0f, kart.position.y - lowest);
+
+        // Centro del kart para girarlo con la R (solo en el plano del piso).
+        spinPivotLocal = kart.InverseTransformPoint(all.center);
+        spinPivotLocal.y = 0f;
+    }
+
+    /// <summary>La toma de la estación está pegada al kart (la del volante).</summary>
+    private bool IsCloseShot(Station station)
+    {
+        return station.cameraPoint != null &&
+            (station.cameraPoint.position - GetKartPosition(station)).magnitude < closeShotDistance;
+    }
+
+    private static bool SpinPressed()
+    {
+#if ENABLE_INPUT_SYSTEM
+        UnityEngine.InputSystem.Keyboard keyboard = UnityEngine.InputSystem.Keyboard.current;
+        return keyboard != null && keyboard.rKey.isPressed;
+#else
+        return Input.GetKey(KeyCode.R);
+#endif
     }
 
     // Arranca y frena suave.
