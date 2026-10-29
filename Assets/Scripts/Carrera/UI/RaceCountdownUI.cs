@@ -77,13 +77,11 @@ public class RaceCountdownUI : MonoBehaviour
             return;
         }
 
+        // Durante la cuenta no hay números: manda el semáforo (StartLights),
+        // que se apaga en un momento al azar, como en F1.
         if (raceManager.IsCountdown())
         {
             fadingGo = false;
-
-            SetAlpha(1f);
-
-            UpdateCountdownText();
 
             return;
         }
@@ -118,13 +116,7 @@ public class RaceCountdownUI : MonoBehaviour
 
                 StopGo();
 
-                countdownText.gameObject.SetActive(
-                    true
-                );
-
-                SetAlpha(1f);
-
-                UpdateCountdownText();
+                HideText();
 
                 break;
 

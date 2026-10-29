@@ -32,8 +32,23 @@ public class RaceManager : NetworkBehaviour
         Finished
     }
 
-    [Header("Race")]
-    [SerializeField, Min(0f)] private float countdownDuration = 3f;
+    [Header("Largada (semáforo como en F1)")]
+    [Tooltip("Cuántas luces rojas se prenden, una por vez.")]
+    [SerializeField, Min(1)] private int startLightCount = 5;
+
+    [Tooltip("Cada cuánto se prende una luz (s).")]
+    [SerializeField, Min(0.1f)] private float startLightInterval = 1f;
+
+    [Tooltip("Con todas prendidas, se apagan (y se larga) después de un tiempo al azar entre estos dos (s).")]
+    [SerializeField] private Vector2 startHoldRange = new Vector2(0.2f, 3f);
+
+    [Tooltip("Penalización por salir antes de que se apaguen las luces (s).")]
+    [SerializeField, Min(0f)] private float jumpStartPenalty = 5f;
+
+    [Tooltip("Cuánto se puede mover un kart antes de la largada sin que cuente como salida en falso (m).")]
+    [SerializeField, Min(0.1f)] private float jumpStartDistance = 0.75f;
+
+    [SerializeField] private RacePenaltyManager penaltyManager;
 
     [SerializeField] private bool startAutomatically = true;
 
@@ -59,6 +74,13 @@ public class RaceManager : NetworkBehaviour
 
     private readonly NetworkVariable<double> startServerTime = new NetworkVariable<double>(0.0);
 
+    // Hora del servidor en que empezó la cuenta (la primera luz se prende un intervalo después).
+    private readonly NetworkVariable<double> countdownStartServerTime = new NetworkVariable<double>(0.0);
+
+    // Salida en falso: dónde estaba cada kart propio al empezar la cuenta y si ya se lo penalizó.
+    private readonly Dictionary<KartBehaviour, Vector3> gridPositions = new Dictionary<KartBehaviour, Vector3>();
+    private readonly HashSet<KartBehaviour> jumpStarted = new HashSet<KartBehaviour>();
+
     private readonly List<KartBehaviour> raceKarts = new List<KartBehaviour>();
 
     // Servidor: jugadores con la carrera cargada y su kart listo.
@@ -75,6 +97,16 @@ public class RaceManager : NetworkBehaviour
     public RaceState CurrentState => currentState;
 
     public float CountdownTimer => countdownTimer;
+
+    /// <summary>Segundos desde que empezó la cuenta regresiva (para el semáforo).</summary>
+    public float CountdownElapsed => Mathf.Max(0f, (float)(Now - countdownStartServerTime.Value));
+
+    public int StartLightCount => startLightCount;
+
+    public float StartLightInterval => startLightInterval;
+
+    /// <summary>Un kart se movió antes de la largada (ya se le pidió la penalización).</summary>
+    public event Action<KartBehaviour> JumpStart;
 
     /// <summary>Los karts que corren esta carrera (en esta computadora: todos, propios y ajenos).</summary>
     public IReadOnlyList<KartBehaviour> RaceKarts => raceKarts;
@@ -171,6 +203,8 @@ public class RaceManager : NetworkBehaviour
         {
             countdownTimer = Mathf.Max(0f, (float)(startServerTime.Value - Now));
 
+            CheckJumpStarts();
+
             if (countdownTimer <= 0f)
                 StartRaceLocally();
         }
@@ -181,7 +215,13 @@ public class RaceManager : NetworkBehaviour
         if (!IsServer || currentState != RaceState.Waiting)
             return;
 
-        startServerTime.Value = NetworkManager.ServerTime.Time + countdownDuration;
+        // Como en F1: las luces se prenden de a una y, con todas prendidas,
+        // se apagan en un momento al azar. Ese momento es la largada.
+        double now = NetworkManager.ServerTime.Time;
+        float hold = UnityEngine.Random.Range(Mathf.Min(startHoldRange.x, startHoldRange.y), Mathf.Max(startHoldRange.x, startHoldRange.y));
+
+        countdownStartServerTime.Value = now;
+        startServerTime.Value = now + startLightCount * startLightInterval + hold;
         networkState.Value = RaceState.Countdown;
 
         ApplyNetworkState(RaceState.Countdown);
@@ -206,7 +246,10 @@ public class RaceManager : NetworkBehaviour
         pausedAt = -1.0;
 
         if (currentState == RaceState.Countdown || currentState == RaceState.Racing)
+        {
             startServerTime.Value += pausedFor;
+            countdownStartServerTime.Value += pausedFor;
+        }
 
         ClockShifted?.Invoke(pausedFor);
     }
@@ -285,6 +328,10 @@ public class RaceManager : NetworkBehaviour
                 {
                     SetSimulatedKartsInput(false);
                     ChangeState(RaceState.Countdown);
+
+                    // Los jugadores ya pueden acelerar (si se mueven antes de la
+                    // largada, es salida en falso). Los bots esperan la largada.
+                    PrepareJumpStartCheck();
                 }
                 break;
 
@@ -321,6 +368,48 @@ public class RaceManager : NetworkBehaviour
 
         if (IsServer)
             networkState.Value = RaceState.Racing;
+    }
+
+    /// <summary>Habilita a los karts de jugadores (no bots) y guarda dónde están.</summary>
+    private void PrepareJumpStartCheck()
+    {
+        gridPositions.Clear();
+        jumpStarted.Clear();
+
+        foreach (KartBehaviour kart in raceKarts)
+        {
+            if (kart == null || !kart.IsSimulated || kart.GetComponent<CustomIABots>() != null)
+                continue;
+
+            gridPositions[kart] = kart.transform.position;
+            SetInput(kart, true);
+        }
+    }
+
+    /// <summary>Cada computadora revisa sus karts: si uno se movió antes de la largada, lo penaliza.</summary>
+    private void CheckJumpStarts()
+    {
+        foreach (KeyValuePair<KartBehaviour, Vector3> pair in gridPositions)
+        {
+            KartBehaviour kart = pair.Key;
+
+            if (kart == null || jumpStarted.Contains(kart))
+                continue;
+
+            Vector3 moved = kart.transform.position - pair.Value;
+            moved.y = 0f;
+
+            if (moved.sqrMagnitude < jumpStartDistance * jumpStartDistance)
+                continue;
+
+            jumpStarted.Add(kart);
+
+            if (penaltyManager != null && jumpStartPenalty > 0f)
+                penaltyManager.RequestPenalty(kart.GetComponent<Rigidbody>(), jumpStartPenalty);
+
+            Debug.Log($"Salida en falso: {kart.name} (+{jumpStartPenalty} s)", this);
+            JumpStart?.Invoke(kart);
+        }
     }
 
     private void FinishLocally()
