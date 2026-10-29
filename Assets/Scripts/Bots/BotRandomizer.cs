@@ -2,31 +2,38 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Asigna combinaciones visuales diferentes a los bots.
-/// Las piezas se eligen del catálogo, pero sus estadísticas
-/// no se aplican a la configuración de conducción.
-/// El chasis permanece fijo.
+/// Cambia solamente la apariencia de cada bot.
+/// No instala piezas en RuntimeKartConfiguration ni modifica sus estadísticas.
 /// </summary>
 public class BotRandomizer : MonoBehaviour
 {
     [Header("Catálogo")]
     [SerializeField] private PartCatalog catalog;
 
-    [Header("Kart")]
+    [Header("Referencias")]
     [SerializeField] private KartConfigurationController configuration;
+    [SerializeField] private KartModelController modelController;
 
-    [Header("Variedad visual")]
-    [SerializeField] private bool randomEngine = true;
-    [SerializeField] private bool randomWheels = true;
-    [SerializeField] private bool randomAeroKit = true;
-    [SerializeField] private bool randomSteeringWheel = true;
+    private static readonly HashSet<string> usedCombinations =
+        new HashSet<string>();
 
     private bool applied;
 
-    private void Reset()
+    private class VisualCombination
     {
-        configuration =
-            GetComponentInChildren<KartConfigurationController>();
+        public KartPart engine;
+        public KartPart wheels;
+        public KartPart aero;
+        public string key;
+    }
+
+    private void Awake()
+    {
+        if (configuration == null)
+            configuration = GetComponent<KartConfigurationController>();
+
+        if (modelController == null)
+            modelController = GetComponentInChildren<KartModelController>();
     }
 
     private void Start()
@@ -40,66 +47,112 @@ public class BotRandomizer : MonoBehaviour
         if (applied)
             return;
 
-        if (catalog == null || configuration == null)
+        if (catalog == null || configuration == null || modelController == null)
         {
             Debug.LogError(
-                "BotRandomizer: asigná el catálogo y la configuración.",
+                "BotRandomizer: asigná Catalog, Configuration y Model Controller.",
                 this
             );
             return;
         }
 
-        // Reinicia la configuración para no conservar piezas anteriores.
-        configuration.ResetToBaseConfiguration();
+        if (configuration.Configuration == null)
+        {
+            Debug.LogError(
+                "BotRandomizer: la configuración del kart todavía no está lista.",
+                this
+            );
+            return;
+        }
 
-        if (randomEngine)
-            InstallRandomPart(PartType.Engine);
+        List<KartPart> engines = GetVisualParts(PartType.Engine);
+        List<KartPart> wheels = GetVisualParts(PartType.Wheels);
+        List<KartPart> aeroKits = GetVisualParts(PartType.AeroKit);
 
-        if (randomWheels)
-            InstallRandomPart(PartType.Wheels);
+        if (engines.Count == 0 || wheels.Count == 0 || aeroKits.Count == 0)
+        {
+            Debug.LogError(
+                "BotRandomizer: el catálogo necesita motores, ruedas y kits aero " +
+                "con modelPrefab asignado.",
+                this
+            );
+            return;
+        }
 
-        if (randomAeroKit)
-            InstallRandomPart(PartType.AeroKit);
+        List<VisualCombination> available = new List<VisualCombination>();
 
-        if (randomSteeringWheel)
-            InstallRandomPart(PartType.SteeringWheel);
+        foreach (KartPart engine in engines)
+        {
+            foreach (KartPart wheel in wheels)
+            {
+                foreach (KartPart aero in aeroKits)
+                {
+                    string key =
+                        engine.partID + "|" +
+                        wheel.partID + "|" +
+                        aero.partID;
+
+                    if (!usedCombinations.Contains(key))
+                    {
+                        available.Add(new VisualCombination
+                        {
+                            engine = engine,
+                            wheels = wheel,
+                            aero = aero,
+                            key = key
+                        });
+                    }
+                }
+            }
+        }
+
+        if (available.Count == 0)
+        {
+            Debug.LogWarning(
+                "BotRandomizer: se agotaron las combinaciones visuales únicas. " +
+                "Agregá más modelos al catálogo para que todos los bots sean diferentes.",
+                this
+            );
+            return;
+        }
+
+        VisualCombination chosen =
+            available[Random.Range(0, available.Count)];
+
+        usedCombinations.Add(chosen.key);
+
+        modelController.SetVisualOverrides(
+            chosen.engine,
+            chosen.wheels,
+            chosen.aero,
+            configuration.Configuration
+        );
 
         applied = true;
 
         Debug.Log(
-            "Bot " + gameObject.name +
-            ": combinación visual asignada.",
+            "Apariencia asignada a " + gameObject.name +
+            " | Motor: " + chosen.engine.partName +
+            " | Ruedas: " + chosen.wheels.partName +
+            " | Aero: " + chosen.aero.partName,
             this
         );
     }
 
-    private void InstallRandomPart(PartType type)
+    private List<KartPart> GetVisualParts(PartType type)
     {
-        List<KartPart> parts = new List<KartPart>();
+        List<KartPart> result = new List<KartPart>();
 
         foreach (KartPart part in catalog.GetParts(type))
         {
-            if (part != null)
-                parts.Add(part);
+            if (part != null &&
+                !string.IsNullOrWhiteSpace(part.partID) &&
+                part.modelPrefab != null)
+            {
+                result.Add(part);
+            }
         }
 
-        if (parts.Count == 0)
-        {
-            Debug.LogWarning(
-                "No hay piezas disponibles para " + type,
-                this
-            );
-            return;
-        }
-
-        KartPart selected = parts[Random.Range(0, parts.Count)];
-
-        configuration.InstallPart(selected);
-
-        Debug.Log(
-            gameObject.name + " | " + type +
-            " | Pieza elegida: " + selected.name,
-            this
-        );
+        return result;
     }
 }

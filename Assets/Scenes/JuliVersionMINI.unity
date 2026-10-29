@@ -325,6 +325,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 34434828}
   m_CullTransparentMesh: 1
+--- !u!114 &35903731 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3382731243817957270, guid: 91c7a13f40f9942419fb254efb2a2452,
+    type: 3}
+  m_PrefabInstance: {fileID: 6767934459841100795}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbf97153de269664bab93f2a14598389, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KartModelController
 --- !u!1001 &65382582
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -588,6 +600,11 @@ PrefabInstance:
       propertyPath: 'progressPoints.Array.data[34]'
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 8442840109051572248, guid: 91c7a13f40f9942419fb254efb2a2452,
+        type: 3}
+      propertyPath: modelController
+      value: 
+      objectReference: {fileID: 1250263135}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -866,6 +883,11 @@ PrefabInstance:
       propertyPath: 'progressPoints.Array.data[34]'
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 8442840109051572248, guid: 91c7a13f40f9942419fb254efb2a2452,
+        type: 3}
+      propertyPath: modelController
+      value: 
+      objectReference: {fileID: 887265831}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1138,6 +1160,8 @@ MonoBehaviour:
   RTATxt: {fileID: 819370398}
   mechanicPanel: {fileID: 888592919}
   mechanicButton: {fileID: 1956227669}
+  catalog: {fileID: 0}
+  timeoutSeconds: 60
 --- !u!4 &178078396
 Transform:
   m_ObjectHideFlags: 0
@@ -1557,6 +1581,30 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 4210552406278206061, guid: d79c8a95a451e00489d4f83b3654bed4, type: 2}
+--- !u!114 &392100011 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3382731243817957270, guid: 91c7a13f40f9942419fb254efb2a2452,
+    type: 3}
+  m_PrefabInstance: {fileID: 1717550521}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbf97153de269664bab93f2a14598389, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KartModelController
+--- !u!114 &412593519 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3382731243817957270, guid: 91c7a13f40f9942419fb254efb2a2452,
+    type: 3}
+  m_PrefabInstance: {fileID: 1040429067}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbf97153de269664bab93f2a14598389, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KartModelController
 --- !u!1 &413885885
 GameObject:
   m_ObjectHideFlags: 0
@@ -1590,6 +1638,18 @@ Transform:
   - {fileID: 2143953394}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &431475179 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3382731243817957270, guid: 91c7a13f40f9942419fb254efb2a2452,
+    type: 3}
+  m_PrefabInstance: {fileID: 1786217496}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbf97153de269664bab93f2a14598389, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KartModelController
 --- !u!1001 &460314114
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2006,6 +2066,18 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 469599304}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &486694136 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3382731243817957270, guid: 91c7a13f40f9942419fb254efb2a2452,
+    type: 3}
+  m_PrefabInstance: {fileID: 2055881163}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbf97153de269664bab93f2a14598389, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KartModelController
 --- !u!1 &496715072
 GameObject:
   m_ObjectHideFlags: 0
@@ -2930,6 +3002,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 765217992}
   m_CullTransparentMesh: 1
+--- !u!114 &789855253 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3382731243817957270, guid: 91c7a13f40f9942419fb254efb2a2452,
+    type: 3}
+  m_PrefabInstance: {fileID: 1023819481}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbf97153de269664bab93f2a14598389, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KartModelController
 --- !u!1 &806745875
 GameObject:
   m_ObjectHideFlags: 0
@@ -3341,6 +3425,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 875935488}
   m_CullTransparentMesh: 1
+--- !u!114 &887265831 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3382731243817957270, guid: 91c7a13f40f9942419fb254efb2a2452,
+    type: 3}
+  m_PrefabInstance: {fileID: 68984360}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbf97153de269664bab93f2a14598389, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KartModelController
 --- !u!1 &888592919
 GameObject:
   m_ObjectHideFlags: 0
@@ -4025,6 +4121,11 @@ PrefabInstance:
       propertyPath: 'progressPoints.Array.data[34]'
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 8442840109051572248, guid: 91c7a13f40f9942419fb254efb2a2452,
+        type: 3}
+      propertyPath: modelController
+      value: 
+      objectReference: {fileID: 789855253}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -4299,6 +4400,11 @@ PrefabInstance:
       propertyPath: 'progressPoints.Array.data[34]'
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 8442840109051572248, guid: 91c7a13f40f9942419fb254efb2a2452,
+        type: 3}
+      propertyPath: modelController
+      value: 
+      objectReference: {fileID: 412593519}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -4663,6 +4769,11 @@ PrefabInstance:
       propertyPath: 'progressPoints.Array.data[34]'
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 8442840109051572248, guid: 91c7a13f40f9942419fb254efb2a2452,
+        type: 3}
+      propertyPath: modelController
+      value: 
+      objectReference: {fileID: 1880702565}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5013,6 +5124,18 @@ Transform:
   - {fileID: 469599306}
   m_Father: {fileID: 413885886}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1250263135 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3382731243817957270, guid: 91c7a13f40f9942419fb254efb2a2452,
+    type: 3}
+  m_PrefabInstance: {fileID: 65382582}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbf97153de269664bab93f2a14598389, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KartModelController
 --- !u!1 &1294714429
 GameObject:
   m_ObjectHideFlags: 0
@@ -5346,6 +5469,11 @@ PrefabInstance:
       propertyPath: 'progressPoints.Array.data[34]'
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 8442840109051572248, guid: 91c7a13f40f9942419fb254efb2a2452,
+        type: 3}
+      propertyPath: modelController
+      value: 
+      objectReference: {fileID: 1960133577}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5742,6 +5870,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1490004502 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3382731243817957270, guid: 91c7a13f40f9942419fb254efb2a2452,
+    type: 3}
+  m_PrefabInstance: {fileID: 1854938005}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbf97153de269664bab93f2a14598389, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KartModelController
 --- !u!1 &1503653282
 GameObject:
   m_ObjectHideFlags: 0
@@ -5858,6 +5998,7 @@ MonoBehaviour:
   trackSurface: {fileID: 2040149632}
   startFinishLine: {fileID: 1958566721}
   pointSpacing: 2
+  roadMaterial: {fileID: 0}
   points:
   - {x: 18.018127, y: 0.11031628, z: 1674.9685}
   - {x: 20.012297, y: 0.09415245, z: 1674.8278}
@@ -7031,6 +7172,11 @@ PrefabInstance:
       propertyPath: 'progressPoints.Array.data[34]'
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 8442840109051572248, guid: 91c7a13f40f9942419fb254efb2a2452,
+        type: 3}
+      propertyPath: modelController
+      value: 
+      objectReference: {fileID: 392100011}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -7223,6 +7369,7 @@ MonoBehaviour:
   trackSurface: {fileID: 469599309}
   startFinishLine: {fileID: 174804267}
   pointSpacing: 2
+  roadMaterial: {fileID: 0}
   points:
   - {x: 18.018515, y: 0.11031246, z: 874.9685}
   - {x: 20.012577, y: 0.094148636, z: 874.82776}
@@ -8157,6 +8304,11 @@ PrefabInstance:
       propertyPath: 'progressPoints.Array.data[34]'
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 8442840109051572248, guid: 91c7a13f40f9942419fb254efb2a2452,
+        type: 3}
+      propertyPath: modelController
+      value: 
+      objectReference: {fileID: 431475179}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -8856,6 +9008,11 @@ PrefabInstance:
       propertyPath: 'progressPoints.Array.data[34]'
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 8442840109051572248, guid: 91c7a13f40f9942419fb254efb2a2452,
+        type: 3}
+      propertyPath: modelController
+      value: 
+      objectReference: {fileID: 1490004502}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -8933,6 +9090,18 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1.4, z: 1}
   m_Center: {x: 0, y: -1.3, z: 0}
+--- !u!114 &1880702565 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3382731243817957270, guid: 91c7a13f40f9942419fb254efb2a2452,
+    type: 3}
+  m_PrefabInstance: {fileID: 1068520330}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbf97153de269664bab93f2a14598389, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KartModelController
 --- !u!1 &1956227669
 GameObject:
   m_ObjectHideFlags: 0
@@ -9230,6 +9399,30 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1959826587}
   m_CullTransparentMesh: 1
+--- !u!114 &1960133577 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3382731243817957270, guid: 91c7a13f40f9942419fb254efb2a2452,
+    type: 3}
+  m_PrefabInstance: {fileID: 1368798394}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbf97153de269664bab93f2a14598389, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KartModelController
+--- !u!114 &2001510291 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3382731243817957270, guid: 91c7a13f40f9942419fb254efb2a2452,
+    type: 3}
+  m_PrefabInstance: {fileID: 2139828769}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbf97153de269664bab93f2a14598389, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KartModelController
 --- !u!1 &2019737386
 GameObject:
   m_ObjectHideFlags: 0
@@ -9262,6 +9455,7 @@ MonoBehaviour:
   trackSurface: {fileID: 1468715727}
   startFinishLine: {fileID: 1667248638}
   pointSpacing: 2
+  roadMaterial: {fileID: 0}
   points:
   - {x: 18.018127, y: 0.11031628, z: 1274.9685}
   - {x: 20.012297, y: 0.09415245, z: 1274.8278}
@@ -10638,6 +10832,11 @@ PrefabInstance:
       propertyPath: 'progressPoints.Array.data[34]'
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 8442840109051572248, guid: 91c7a13f40f9942419fb254efb2a2452,
+        type: 3}
+      propertyPath: modelController
+      value: 
+      objectReference: {fileID: 486694136}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -11150,6 +11349,11 @@ PrefabInstance:
       propertyPath: 'progressPoints.Array.data[34]'
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 8442840109051572248, guid: 91c7a13f40f9942419fb254efb2a2452,
+        type: 3}
+      propertyPath: modelController
+      value: 
+      objectReference: {fileID: 2001510291}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -11454,6 +11658,11 @@ PrefabInstance:
       propertyPath: 'progressPoints.Array.data[34]'
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 8442840109051572248, guid: 91c7a13f40f9942419fb254efb2a2452,
+        type: 3}
+      propertyPath: modelController
+      value: 
+      objectReference: {fileID: 35903731}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
