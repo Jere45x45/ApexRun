@@ -8,9 +8,9 @@ using UnityEngine.UI;
 /// - Vueltas (de 1 a 10), con − y +.
 /// - Clima (despejado, nublado, lluvia, tormenta...), Hora (mañana,
 ///   mediodía, atardecer, noche) y Niebla (sin, leve, densa), con &lt; y &gt;.
-///   Cada una puede quedar AL AZAR (WeatherChoiceStore).
-/// - Partida (solo al crear un servidor): PÚBLICA aparece en la lista de
-///   servidores; PRIVADA no, y se entra solo con el código (RaceSetupStore).
+///   Cada una puede quedar "Al azar" (WeatherChoiceStore).
+/// - Partida (solo al crear un servidor): "Pública" aparece en la lista de
+///   servidores; "Privada" no, y se entra solo con el código (RaceSetupStore).
 /// - Bots (de 0 a 6), con − y +, y su Nivel (fácil, medio, difícil), con
 ///   &lt; y &gt;. Un jugador y Crear servidor guardan la cantidad aparte: al
 ///   crear un servidor arranca en 0, así solo hay bots si se ponen.
@@ -225,18 +225,17 @@ public class RaceSetupMenuUI : MonoBehaviour
         confirmButton.interactable = true;
 
         int laps = RaceSetupStore.Laps;
-        lapsValue.text = laps.ToString();
+        SetValue(lapsValue, laps.ToString());
         SetUsable(lapsMinus, laps > RaceSetupStore.MinLaps);
         SetUsable(lapsPlus, laps < RaceSetupStore.MaxLaps);
 
-        weatherValue.text = WeatherChoiceStore.Label(WeatherChoiceStore.Current);
-        timeValue.text = WeatherChoiceStore.Label(WeatherChoiceStore.Time);
-        fogValue.text = WeatherChoiceStore.Label(WeatherChoiceStore.Fog);
+        SetValue(weatherValue, WeatherChoiceStore.Label(WeatherChoiceStore.Current));
+        SetValue(timeValue, WeatherChoiceStore.Label(WeatherChoiceStore.Time));
+        SetValue(fogValue, WeatherChoiceStore.Label(WeatherChoiceStore.Fog));
 
         int bots = RaceSetupStore.GetBots(multiplayer);
 
-        if (botsValue != null)
-            botsValue.text = bots == 0 ? GameLanguage.Text("SIN BOTS", "NO BOTS") : bots.ToString();
+        SetValue(botsValue, bots == 0 ? GameLanguage.Text("Sin bots", "No bots") : bots.ToString());
 
         SetUsable(botsMinus, bots > 0);
         SetUsable(botsPlus, bots < RaceSetupStore.MaxBots);
@@ -244,7 +243,7 @@ public class RaceSetupMenuUI : MonoBehaviour
         // Sin bots, el nivel no importa: se ve apagado.
         if (levelValue != null)
         {
-            levelValue.text = LevelLabel(RaceSetupStore.BotDifficulty);
+            SetValue(levelValue, LevelLabel(RaceSetupStore.BotDifficulty));
             levelValue.alpha = bots > 0 ? 1f : 0.4f;
         }
 
@@ -260,8 +259,22 @@ public class RaceSetupMenuUI : MonoBehaviour
         if (visibilityRow != null)
             visibilityRow.SetActive(multiplayer);
 
-        if (visibilityValue != null)
-            visibilityValue.text = RaceSetupStore.PrivateServer ? GameLanguage.Text("PRIVADA", "PRIVATE") : GameLanguage.Text("PÚBLICA", "PUBLIC");
+        SetValue(visibilityValue, RaceSetupStore.PrivateServer ? GameLanguage.Text("Privada", "Private") : GameLanguage.Text("Pública", "Public"));
+    }
+
+    /// <summary>
+    /// Pone el valor de una fila. Todos los valores tienen el mismo tamaño de
+    /// letra; los que no entran en un renglón ("Se larga a llover") van en dos.
+    /// </summary>
+    private static void SetValue(TMP_Text label, string text)
+    {
+        if (label == null)
+            return;
+
+        label.text = text;
+        bool fits = label.GetPreferredValues(text, float.PositiveInfinity, float.PositiveInfinity).x <= label.rectTransform.rect.width;
+        label.textWrappingMode = fits ? TextWrappingModes.NoWrap : TextWrappingModes.Normal;
+        label.alignment = fits ? TextAlignmentOptions.Capline : TextAlignmentOptions.Center;
     }
 
     /// <summary>Nivel de los bots en el idioma del juego.</summary>
@@ -269,9 +282,9 @@ public class RaceSetupMenuUI : MonoBehaviour
     {
         switch (difficulty)
         {
-            case RaceDifficulty.Easy: return GameLanguage.Text("FÁCIL", "EASY");
-            case RaceDifficulty.Hard: return GameLanguage.Text("DIFÍCIL", "HARD");
-            default: return GameLanguage.Text("MEDIO", "MEDIUM");
+            case RaceDifficulty.Easy: return GameLanguage.Text("Fácil", "Easy");
+            case RaceDifficulty.Hard: return GameLanguage.Text("Difícil", "Hard");
+            default: return GameLanguage.Text("Medio", "Medium");
         }
     }
 

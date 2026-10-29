@@ -61,7 +61,7 @@ public static class GameLanguage
     /// <summary>Nombre del idioma en ese mismo idioma (para la fila de Configuración).</summary>
     public static string NameOf(Language language)
     {
-        return language == Language.English ? "ENGLISH" : "ESPAÑOL";
+        return language == Language.English ? "English" : "Español";
     }
 
     /// <summary>Pasa al otro idioma (hay dos).</summary>
