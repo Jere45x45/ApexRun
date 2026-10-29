@@ -1,0 +1,226 @@
+fileFormatVersion: 2
+guid: 5ea9fe1d4ca069b41bd0a9b261cdb3ff
+ModelImporter:
+  serializedVersion: 24300
+  internalIDToNameTable: []
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Amarillo
+    second: {fileID: 2100000, guid: 3aeafde1eb03742408826849bdab3163, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Azul
+    second: {fileID: 2100000, guid: 8811b9bde7d2fa7458c699192b04f220, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Gris.001
+    second: {fileID: 2100000, guid: e1ea1b6ea08f58c4d87bfdc6bc0405b4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Luces
+    second: {fileID: 2100000, guid: 01a994f46a061014e930d900fd5d53d4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MangueraNitro
+    second: {fileID: 2100000, guid: 987d48517002d1747a31c131bd8fb734, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Manija
+    second: {fileID: 2100000, guid: 9742f08fc36e49e4c8bfd04a520fa874, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mariposa
+    second: {fileID: 2100000, guid: 8b188af7bbf572e43b94f6e2467f0bee, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Negro
+    second: {fileID: 2100000, guid: 137895e14bfc5f449b858e1ea49db3d7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: NitroBotella
+    second: {fileID: 2100000, guid: 79f51c0a98993d345bb9295d9e3e8d27, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Parilla
+    second: {fileID: 2100000, guid: 9dfe594ffe6e3cb4ba619e0aa7dc6698, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PinturaNaranja
+    second: {fileID: 2100000, guid: 5b1d2dcdc7d83f34cbd29d73bfa1e2bf, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Rojo
+    second: {fileID: 2100000, guid: 111fc125d01702d4eacdf92a2f4b396c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Verde
+    second: {fileID: 2100000, guid: 28274654d0f36f643abd191b75fac9dc, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Verde.001
+    second: {fileID: 2100000, guid: 0f59d14a9fd133448bfa4f0b9d376e17, type: 2}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: MetalNegroVolante
+    second: {fileID: 2800000, guid: d155cb3fe8c3f73489b3d8fe978131bf, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: MetalNegroVolanteNormalMap
+    second: {fileID: 2800000, guid: 92e0eb1701f2a914395a1f9d6ac7184f, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: NormalMapLucesDelanteras
+    second: {fileID: 2800000, guid: bea4e6f722c100744b64eeb57ea1326e, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: NormalMapParillaPassat
+    second: {fileID: 2800000, guid: e17901002c5793542af9abfeb7b2e554, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Textura normal UV de pintura automotriz
+    second: {fileID: 2800000, guid: 4900b59d8bc8a154e8df4ff7a1ff9e9c, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: TexturaCapoNaranjaCars
+    second: {fileID: 2800000, guid: eafb82c4af9a6cb40a2f54efb6188bc7, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: TexturaLucesDelanteras
+    second: {fileID: 2800000, guid: 2dc7b2c41feed5a42a28ce0c78e76017, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: TexturaNitro
+    second: {fileID: 2800000, guid: 4440ad735ac29fc47b0f48e1eb78004f, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: TexturaParilla
+    second: {fileID: 2800000, guid: 6bc26a9f5a6c0894d8be2291b297eef6, type: 3}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+    searchTexturesGlobally: 0
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    removeConstantScaleCurves: 0
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importPhysicalCameras: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    nodeNameCollisionStrategy: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    generateMeshLods: 0
+    meshLodGenerationFlags: 0
+    maximumMeshLod: -1
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    strictVertexDataChecks: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 1
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 2
+  humanoidOversampling: 1
+  avatarSetup: 0
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  importBlendShapeDeformPercent: 1
+  remapMaterialsIfMaterialImportModeIsNone: 0
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

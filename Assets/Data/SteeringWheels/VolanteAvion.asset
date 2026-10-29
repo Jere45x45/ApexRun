@@ -17,7 +17,7 @@ MonoBehaviour:
   description: "Comando de avi\xF3n con dos manijas, de fibra de carbono."
   effects:
   - "Solo est\xE9tico"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: dba3c1771042d874dbd690172e0e64ef, type: 3}
   modelPrefab: {fileID: 919132149155446097, guid: 47877e597fad8054f967290518c947ed,
     type: 3}
   rarity: 0

@@ -19,7 +19,7 @@ MonoBehaviour:
   - "+ Aceleraci\xF3n"
   - + Sale fuerte de las curvas
   - "- Velocidad m\xE1xima"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: e7951a130c9d6b94c834b23592b445aa, type: 3}
   modelPrefab: {fileID: 919132149155446097, guid: 94feccf9068407540aaeb72e63a64429,
     type: 3}
   rarity: 4

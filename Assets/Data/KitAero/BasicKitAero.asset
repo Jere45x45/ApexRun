@@ -19,7 +19,7 @@ MonoBehaviour:
   effects:
   - Equilibrado
   - "+ Agarre en curvas r\xE1pidas"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 37568e7e321fa814bafcfe8d73f3d143, type: 3}
   modelPrefab: {fileID: 919132149155446097, guid: 2224745baedfe6c4ebeeb2620b4ae6c6,
     type: 3}
   rarity: 4

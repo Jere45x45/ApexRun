@@ -18,7 +18,7 @@ MonoBehaviour:
     roja."
   effects:
   - "Solo est\xE9tico"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 94bd169222233df4f801850b167a1721, type: 3}
   modelPrefab: {fileID: 919132149155446097, guid: 8acb0f98bfa09f84cbf525dc76d5bad2,
     type: 3}
   rarity: 3

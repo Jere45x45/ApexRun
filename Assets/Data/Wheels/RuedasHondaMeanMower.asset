@@ -19,7 +19,7 @@ MonoBehaviour:
   - "+ F\xE1ciles de controlar"
   - + Absorben los saltos
   - "- Velocidad m\xE1xima"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 48c27cb7da1ba4244b35c42d2c1af0a7, type: 3}
   modelPrefab: {fileID: 919132149155446097, guid: f3aaa4956b65c35418ab615ba47da7e1,
     type: 3}
   rarity: 4

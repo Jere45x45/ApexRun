@@ -19,7 +19,7 @@ MonoBehaviour:
   - "+ Velocidad m\xE1xima (la m\xE1s alta)"
   - "- Aceleraci\xF3n"
   - '- Le cuesta salir de las curvas lentas'
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 1bbabbb5eadda04428f9432d24f23849, type: 3}
   modelPrefab: {fileID: 919132149155446097, guid: 111df17df6ae5cd46b005aeb9614ed4a,
     type: 3}
   rarity: 2

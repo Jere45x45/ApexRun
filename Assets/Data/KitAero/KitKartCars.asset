@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92f86fc8aed07fc4883068ca75e8bb66, type: 3}
+  m_Name: KitKartCars
+  m_EditorClassIdentifier: Assembly-CSharp::AeroKitData
+  partID: kitaero_kartcars
+  partName: Kit Kart Cars
+  description: "Kit tuneado: cap\xF3 naranja, botellas de nitro (de adorno), un equipo
+    de m\xFAsica gigante y un aler\xF3n atr\xE1s. Los parlantes frenan mucho el aire,
+    pero el aler\xF3n aprieta el kart contra el piso."
+  effects:
+  - "+ Agarre en curvas r\xE1pidas"
+  - '- Velocidad en recta'
+  icon: {fileID: 21300000, guid: 35fabede9effdde468d42f6c93a7888c, type: 3}
+  modelPrefab: {fileID: 919132149155446097, guid: 5ea9fe1d4ca069b41bd0a9b261cdb3ff,
+    type: 3}
+  rarity: 1
+  partNameEn: Kart Cars Kit
+  descriptionEn: 'Tuned kit: orange hood, nitro bottles (just for show), a giant
+    sound system and a rear wing. The speakers slow the air a lot, but the wing presses
+    the kart to the ground.'
+  effectsEn:
+  - + Grip in fast corners
+  - '- Straight-line speed'
+  downforce: 260
+  aerodynamicDrag: 0.027
+  aeroSettings:
+    airDensity: 1.225
+    dragArea: 0.62
+    downforceArea: 0.3
+    centerOfPressure: {x: 0, y: 0.35, z: -0.55}

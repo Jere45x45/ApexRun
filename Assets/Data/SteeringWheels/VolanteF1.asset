@@ -17,7 +17,7 @@ MonoBehaviour:
   description: "Volante de fibra de carbono estilo F\xF3rmula 1."
   effects:
   - "Solo est\xE9tico"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 36dbced3c193ba143b2c74a16d0f03c4, type: 3}
   modelPrefab: {fileID: 919132149155446097, guid: 4b74f724908424743a7dd6a0d0098a78,
     type: 3}
   rarity: 4

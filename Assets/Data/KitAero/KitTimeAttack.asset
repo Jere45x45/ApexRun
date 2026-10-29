@@ -19,7 +19,7 @@ MonoBehaviour:
   effects:
   - "+ Agarre en curvas r\xE1pidas (el que m\xE1s)"
   - '- Velocidad en recta'
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 02f865be0e1581c448f159e42ef78952, type: 3}
   modelPrefab: {fileID: 919132149155446097, guid: 85513ca6a7ed47a4f8d2deee3f7f8fd4,
     type: 3}
   rarity: 3
