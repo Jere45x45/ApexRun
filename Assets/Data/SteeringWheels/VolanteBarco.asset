@@ -20,7 +20,7 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 9bd6d2592e7ccf847ac9e05b17c89ebe, type: 3}
   modelPrefab: {fileID: 919132149155446097, guid: 262bd7da57e937f4c83dd370e68ce032,
     type: 3}
-  rarity: 2
+  rarity: 1
   partNameEn: Ship's Wheel
   descriptionEn: Wooden ship's wheel, to sail the track.
   effectsEn:

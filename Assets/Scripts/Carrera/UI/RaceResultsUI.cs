@@ -48,7 +48,9 @@ public class RaceResultsUI : MonoBehaviour
     [SerializeField] private string menuSceneName = "Inicio";
 
     private const float RefreshInterval = 0.25f;
-    private const string PlayerColor = "#FFC23D";
+
+    // Tu fila va en rojo (el del juego) y en negrita.
+    private const string PlayerColor = "#A00000";
 
     private readonly StringBuilder builder = new StringBuilder();
 
@@ -149,7 +151,7 @@ public class RaceResultsUI : MonoBehaviour
         int playerPosition = 0;
 
         builder.Clear();
-        builder.Append(GameLanguage.Text("<b>POS<pos=10%>PILOTO<pos=36%>TIEMPO<pos=54%>PENAL.<pos=67%>FINAL<pos=85%>MEJOR V.</b>\n", "<b>POS<pos=10%>DRIVER<pos=36%>TIME<pos=54%>PEN.<pos=67%>FINAL<pos=85%>BEST LAP</b>\n"));
+        builder.Append(GameLanguage.Text("<b>Pos.<pos=10%>Piloto<pos=36%>Tiempo<pos=54%>Penal.<pos=67%>Final<pos=85%>Mejor vuelta</b>\n", "<b>Pos.<pos=10%>Driver<pos=36%>Time<pos=54%>Pen.<pos=67%>Final<pos=85%>Best lap</b>\n"));
 
         foreach (RaceTimingManager.Result result in results)
         {
@@ -158,27 +160,27 @@ public class RaceResultsUI : MonoBehaviour
             if (isPlayer)
             {
                 playerPosition = result.Position;
-                builder.Append("<color=").Append(PlayerColor).Append('>');
+                builder.Append("<color=").Append(PlayerColor).Append("><b>");
             }
 
             builder.Append(result.Position).Append(GameLanguage.IsEnglish ? RaceHUD.Ordinal(result.Position) : ".º");
-            builder.Append("<pos=10%>").Append(isPlayer ? GameLanguage.Text("VOS", "YOU") : GetDisplayName(result.Kart));
+            builder.Append("<pos=10%>").Append(isPlayer ? GameLanguage.Text("Vos", "You") : GetDisplayName(result.Kart));
 
             if (result.Finished)
             {
                 builder.Append("<pos=36%>").Append(FormatTime(result.RaceTime));
                 builder.Append("<pos=54%>").Append(result.Penalty > 0f ? "+" + FormatSeconds(result.Penalty) + " s" : "-");
-                builder.Append("<pos=67%><b>").Append(FormatTime(result.FinalTime)).Append("</b>");
+                builder.Append("<pos=67%>").Append(FormatTime(result.FinalTime));
             }
             else
             {
-                builder.Append("<pos=36%>").Append(GameLanguage.Text("EN CARRERA (VUELTA ", "RACING (LAP ")).Append(result.Lap).Append(')');
+                builder.Append("<pos=36%>").Append(GameLanguage.Text("En carrera (vuelta ", "Racing (lap ")).Append(result.Lap).Append(')');
             }
 
             builder.Append("<pos=85%>").Append(result.BestLap >= 0f ? FormatTime(result.BestLap) : "--:--.---");
 
             if (isPlayer)
-                builder.Append("</color>");
+                builder.Append("</b></color>");
 
             builder.Append('\n');
         }
@@ -186,7 +188,7 @@ public class RaceResultsUI : MonoBehaviour
         tableText.text = builder.ToString();
 
         if (titleText != null)
-            titleText.text = playerPosition > 0 ? (GameLanguage.IsEnglish ? $"YOU FINISHED {playerPosition}{RaceHUD.Ordinal(playerPosition)}" : $"TERMINASTE {playerPosition}.º") : GameLanguage.Text("RESULTADOS", "RESULTS");
+            titleText.text = playerPosition > 0 ? (GameLanguage.IsEnglish ? $"You finished {playerPosition}{RaceHUD.Ordinal(playerPosition)}!" : $"¡Terminaste en {playerPosition}.º lugar!") : GameLanguage.Text("Resultados", "Results");
     }
 
     private static string GetDisplayName(Rigidbody kart)

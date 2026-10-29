@@ -31,6 +31,10 @@ public class SettingsMenuUI : MonoBehaviour
         if (musicSlider != null)
             musicSlider.onValueChanged.AddListener(HandleMusicChanged);
 
+        // Al soltar la barra, que no quede marcada (en rojo oscuro).
+        DeselectOnRelease(effectsSlider);
+        DeselectOnRelease(musicSlider);
+
         // Hay dos idiomas: < y > hacen lo mismo.
         if (languagePrevious != null)
             languagePrevious.onClick.AddListener(ChangeLanguage);
@@ -72,6 +76,25 @@ public class SettingsMenuUI : MonoBehaviour
         // Que la flecha no quede marcada (en rojo) después del clic.
         if (EventSystem.current != null)
             EventSystem.current.SetSelectedGameObject(null);
+    }
+
+    private static void DeselectOnRelease(Slider slider)
+    {
+        if (slider == null)
+            return;
+
+        EventTrigger trigger = slider.GetComponent<EventTrigger>();
+
+        if (trigger == null)
+            trigger = slider.gameObject.AddComponent<EventTrigger>();
+
+        EventTrigger.Entry release = new EventTrigger.Entry { eventID = EventTriggerType.PointerUp };
+        release.callback.AddListener(_ =>
+        {
+            if (EventSystem.current != null && EventSystem.current.currentSelectedGameObject == slider.gameObject)
+                EventSystem.current.SetSelectedGameObject(null);
+        });
+        trigger.triggers.Add(release);
     }
 
     private void ShowLanguage()

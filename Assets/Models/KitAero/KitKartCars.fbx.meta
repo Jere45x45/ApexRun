@@ -78,47 +78,47 @@ ModelImporter:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: MetalNegroVolante
-    second: {fileID: 2800000, guid: d155cb3fe8c3f73489b3d8fe978131bf, type: 3}
+    second: {fileID: 2800000, guid: 4fcfc445e1059664c8c49d59d05c5274, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: MetalNegroVolanteNormalMap
-    second: {fileID: 2800000, guid: 92e0eb1701f2a914395a1f9d6ac7184f, type: 3}
+    second: {fileID: 2800000, guid: 090a48e32a249904880bf8f9585db1dc, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: NormalMapLucesDelanteras
-    second: {fileID: 2800000, guid: bea4e6f722c100744b64eeb57ea1326e, type: 3}
+    second: {fileID: 2800000, guid: df111f4588d9c09428a47c6e05312ed7, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: NormalMapParillaPassat
-    second: {fileID: 2800000, guid: e17901002c5793542af9abfeb7b2e554, type: 3}
+    second: {fileID: 2800000, guid: b161b62d9fcc78146baef49fb5e636a2, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: Textura normal UV de pintura automotriz
-    second: {fileID: 2800000, guid: 4900b59d8bc8a154e8df4ff7a1ff9e9c, type: 3}
+    second: {fileID: 2800000, guid: 0df1582b96e36a2458f62440de4db630, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: TexturaCapoNaranjaCars
-    second: {fileID: 2800000, guid: eafb82c4af9a6cb40a2f54efb6188bc7, type: 3}
+    second: {fileID: 2800000, guid: f8c20ce7d4057054eab89deff449f196, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: TexturaLucesDelanteras
-    second: {fileID: 2800000, guid: 2dc7b2c41feed5a42a28ce0c78e76017, type: 3}
+    second: {fileID: 2800000, guid: 45c85caec679b7f49b69e28c46409bb3, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: TexturaNitro
-    second: {fileID: 2800000, guid: 4440ad735ac29fc47b0f48e1eb78004f, type: 3}
+    second: {fileID: 2800000, guid: 0bb6acbb01b35b84b9e7195b8d08ca78, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: TexturaParilla
-    second: {fileID: 2800000, guid: 6bc26a9f5a6c0894d8be2291b297eef6, type: 3}
+    second: {fileID: 2800000, guid: cd0ce303468cd19409f3f79c13ee0d53, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0

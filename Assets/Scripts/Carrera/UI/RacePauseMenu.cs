@@ -203,9 +203,9 @@ public class RacePauseMenu : MonoBehaviour
         if (panel != null)
             panel.SetActive(true);
 
-        // Para manejar los botones con joystick o teclado.
-        if (continueButton != null && EventSystem.current != null)
-            EventSystem.current.SetSelectedGameObject(continueButton.gameObject);
+        // Ningún botón arranca seleccionado (si no, Continuar se ve en rojo).
+        if (EventSystem.current != null)
+            EventSystem.current.SetSelectedGameObject(null);
     }
 
     public void Resume()
