@@ -126,20 +126,29 @@ public static class WeatherChoiceStore
     {
         switch (choice)
         {
-            case WeatherChoice.Random: return GameLanguage.Text("AL AZAR", "RANDOM");
-            case WeatherChoice.Dynamic: return GameLanguage.Text("DINÁMICO", "DYNAMIC");
-            default: return Label((WeatherScenario)((int)choice - 1)).ToUpperInvariant();
+            case WeatherChoice.Random: return GameLanguage.Text("Al azar", "Random");
+            case WeatherChoice.Dynamic: return GameLanguage.Text("Dinámico", "Dynamic");
+            default: return Capitalize(Label((WeatherScenario)((int)choice - 1)));
         }
     }
 
     public static string Label(TimeOfDayChoice choice)
     {
-        return choice == TimeOfDayChoice.Random ? GameLanguage.Text("AL AZAR", "RANDOM") : Label((TimeOfDay)((int)choice - 1)).ToUpperInvariant();
+        return choice == TimeOfDayChoice.Random ? GameLanguage.Text("Al azar", "Random") : Capitalize(Label((TimeOfDay)((int)choice - 1)));
     }
 
     public static string Label(FogChoice choice)
     {
-        return choice == FogChoice.Random ? GameLanguage.Text("AL AZAR", "RANDOM") : Label((FogLevel)((int)choice - 1)).ToUpperInvariant();
+        return choice == FogChoice.Random ? GameLanguage.Text("Al azar", "Random") : Capitalize(Label((FogLevel)((int)choice - 1)));
+    }
+
+    /// <summary>Primera letra en mayúscula ("lluvia" → "Lluvia").</summary>
+    private static string Capitalize(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+            return text;
+
+        return char.ToUpperInvariant(text[0]) + text.Substring(1);
     }
 
     public static string Label(WeatherScenario scenario)
@@ -176,13 +185,13 @@ public static class WeatherChoiceStore
         }
     }
 
-    /// <summary>Resumen para la lista de servidores, por ejemplo "LLUVIA · NOCHE · NIEBLA LEVE".</summary>
+    /// <summary>Resumen para la lista de servidores, por ejemplo "Lluvia · Noche · Niebla leve".</summary>
     public static string Summary()
     {
-        string text = (Current == WeatherChoice.Dynamic ? GameLanguage.Text("CLIMA DINÁMICO", "DYNAMIC WEATHER") : Label(Current)) + "  ·  " + Label(Time);
+        string text = (Current == WeatherChoice.Dynamic ? GameLanguage.Text("Clima dinámico", "Dynamic weather") : Label(Current)) + "  ·  " + Label(Time);
 
         if (Fog != FogChoice.None)
-            text += "  ·  " + (Fog == FogChoice.Random ? GameLanguage.Text("NIEBLA AL AZAR", "RANDOM FOG") : Label(Fog));
+            text += "  ·  " + (Fog == FogChoice.Random ? GameLanguage.Text("Niebla al azar", "Random fog") : Label(Fog));
 
         return text;
     }

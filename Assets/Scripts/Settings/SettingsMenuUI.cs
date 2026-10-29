@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
@@ -67,6 +68,10 @@ public class SettingsMenuUI : MonoBehaviour
     {
         GameLanguage.Next();
         ShowLanguage();
+
+        // Que la flecha no quede marcada (en rojo) después del clic.
+        if (EventSystem.current != null)
+            EventSystem.current.SetSelectedGameObject(null);
     }
 
     private void ShowLanguage()
