@@ -25,6 +25,12 @@ public class KartModelController : MonoBehaviour
              "En un kart, el volante gira ~90° para ~25° de las ruedas.")]
     [SerializeField, Min(0f)] private float steeringWheelRatio = 3.6f;
 
+    [Header("Apariencia alternativa (solo bots)")]
+    private bool useVisualOverrides;
+    private GameObject visualEnginePrefab;
+    private GameObject visualWheelsPrefab;
+    private GameObject visualAeroPrefab;
+
     // Dónde está el volante en su modelo (SteeringWheelData) y dónde tiene que
     // ir: la punta de la columna del chasis (ChassisData).
     private Vector3 steeringWheelModelHub;
@@ -49,7 +55,37 @@ public class KartModelController : MonoBehaviour
 
     /// <summary>Hacia dónde mira la llanta en el modelo de las ruedas instaladas (WheelData.rimFacesRight).</summary>
     public bool WheelRimFacesRight { get; private set; } = true;
+    public void SetVisualOverrides(
+    KartPart engine,
+    KartPart wheels,
+    KartPart aero,
+    RuntimeKartConfiguration configuration)
+    {
+    if (configuration == null)
+    {
+        Debug.LogError(
+            "No se puede cambiar la apariencia: configuración nula.",
+            this
+        );
+        return;
+    }
 
+    if (engine == null || wheels == null || aero == null)
+    {
+        Debug.LogError(
+            "Falta una pieza visual para el bot.",
+            this
+        );
+        return;
+    }
+
+    useVisualOverrides = true;
+    visualEnginePrefab = engine.modelPrefab;
+    visualWheelsPrefab = wheels.modelPrefab;
+    visualAeroPrefab = aero.modelPrefab;
+
+    Refresh(configuration);
+    }
     public void Refresh(RuntimeKartConfiguration configuration)
     {
         if (configuration == null)
@@ -64,12 +100,11 @@ public class KartModelController : MonoBehaviour
 
         if (engineSlot != null)
         {
-            GameObject enginePrefab =
-                configuration.Engine != null
-                    ? configuration.Engine.modelPrefab
-                    : null;
-
-            engineSlot.SetModel(enginePrefab);
+            GameObject enginePrefab = useVisualOverrides
+            ? visualEnginePrefab
+            : configuration.Engine != null
+            ? configuration.Engine.modelPrefab
+            : null;
         }
 
         if (chassisSlot != null)
@@ -82,10 +117,11 @@ public class KartModelController : MonoBehaviour
             chassisSlot.SetModel(chassisPrefab);
         }
 
-        GameObject wheelPrefab =
-            configuration.Wheels != null
-                ? configuration.Wheels.modelPrefab
-                : null;
+        GameObject wheelPrefab = useVisualOverrides
+        ? visualWheelsPrefab
+        : configuration.Wheels != null
+        ? configuration.Wheels.modelPrefab
+        : null;
 
         if (frontLeftWheelSlot != null)
         {
@@ -116,10 +152,11 @@ public class KartModelController : MonoBehaviour
 
         if (aeroKitSlot != null)
         {
-            GameObject aeroKitPrefab =
-                configuration.AeroKit != null
-                    ? configuration.AeroKit.modelPrefab
-                    : null;
+            GameObject aeroKitPrefab = useVisualOverrides
+            ? visualAeroPrefab
+            : configuration.AeroKit != null
+            ? configuration.AeroKit.modelPrefab
+            : null;
 
             aeroKitSlot.SetModel(aeroKitPrefab);
         }
