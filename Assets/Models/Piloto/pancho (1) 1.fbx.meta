@@ -3,7 +3,27 @@ guid: ac75df66891a0554b846a9606978776a
 ModelImporter:
   serializedVersion: 24300
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Casco
+    second: {fileID: 2100000, guid: 34ef923f1892022458915d7983ee801c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: guantes
+    second: {fileID: 2100000, guid: e47b64f3e3a27ff46a39c472b9760978, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: pilotito
+    second: {fileID: 2100000, guid: 0bbf53af89016654c8da7d47b4b018f8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: trajecito uwu
+    second: {fileID: 2100000, guid: 8bdcbe8b4f5d1d94ca2b737dd4eaebdb, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
