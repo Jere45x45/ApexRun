@@ -37,6 +37,7 @@ Transform:
   - {fileID: 3378832667008019170}
   - {fileID: 5208075183251478425}
   - {fileID: 7088874536629746079}
+  - {fileID: 3898094387343638211}
   m_Father: {fileID: 6724297902558448153}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2356734766520076831
@@ -426,6 +427,8 @@ MonoBehaviour:
   maxSpeed: 2
   maxAngularSpeed: 1.5
   delay: 1.5
+  flippedFriction: 0.8
+  uprightAngle: 50
   heightAboveGround: 0.4
   groundSearchDistance: 4
 --- !u!1 &2823503327116068364
@@ -1544,3 +1547,114 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.26, y: 0.22, z: 1.96}
   m_Center: {x: -0.68, y: 0.09, z: -0.4}
+--- !u!1001 &3572033230740838696
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 488746481565414947}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 3a385db2a74cf694897c5db961da2551,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3a385db2a74cf694897c5db961da2551,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3a385db2a74cf694897c5db961da2551,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3a385db2a74cf694897c5db961da2551,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3a385db2a74cf694897c5db961da2551,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3a385db2a74cf694897c5db961da2551,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3a385db2a74cf694897c5db961da2551,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3a385db2a74cf694897c5db961da2551,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3a385db2a74cf694897c5db961da2551,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3a385db2a74cf694897c5db961da2551,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 3a385db2a74cf694897c5db961da2551,
+        type: 3}
+      propertyPath: m_Name
+      value: Piloto
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 3a385db2a74cf694897c5db961da2551,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2735632131669617528}
+  m_SourcePrefab: {fileID: 100100000, guid: 3a385db2a74cf694897c5db961da2551, type: 3}
+--- !u!4 &3898094387343638211 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 3a385db2a74cf694897c5db961da2551,
+    type: 3}
+  m_PrefabInstance: {fileID: 3572033230740838696}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &4418876336378995833 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 3a385db2a74cf694897c5db961da2551,
+    type: 3}
+  m_PrefabInstance: {fileID: 3572033230740838696}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2735632131669617528
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4418876336378995833}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e68a805f30bf8440a6e4b570c7d81e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DriverAnimator
+  kart: {fileID: 120240854046394885}
+  modelController: {fileID: 2988376580431116527}
+  turnRight: {fileID: -4532217670804368837, guid: 3a385db2a74cf694897c5db961da2551,
+    type: 3}
+  turnLeft: {fileID: -8000452216878606634, guid: 3a385db2a74cf694897c5db961da2551,
+    type: 3}
+  turnRightRound: {fileID: 5264351413519970882, guid: 3a385db2a74cf694897c5db961da2551,
+    type: 3}
+  turnLeftRound: {fileID: 4410259752551243143, guid: 3a385db2a74cf694897c5db961da2551,
+    type: 3}
+  roundWheelNames:
+  - Passat
+  - Barco
+  fullLockAngle: 25
+  peakFraction: 0.5
