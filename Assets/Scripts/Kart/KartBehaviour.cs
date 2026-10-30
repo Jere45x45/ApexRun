@@ -108,6 +108,22 @@ public class KartBehaviour : MonoBehaviour
     [Tooltip("Tiempo para soltar el freno del todo al soltar la tecla (s).")]
     [SerializeField, Min(0f)] private float brakeReleaseTime = 0.05f;
 
+    [Header("Marcha atrás")]
+    [Tooltip("Con el kart casi quieto, mantener la S (o la flecha para abajo) lo lleva para atrás, " +
+             "por ejemplo para salir de un muro. Andando para adelante, la S sigue siendo freno. " +
+             "Solo para el jugador: los bots no van para atrás.")]
+    [SerializeField] private bool allowReverse = true;
+
+    [Tooltip("Velocidad máxima para atrás (km/h).")]
+    [SerializeField, Min(1f)] private float reverseMaxKmh = 12f;
+
+    [Tooltip("Torque en el eje trasero para ir para atrás (N·m). 100 ≈ 0,35 g con las ruedas Slick.")]
+    [SerializeField, Min(0f)] private float reverseTorque = 100f;
+
+    [Tooltip("Tiempo con la S apretada y el kart casi quieto antes de empezar a ir para atrás (s). " +
+             "Así, frenando hasta parar, el kart no sale para atrás de golpe.")]
+    [SerializeField, Min(0f)] private float reverseDelay = 0.3f;
+
     [Header("Sin mandos")]
     [Tooltip("Freno (0 a 1) mientras el kart no tiene mandos habilitados y todavía se mueve, " +
              "por ejemplo después de cruzar la meta. 0 = rueda suelto.")]
@@ -118,6 +134,12 @@ public class KartBehaviour : MonoBehaviour
     private float throttle;
     private float steering;
     private bool braking;
+
+    // Marcha atrás: el que llama a SetInputs la permite (el jugador sí, los bots no),
+    // cuánto hace que se pide con el kart quieto y si ya está yendo para atrás.
+    private bool reverseRequested;
+    private float reverseTimer;
+    private bool reversing;
 
     private bool inputEnabled;
 
@@ -172,6 +194,15 @@ public class KartBehaviour : MonoBehaviour
     public float EngineThrottle => isSimulated
         ? (vehicle != null && vehicle.IsConfigured ? vehicle.Engine.Throttle : 0f)
         : remoteThrottle;
+
+    /// <summary>
+    /// True mientras la marcha atrás no se puede usar aunque se pida. La pone
+    /// la carrera durante la cuenta regresiva: ahí la S es solo freno.
+    /// </summary>
+    public bool ReverseBlocked { get; set; }
+
+    /// <summary>True mientras el kart está yendo para atrás con la marcha atrás.</summary>
+    public bool IsReversing => reversing;
 
     /// <summary>Ángulo de las ruedas delanteras (°).</summary>
     public float SteerAngle => isSimulated ? currentSteerAngle : remoteSteerAngle;
@@ -249,7 +280,12 @@ public class KartBehaviour : MonoBehaviour
         RefreshKart();
     }
 
-    public void SetInputs(float throttle, float steering, bool brake)
+    /// <param name="canReverse">
+    /// True: con el kart casi quieto, el acelerador negativo lo lleva para
+    /// atrás (lo usa PlayerKartInput). False: el acelerador negativo es solo
+    /// freno (los bots).
+    /// </param>
+    public void SetInputs(float throttle, float steering, bool brake, bool canReverse = false)
     {
         if (!inputEnabled)
         {
@@ -260,6 +296,7 @@ public class KartBehaviour : MonoBehaviour
         this.throttle = Mathf.Clamp(throttle, -1f, 1f);
         this.steering = Mathf.Clamp(steering, -1f, 1f);
         this.braking = brake;
+        this.reverseRequested = canReverse;
     }
 
     public void SetInputEnabled(bool enabled)
@@ -277,6 +314,7 @@ public class KartBehaviour : MonoBehaviour
         throttle = 0f;
         steering = 0f;
         braking = false;
+        reverseRequested = false;
     }
 
     /// <summary>
@@ -339,7 +377,8 @@ public class KartBehaviour : MonoBehaviour
 
     /// <summary>
     /// Pasa los mandos a la física:
-    /// - Acelerador positivo = motor. Negativo (tecla S) = freno: un kart no tiene marcha atrás.
+    /// - Acelerador positivo = motor. Negativo (tecla S) = freno; con el kart
+    ///   casi quieto, el jugador va para atrás (ver UpdateReverse).
     /// - Volante: ver UpdateSteering.
     /// - Sin mandos habilitados (cuenta regresiva, carrera terminada) el kart
     ///   frena suave (noInputBrake) y, ya casi quieto, queda frenado.
@@ -350,9 +389,13 @@ public class KartBehaviour : MonoBehaviour
 
         float lowSpeedAssist = GetLowSpeedAssist(speed);
 
+        UpdateReverse(deltaTime);
+
         if (inputEnabled)
         {
-            float target = Mathf.Max(braking ? 1f : 0f, Mathf.Clamp01(-throttle));
+            // Yendo para atrás, la S empuja para atrás en vez de frenar.
+            float pedalBrake = reversing ? 0f : Mathf.Clamp01(-throttle);
+            float target = Mathf.Max(braking ? 1f : 0f, pedalBrake);
             float rampTime = target > brakeInput ? brakeApplyTime : brakeReleaseTime;
 
             brakeInput = rampTime > 0f
@@ -362,6 +405,7 @@ public class KartBehaviour : MonoBehaviour
             vehicle.Throttle = Mathf.Clamp01(throttle) * GetTractionLimit(lowSpeedAssist, deltaTime);
             vehicle.Brake = brakeInput * GetBrakeLimit(speed, deltaTime);
             vehicle.FrontBrake = brakeInput * GetFrontBrakeLimit(speed, deltaTime);
+            vehicle.ReverseTorque = reversing ? -reverseTorque * GetReverseFade() : 0f;
         }
         else
         {
@@ -369,11 +413,56 @@ public class KartBehaviour : MonoBehaviour
             vehicle.Throttle = 0f;
             vehicle.Brake = speed < StandstillSpeed ? 1f : noInputBrake;
             vehicle.FrontBrake = vehicle.Brake;
+            vehicle.ReverseTorque = 0f;
         }
 
         UpdateSteering(speed, deltaTime);
 
         vehicle.RearDifferential = lowSpeedDifferential ? lowSpeedAssist : 0f;
+    }
+
+    /// <summary>
+    /// Marcha atrás (solo el jugador, ver allowReverse):
+    /// - Se pide con el acelerador negativo (S o flecha para abajo), sin la barra espaciadora.
+    /// - Arranca si el kart lleva reverseDelay segundos casi quieto con la S
+    ///   apretada, o enseguida si ya está yendo para atrás (por ejemplo, rebotó en un muro).
+    /// - Se corta al soltar la S, al acelerar o al frenar con la barra.
+    /// </summary>
+    private void UpdateReverse(float deltaTime)
+    {
+        bool wanted = inputEnabled && allowReverse && reverseRequested && !ReverseBlocked &&
+                      !braking && throttle < -0.1f;
+
+        if (!wanted)
+        {
+            reversing = false;
+            reverseTimer = 0f;
+            return;
+        }
+
+        if (reversing)
+            return;
+
+        float forwardSpeed = vehicle.ForwardSpeed;
+
+        if (forwardSpeed < -0.3f)
+        {
+            reversing = true;
+            return;
+        }
+
+        reverseTimer = forwardSpeed < 0.5f ? reverseTimer + deltaTime : 0f;
+        reversing = reverseTimer >= reverseDelay;
+    }
+
+    /// <summary>
+    /// El empuje para atrás se apaga de a poco en el último 1,5 km/h antes de
+    /// reverseMaxKmh, así el kart no pasa de esa velocidad.
+    /// </summary>
+    private float GetReverseFade()
+    {
+        float backKmh = -vehicle.ForwardSpeed * 3.6f;
+        return Mathf.Clamp01((reverseMaxKmh - backKmh) / 1.5f);
     }
 
     /// <summary>

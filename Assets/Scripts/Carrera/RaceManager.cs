@@ -367,6 +367,12 @@ public class RaceManager : NetworkBehaviour
 
         countdownTimer = 0f;
 
+        foreach (KartBehaviour kart in raceKarts)
+        {
+            if (kart != null)
+                kart.ReverseBlocked = false;
+        }
+
         SetSimulatedKartsInput(true);
         ChangeState(RaceState.Racing);
 
@@ -388,6 +394,10 @@ public class RaceManager : NetworkBehaviour
                 continue;
 
             gridPositions[kart] = kart.transform.position;
+
+            // Durante la cuenta, la S es solo freno: si no, mantenerla apretada
+            // llevaría el kart para atrás y contaría como salida en falso.
+            kart.ReverseBlocked = true;
             SetInput(kart, true);
         }
     }

@@ -65,10 +65,13 @@ public class PlayerKartInput : MonoBehaviour
         bool brake =
             brakeAction.IsPressed();
 
+        // canReverse: con el kart casi quieto, la S lo lleva para atrás
+        // (por ejemplo, para salir de un muro). Los bots no lo usan.
         kart.SetInputs(
             throttle,
             steering,
-            brake
+            brake,
+            canReverse: true
         );
     }
 

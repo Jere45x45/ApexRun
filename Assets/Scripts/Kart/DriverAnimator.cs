@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.Playables;
@@ -6,9 +7,10 @@ using UnityEngine.Playables;
 /// Animación del piloto: mueve los brazos con el volante.
 /// Cada animación de Blender (DoblaDer / DoblaIzq) va del centro al giro
 /// máximo y vuelve; acá no se reproducen: se usa el punto que corresponde al
-/// giro actual (centro = principio, giro máximo = mitad de la animación).
-/// Hay dos juegos: uno para volantes chicos (karting, F1, avión) y otro para
-/// volantes redondos grandes (Passat, timón de barco).
+/// giro actual (centro = principio, giro máximo = peakFraction de la animación).
+/// Cada volante tiene su juego de animaciones (Kart, F1, Avión, Passat, Barco):
+/// se elige por el nombre del modelo del volante montado y cambia solo si se
+/// cambia el volante.
 /// Va en el objeto del piloto, que tiene que tener un Animator (sin controller).
 /// Funciona en todos los karts: el propio, los de red y los bots, porque usa
 /// KartBehaviour.SteerAngle.
@@ -16,19 +18,22 @@ using UnityEngine.Playables;
 [RequireComponent(typeof(Animator))]
 public class DriverAnimator : MonoBehaviour
 {
+    /// <summary>Animaciones del piloto para un volante.</summary>
+    [Serializable]
+    private struct WheelClips
+    {
+        [Tooltip("Parte del nombre del modelo del volante (por ejemplo \"Passat\" para VolantePassat).")]
+        public string wheelName;
+
+        public AnimationClip turnRight;
+        public AnimationClip turnLeft;
+    }
+
     [SerializeField] private KartBehaviour kart;
     [SerializeField] private KartModelController modelController;
 
-    [Header("Volantes chicos (karting, F1, avión)")]
-    [SerializeField] private AnimationClip turnRight;
-    [SerializeField] private AnimationClip turnLeft;
-
-    [Header("Volantes redondos grandes")]
-    [SerializeField] private AnimationClip turnRightRound;
-    [SerializeField] private AnimationClip turnLeftRound;
-
-    [Tooltip("Si el modelo del volante tiene alguna de estas palabras en el nombre, usa las animaciones de volante redondo.")]
-    [SerializeField] private string[] roundWheelNames = { "Passat", "Barco" };
+    [Tooltip("Un juego de animaciones por volante. Si el volante montado no coincide con ninguno, se usa el primero.")]
+    [SerializeField] private WheelClips[] wheels = new WheelClips[0];
 
     [Tooltip("Ángulo de las ruedas con el que el piloto llega al giro máximo de la animación (grados). Es el máximo del chasis.")]
     [SerializeField, Min(1f)] private float fullLockAngle = 25f;
@@ -40,7 +45,7 @@ public class DriverAnimator : MonoBehaviour
     private AnimationMixerPlayable mixer;
     private AnimationClipPlayable right;
     private AnimationClipPlayable left;
-    private bool usingRound;
+    private int usingIndex = -1;
     private bool built;
     private GameObject lastWheelModel;
 
@@ -55,7 +60,8 @@ public class DriverAnimator : MonoBehaviour
 
     private void OnEnable()
     {
-        Build(IsRoundWheel());
+        lastWheelModel = CurrentWheelModel();
+        Build(FindClipsIndex());
     }
 
     private void OnDisable()
@@ -64,6 +70,7 @@ public class DriverAnimator : MonoBehaviour
             graph.Destroy();
 
         built = false;
+        usingIndex = -1;
     }
 
     private void LateUpdate()
@@ -77,10 +84,10 @@ public class DriverAnimator : MonoBehaviour
         if (wheelModel != lastWheelModel)
         {
             lastWheelModel = wheelModel;
-            bool round = IsRoundWheel();
+            int index = FindClipsIndex();
 
-            if (!built || round != usingRound)
-                Build(round);
+            if (!built || index != usingIndex)
+                Build(index);
         }
 
         if (!built)
@@ -101,16 +108,19 @@ public class DriverAnimator : MonoBehaviour
         graph.Evaluate();
     }
 
-    private void Build(bool round)
+    private void Build(int index)
     {
         if (graph.IsValid())
             graph.Destroy();
 
         built = false;
-        usingRound = round;
+        usingIndex = index;
 
-        AnimationClip r = round && turnRightRound != null ? turnRightRound : turnRight;
-        AnimationClip l = round && turnLeftRound != null ? turnLeftRound : turnLeft;
+        if (index < 0 || index >= wheels.Length)
+            return;
+
+        AnimationClip r = wheels[index].turnRight;
+        AnimationClip l = wheels[index].turnLeft;
 
         if (r == null || l == null)
             return;
@@ -143,19 +153,29 @@ public class DriverAnimator : MonoBehaviour
         return modelController.SteeringWheelSlot.CurrentInstance;
     }
 
-    private bool IsRoundWheel()
+    /// <summary>
+    /// El juego de animaciones del volante montado: el primero cuyo nombre
+    /// aparece en el nombre del modelo. Si no hay volante o no coincide
+    /// ninguno, el primero de la lista.
+    /// </summary>
+    private int FindClipsIndex()
     {
+        if (wheels.Length == 0)
+            return -1;
+
         GameObject model = CurrentWheelModel();
 
-        if (model == null)
-            return false;
-
-        foreach (string word in roundWheelNames)
+        if (model != null)
         {
-            if (!string.IsNullOrEmpty(word) && model.name.IndexOf(word, System.StringComparison.OrdinalIgnoreCase) >= 0)
-                return true;
+            for (int i = 0; i < wheels.Length; i++)
+            {
+                string word = wheels[i].wheelName;
+
+                if (!string.IsNullOrEmpty(word) && model.name.IndexOf(word, StringComparison.OrdinalIgnoreCase) >= 0)
+                    return i;
+            }
         }
 
-        return false;
+        return 0;
     }
 }

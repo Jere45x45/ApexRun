@@ -65,6 +65,13 @@ public class KartVehicle
     /// </summary>
     public float RearDifferential { get; set; }
 
+    /// <summary>
+    /// Marcha atrás: torque extra en el eje trasero (N·m), negativo hacia atrás.
+    /// El motor de un kart no gira al revés; esto lo pone KartBehaviour cuando
+    /// el jugador pide ir para atrás (ver allowReverse). 0 = nada.
+    /// </summary>
+    public float ReverseTorque { get; set; }
+
     /// <summary>Velocidad en la dirección en que apunta el kart (m/s). Negativa = marcha atrás.</summary>
     public float ForwardSpeed => Vector3.Dot(body.linearVelocity, body.rotation * Vector3.forward);
 
@@ -204,6 +211,7 @@ public class KartVehicle
         for (int i = 0; i < tireSubsteps; i++)
         {
             Engine.BeginSubstep(RearAxle);
+            RearAxle.DriveTorque += ReverseTorque;
 
             foreach (KartAxle axle in axles)
             {
