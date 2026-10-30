@@ -18,7 +18,7 @@ using UnityEngine;
 /// - Entre estaciones el kart hace una curva por el centro libre del taller
 ///   (transitPoint), y la cámara nunca atraviesa el taller: si algo la tapa,
 ///   se acerca al kart (workshopModel).
-/// - Con la R apretada, el mouse gira el kart sobre su centro; al cambiar de pestaña
+/// - Clic y arrastrar con el mouse gira el kart sobre su centro; al cambiar de pestaña
 ///   vuelve derecho.
 /// </summary>
 public class CatalogWorkshop : MonoBehaviour
@@ -82,17 +82,20 @@ public class CatalogWorkshop : MonoBehaviour
              "libre de la lista de piezas.")]
     [SerializeField] private Vector2 lensShift = new Vector2(-0.25f, 0f);
 
-    [Header("Girar el kart (tecla R)")]
-    [Tooltip("Mientras se mantiene apretada la R, mover el mouse a los costados gira el kart sobre su centro. " +
+    [Header("Girar el kart (arrastrando con el mouse)")]
+    [Tooltip("Haciendo clic sobre el taller (no sobre la interfaz) y arrastrando a los costados, el kart gira sobre su centro. " +
              "Al cambiar de pestaña vuelve a su posición. En la toma del volante (de cerca) no gira.")]
     [SerializeField] private bool allowSpin = true;
 
     [Tooltip("Grados que gira el kart por cada píxel que se mueve el mouse.")]
     [SerializeField, Min(0f)] private float spinSensitivity = 0.4f;
 
-    // Cuánto giró el kart con la R (grados) y alrededor de qué punto (su centro, en coordenadas del kart).
+    // Cuánto giró el kart (grados) y alrededor de qué punto (su centro, en coordenadas del kart).
     private float spinAngle;
     private Vector3 spinPivotLocal;
+
+    // Se está arrastrando el kart con el mouse (el clic empezó fuera de la interfaz).
+    private bool spinDragging;
 
     private Station current;
     private PartType currentPart;
@@ -226,10 +229,12 @@ public class CatalogWorkshop : MonoBehaviour
         Vector3 kartTargetPosition = GetKartPosition(current);
         Quaternion kartTargetRotation = current.kartPoint.rotation;
 
-        // Tecla R: el kart gira sobre su centro (no sobre su origen, que está
-        // atrás), así no se va del encuadre. Solo quieto en una estación.
-        // Con la R apretada, mover el mouse a los costados gira el kart.
-        if (!moving && !CameraHeld && allowSpin && !IsCloseShot(current) && SpinPressed())
+        // Arrastrando con el mouse: el kart gira sobre su centro (no sobre su
+        // origen, que está atrás), así no se va del encuadre. Solo quieto en
+        // una estación.
+        UpdateSpinDrag();
+
+        if (!moving && !CameraHeld && allowSpin && !IsCloseShot(current) && spinDragging)
             spinAngle = Mathf.Repeat(spinAngle - MouseDeltaX() * spinSensitivity, 360f);
 
         if (spinAngle != 0f)
@@ -375,7 +380,7 @@ public class CatalogWorkshop : MonoBehaviour
 
         current = station;
 
-        // El giro de la R se deshace en el viaje: llega derecho a la estación nueva.
+        // El giro del mouse se deshace en el viaje: llega derecho a la estación nueva.
         spinAngle = 0f;
 
         if (kart != null)
@@ -478,7 +483,7 @@ public class CatalogWorkshop : MonoBehaviour
 
         floorOffset = Mathf.Max(0f, kart.position.y - lowest);
 
-        // Centro del kart para girarlo con la R (solo en el plano del piso).
+        // Centro del kart para girarlo con el mouse (solo en el plano del piso).
         spinPivotLocal = kart.InverseTransformPoint(all.center);
         spinPivotLocal.y = 0f;
     }
@@ -490,14 +495,32 @@ public class CatalogWorkshop : MonoBehaviour
             (station.cameraPoint.position - GetKartPosition(station)).magnitude < closeShotDistance;
     }
 
-    private static bool SpinPressed()
+    /// <summary>
+    /// Clic izquierdo sostenido. Solo cuenta si el clic empezó fuera de la
+    /// interfaz: al tocar una pieza, una pestaña o la barra, el kart no gira.
+    /// </summary>
+    private void UpdateSpinDrag()
     {
+        bool pressedNow;
+        bool held;
+
 #if ENABLE_INPUT_SYSTEM
-        UnityEngine.InputSystem.Keyboard keyboard = UnityEngine.InputSystem.Keyboard.current;
-        return keyboard != null && keyboard.rKey.isPressed;
+        UnityEngine.InputSystem.Mouse mouse = UnityEngine.InputSystem.Mouse.current;
+        pressedNow = mouse != null && mouse.leftButton.wasPressedThisFrame;
+        held = mouse != null && mouse.leftButton.isPressed;
 #else
-        return Input.GetKey(KeyCode.R);
+        pressedNow = Input.GetMouseButtonDown(0);
+        held = Input.GetMouseButton(0);
 #endif
+
+        if (pressedNow)
+        {
+            UnityEngine.EventSystems.EventSystem events = UnityEngine.EventSystems.EventSystem.current;
+            spinDragging = events == null || !events.IsPointerOverGameObject();
+        }
+
+        if (!held)
+            spinDragging = false;
     }
 
     /// <summary>Cuánto se movió el mouse a los costados en este cuadro (píxeles).</summary>

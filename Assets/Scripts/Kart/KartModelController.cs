@@ -29,6 +29,7 @@ public class KartModelController : MonoBehaviour
     private bool useVisualOverrides;
     private GameObject visualEnginePrefab;
     private GameObject visualWheelsPrefab;
+    private bool visualWheelsRimFacesRight = true;
     private GameObject visualAeroPrefab;
 
     // Dónde está el volante en su modelo (SteeringWheelData) y dónde tiene que
@@ -82,6 +83,8 @@ public class KartModelController : MonoBehaviour
     useVisualOverrides = true;
     visualEnginePrefab = engine.modelPrefab;
     visualWheelsPrefab = wheels.modelPrefab;
+    WheelData visualWheelData = wheels as WheelData;
+    visualWheelsRimFacesRight = visualWheelData == null || visualWheelData.rimFacesRight;
     visualAeroPrefab = aero.modelPrefab;
 
     Refresh(configuration);
@@ -105,6 +108,8 @@ public class KartModelController : MonoBehaviour
             : configuration.Engine != null
             ? configuration.Engine.modelPrefab
             : null;
+
+            engineSlot.SetModel(enginePrefab);
         }
 
         if (chassisSlot != null)
@@ -143,7 +148,10 @@ public class KartModelController : MonoBehaviour
             rearRightWheelSlot.SetModel(wheelPrefab);
         }
 
-        WheelRimFacesRight = configuration.Wheels == null || configuration.Wheels.rimFacesRight;
+        // Con apariencia al azar (bots), la llanta es la de las ruedas que se ven.
+        WheelRimFacesRight = useVisualOverrides
+            ? visualWheelsRimFacesRight
+            : configuration.Wheels == null || configuration.Wheels.rimFacesRight;
 
         OrientWheelModel(frontLeftWheelSlot);
         OrientWheelModel(frontRightWheelSlot);

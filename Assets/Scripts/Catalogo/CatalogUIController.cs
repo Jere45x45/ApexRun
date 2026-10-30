@@ -14,6 +14,8 @@ using UnityEngine.UI;
 ///   Común a Legendaria (dentro de la misma rareza, en el orden del catálogo).
 /// - El panel Data: nombre, rareza, descripción y efectos de la pieza que
 ///   está debajo del mouse o, si no hay ninguna, de la que está puesta.
+/// - Atajos: las teclas 1, 2, 3 y 4 (arriba de las letras o del teclado
+///   numérico) eligen las pestañas en el orden en que se ven.
 /// </summary>
 public class CatalogUIController : MonoBehaviour
 {
@@ -53,6 +55,10 @@ public class CatalogUIController : MonoBehaviour
     [Header("Pestañas")]
     [SerializeField]
     private CategoryTab[] tabs = new CategoryTab[0];
+
+    [Tooltip("Las teclas 1 a 4 eligen las pestañas en el orden en que se ven, de izquierda a derecha.")]
+    [SerializeField]
+    private bool numberKeyShortcuts = true;
 
     [SerializeField] private Color tabNormal = new Color(0.16f, 0.18f, 0.23f, 1f);
     [SerializeField] private Color tabSelected = new Color(0.86f, 0.10f, 0.12f, 1f);
@@ -109,6 +115,67 @@ public class CatalogUIController : MonoBehaviour
     private void Start()
     {
         ShowCategory(PartType.Engine);
+    }
+
+    private void Update()
+    {
+        if (!numberKeyShortcuts)
+            return;
+
+        int index = PressedNumberKey();
+
+        if (index < 0 || index >= tabs.Length)
+            return;
+
+        PartType type = TabsLeftToRight()[index].type;
+
+        // La pestaña que ya está elegida no se vuelve a cargar.
+        if (type == CurrentCategory)
+            return;
+
+        // ShowCategory ya ignora el pedido si el kart está viajando o si
+        // está el Easter Egg de la radio.
+        ShowCategory(type);
+    }
+
+    /// <summary>
+    /// Las pestañas en el orden en que se ven, de izquierda a derecha (no en
+    /// el orden de la lista <c>tabs</c>). Así, si se reordenan los botones,
+    /// los números siguen al orden de la pantalla.
+    /// </summary>
+    private CategoryTab[] TabsLeftToRight()
+    {
+        // Si todavía no se acomodaron (todas en la misma x), vale el orden de
+        // los botones en la jerarquía, que es el que usa el HorizontalLayoutGroup.
+        return tabs
+            .OrderBy(tab => tab.background != null ? Mathf.Round(tab.background.transform.position.x) : float.MaxValue)
+            .ThenBy(tab => tab.background != null ? tab.background.transform.GetSiblingIndex() : int.MaxValue)
+            .ToArray();
+    }
+
+    /// <summary>
+    /// 0 a 3 según la tecla 1 a 4 que se apretó en este cuadro (arriba de las
+    /// letras o del teclado numérico); −1 si ninguna.
+    /// </summary>
+    private static int PressedNumberKey()
+    {
+#if ENABLE_INPUT_SYSTEM
+        UnityEngine.InputSystem.Keyboard keyboard = UnityEngine.InputSystem.Keyboard.current;
+
+        if (keyboard == null)
+            return -1;
+
+        if (keyboard.digit1Key.wasPressedThisFrame || keyboard.numpad1Key.wasPressedThisFrame) return 0;
+        if (keyboard.digit2Key.wasPressedThisFrame || keyboard.numpad2Key.wasPressedThisFrame) return 1;
+        if (keyboard.digit3Key.wasPressedThisFrame || keyboard.numpad3Key.wasPressedThisFrame) return 2;
+        if (keyboard.digit4Key.wasPressedThisFrame || keyboard.numpad4Key.wasPressedThisFrame) return 3;
+#else
+        if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1)) return 0;
+        if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2)) return 1;
+        if (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3)) return 2;
+        if (Input.GetKeyDown(KeyCode.Alpha4) || Input.GetKeyDown(KeyCode.Keypad4)) return 3;
+#endif
+        return -1;
     }
 
     public void ShowCategory(PartType type)
