@@ -35,6 +35,9 @@ public class CatalogFlowUI : MonoBehaviour
 
     [SerializeField] private TMP_Text playersText;
 
+    [Tooltip("Casilleros con los nombres: verde si está listo, rojo si no. El anfitrión va en el normal.")]
+    [SerializeField] private PlayerNameGrid playerGrid;
+
     [Tooltip("Lista de piezas: se bloquea mientras el jugador está listo.")]
     [SerializeField] private CanvasGroup selectionGroup;
 
@@ -106,7 +109,7 @@ public class CatalogFlowUI : MonoBehaviour
                 canStart = ready == total;
 
                 if (!canStart)
-                    status = $"Esperando que estén listos ({ready}/{total})";
+                    status = GameLanguage.Text("Esperando que estén listos", "Waiting for everyone to be ready") + $" ({ready}/{total})";
             }
 
             raceButton.interactable = canStart && !starting;
@@ -114,8 +117,8 @@ public class CatalogFlowUI : MonoBehaviour
         else
         {
             readyButton.interactable = multiplayer;
-            SetText(readyButtonText, localReady ? "CANCELAR" : "¡LISTO!");
-            status = localReady ? "Esperando al anfitrión..." : "Elegí tus piezas y tocá ¡LISTO!";
+            SetText(readyButtonText, localReady ? GameLanguage.Text("Cancelar", "Cancel") : GameLanguage.Text("¡Listo!", "Ready!"));
+            status = localReady ? GameLanguage.Text("Esperando al anfitrión...", "Waiting for the host...") : GameLanguage.Text("Elegí tus piezas y tocá ¡Listo!", "Pick your parts and press Ready!");
         }
 
         SetText(waitingText, status);
@@ -124,13 +127,47 @@ public class CatalogFlowUI : MonoBehaviour
             waitingText.gameObject.SetActive(status.Length > 0);
 
         if (multiplayer)
-            SetText(playersText, BuildPlayerList());
+        {
+            if (playersText != null)
+                SetText(playersText, BuildPlayerList());
+
+            if (playerGrid != null)
+                RefreshPlayerGrid();
+        }
+    }
+
+    private readonly System.Collections.Generic.List<string> gridNames = new System.Collections.Generic.List<string>();
+    private readonly System.Collections.Generic.List<PlayerNameGrid.SlotState> gridStates = new System.Collections.Generic.List<PlayerNameGrid.SlotState>();
+
+    /// <summary>Nombres arriba del Taller: verde listo, rojo no listo; el anfitrión, normal.</summary>
+    private void RefreshPlayerGrid()
+    {
+        gridNames.Clear();
+        gridStates.Clear();
+
+        for (int i = 0; i < lobby.Count; i++)
+        {
+            CatalogLobby.Player player = lobby[i];
+            gridNames.Add(player.Name.ToString());
+
+            if (lobby.IsHostPlayer(player.ClientId))
+                gridStates.Add(PlayerNameGrid.SlotState.Normal);
+            else
+                gridStates.Add(player.IsReady ? PlayerNameGrid.SlotState.Ready : PlayerNameGrid.SlotState.NotReady);
+        }
+
+        int slots = playerGrid.Capacity;
+
+        if (GameSession.Instance != null && GameSession.Instance.Session != null)
+            slots = GameSession.Instance.Session.MaxPlayers;
+
+        playerGrid.Show(gridNames, gridStates, slots);
     }
 
     private string BuildPlayerList()
     {
         builder.Clear();
-        builder.Append("<b>JUGADORES</b>");
+        builder.Append("<b>").Append(GameLanguage.Text("JUGADORES", "PLAYERS")).Append("</b>");
 
         for (int i = 0; i < lobby.Count; i++)
         {
@@ -139,11 +176,11 @@ public class CatalogFlowUI : MonoBehaviour
             builder.Append('\n').Append(player.Name.ToString().ToUpperInvariant()).Append("  ");
 
             if (lobby.IsHostPlayer(player.ClientId))
-                builder.Append("<color=").Append(HostColor).Append(">ANFITRIÓN</color>");
+                builder.Append("<color=").Append(HostColor).Append(">").Append(GameLanguage.Text("ANFITRIÓN", "HOST")).Append("</color>");
             else if (player.IsReady)
-                builder.Append("<color=").Append(ReadyColor).Append(">LISTO</color>");
+                builder.Append("<color=").Append(ReadyColor).Append(">").Append(GameLanguage.Text("LISTO", "READY")).Append("</color>");
             else
-                builder.Append("<color=").Append(PickingColor).Append(">eligiendo...</color>");
+                builder.Append("<color=").Append(PickingColor).Append(">").Append(GameLanguage.Text("eligiendo...", "picking...")).Append("</color>");
         }
 
         return builder.ToString();

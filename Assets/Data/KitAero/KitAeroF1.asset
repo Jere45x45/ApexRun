@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92f86fc8aed07fc4883068ca75e8bb66, type: 3}
+  m_Name: KitAeroF1
+  m_EditorClassIdentifier: Assembly-CSharp::AeroKitData
+  partID: kitaero_basic
+  partName: Basic Kit Aero
+  description: "Alerones estilo F\xF3rmula 1 adelante y atr\xE1s, con pontones: carga
+    y resistencia intermedias."
+  effects:
+  - Equilibrado
+  - "+ Agarre en curvas r\xE1pidas"
+  icon: {fileID: 21300000, guid: 37568e7e321fa814bafcfe8d73f3d143, type: 3}
+  modelPrefab: {fileID: 919132149155446097, guid: 2224745baedfe6c4ebeeb2620b4ae6c6,
+    type: 3}
+  rarity: 4
+  partNameEn: Basic Aero Kit
+  descriptionEn: 'Formula 1 style front and rear wings, with sidepods: medium downforce
+    and drag.'
+  effectsEn:
+  - Balanced
+  - + Grip in fast corners
+  downforce: 300
+  aerodynamicDrag: 0.022
+  aeroSettings:
+    airDensity: 1.225
+    dragArea: 0.5
+    downforceArea: 0.35
+    centerOfPressure: {x: 0, y: 0.3, z: -0.35}

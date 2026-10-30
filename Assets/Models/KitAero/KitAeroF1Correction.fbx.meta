@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: bb46cf7c8cb8af24cad5f81ff6ada706
+guid: 2224745baedfe6c4ebeeb2620b4ae6c6
 ModelImporter:
   serializedVersion: 24300
   internalIDToNameTable: []
@@ -8,22 +8,22 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: FerrariTexture
-    second: {fileID: 2100000, guid: 68004d6006917124c86dc2dafeebb43f, type: 2}
+    second: {fileID: 2100000, guid: 7b454692cdafe5840bea4aae411bb499, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: TomadeAire
-    second: {fileID: 2100000, guid: 1c55d1db0eeb2d744a2011947e172a3b, type: 2}
+    second: {fileID: 2100000, guid: 4fbc82b8f57a71a4bb86a20078b8e4bf, type: 2}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: FerrariTextureDefinitive
-    second: {fileID: 2800000, guid: 9a40ccea5efad9542b2d950eae4d9092, type: 3}
+    second: {fileID: 2800000, guid: 5c012edd597254a47bec3bf16e0fc4ff, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: "Mapa normal UV de carro de F\xF3rmula 1"
-    second: {fileID: 2800000, guid: 0d7e723957aec8c4f99711c4bc167645, type: 3}
+    second: {fileID: 2800000, guid: aee86231c4f2c7c4485d3a70610740ff, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0

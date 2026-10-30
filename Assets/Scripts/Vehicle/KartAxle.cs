@@ -82,7 +82,8 @@ public class KartAxle
 
         foreach (KartWheel wheel in wheels)
         {
-            wheel.UpdateDeflections(AngularVelocity, substepTime, tire);
+            // Cada rueda gira con el eje, más su diferencia propia (0 en un eje rígido).
+            wheel.UpdateDeflections(AngularVelocity + wheel.AxleSpeedOffset, substepTime, tire);
 
             if (!wheel.HasGrip)
                 continue;
@@ -92,7 +93,7 @@ public class KartAxle
 
             float damping = wheel.SubstepDampingCoefficient;
             dampingSum += damping * radius * radius;
-            dampingVelocitySum += damping * radius * wheel.LongitudinalVelocity;
+            dampingVelocitySum += damping * radius * (wheel.LongitudinalVelocity - wheel.AxleSpeedOffset * radius);
 
             // En pasto o tierra la rueda se hunde y arrastra más que en asfalto.
             float surfaceRolling = wheel.CurrentSurface != null
@@ -128,7 +129,7 @@ public class KartAxle
 
         foreach (KartWheel wheel in wheels)
         {
-            wheel.FinishSubstep(AngularVelocity, substepTime, tire);
+            wheel.FinishSubstep(AngularVelocity + wheel.AxleSpeedOffset, substepTime, tire);
         }
     }
 }

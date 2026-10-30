@@ -28,6 +28,14 @@ public class TrackCenterline : MonoBehaviour
     [Tooltip("Distancia entre puntos de la línea (m).")]
     [SerializeField, Min(0.5f)] private float pointSpacing = 2f;
 
+    [Tooltip("Opcional. Si el asfalto viene en el mismo objeto que otras cosas (por ejemplo, los pianos), " +
+             "la línea se saca solo de las caras con este material. Vacío = todo el objeto.")]
+    [SerializeField] private Material roadMaterial;
+
+    [Tooltip("Opcional. Otros materiales que también son asfalto (por ejemplo, la línea de llegada pintada). " +
+             "Solo se usan si Road Material está puesto.")]
+    [SerializeField] private Material[] extraRoadMaterials = new Material[0];
+
     [Header("Datos generados")]
     [SerializeField] private Vector3[] points = new Vector3[0];
 
@@ -41,6 +49,15 @@ public class TrackCenterline : MonoBehaviour
     public IReadOnlyList<Vector3> Points => points;
 
     public float AverageWidth => averageWidth;
+
+    /// <summary>Collider del asfalto desde el que se genera la línea.</summary>
+    public MeshCollider TrackSurface => trackSurface;
+
+    /// <summary>Línea de llegada (su eje Z apunta en el sentido de carrera).</summary>
+    public Transform StartFinishLine => startFinishLine;
+
+    /// <summary>Puntos que no cayeron sobre el asfalto en la última generación (solo en el editor).</summary>
+    public int LastMissedPoints { get; private set; }
 
     public bool IsValid => points != null && points.Length >= 3;
 
@@ -193,24 +210,57 @@ public class TrackCenterline : MonoBehaviour
     [ContextMenu("Generar desde la pista")]
     private void GenerateFromTrack()
     {
+        Generate();
+    }
+
+    /// <summary>
+    /// Igual que "Generar desde la pista". Devuelve false (y explica por qué en
+    /// la consola) si no se pudo. La usa TrackSetup ("Preparar pista").
+    /// </summary>
+    public bool Generate()
+    {
         if (trackSurface == null || trackSurface.sharedMesh == null)
         {
             Debug.LogError("TrackCenterline necesita el MeshCollider de la pista.", this);
-            return;
+            return false;
         }
 
         if (startFinishLine == null)
         {
             Debug.LogError("TrackCenterline necesita la línea de llegada.", this);
-            return;
+            return false;
         }
 
-        List<List<Vector3>> borders = FindBorders(trackSurface);
+        HashSet<Material> roadMaterials = new HashSet<Material>();
+
+        if (roadMaterial != null)
+        {
+            roadMaterials.Add(roadMaterial);
+
+            foreach (Material extra in extraRoadMaterials)
+            {
+                if (extra != null)
+                    roadMaterials.Add(extra);
+            }
+        }
+
+        List<List<Vector3>> borders = FindBorders(trackSurface, roadMaterials);
 
         if (borders.Count < 2)
         {
-            Debug.LogError($"Se esperaban dos bordes (exterior e interior) y se encontraron {borders.Count}.", this);
-            return;
+            Debug.LogError(
+                $"Se esperaban dos bordes (exterior e interior) y se encontraron {borders.Count}. " +
+                "El asfalto tiene que ser un solo objeto con forma de anillo, sin calles de boxes ni partes sueltas.",
+                this);
+            return false;
+        }
+
+        if (borders.Count > 2)
+        {
+            Debug.LogWarning(
+                $"El asfalto tiene {borders.Count} bordes (se esperaban 2). Se usan los dos más largos; " +
+                "revisá que la línea siga la pista (se ve en amarillo con el objeto seleccionado).",
+                this);
         }
 
         // El más largo es el exterior y el siguiente, el interior.
@@ -242,6 +292,7 @@ public class TrackCenterline : MonoBehaviour
         points = center.ToArray();
         averageWidth = widthSum / outer.Count;
         cumulative = null;
+        LastMissedPoints = missed;
 
         EditorUtility.SetDirty(this);
 
@@ -249,15 +300,17 @@ public class TrackCenterline : MonoBehaviour
             $"Línea central: {points.Length} puntos, {Length:F0} m, ancho medio {averageWidth:F1} m. " +
             $"Puntos que no cayeron sobre el asfalto: {missed}.",
             this);
+
+        return true;
     }
 
-    private static List<List<Vector3>> FindBorders(MeshCollider surface)
+    private static List<List<Vector3>> FindBorders(MeshCollider surface, HashSet<Material> onlyMaterials)
     {
         Mesh mesh = surface.sharedMesh;
         Transform meshTransform = surface.transform;
 
         Vector3[] vertices = mesh.vertices;
-        int[] triangles = mesh.triangles;
+        int[] triangles = GetRoadTriangles(surface, mesh, onlyMaterials);
 
         // Une los vértices que están en el mismo lugar (el FBX los repite por
         // normales o UV distintas).
@@ -349,6 +402,35 @@ public class TrackCenterline : MonoBehaviour
         }
 
         return loops;
+    }
+
+    /// <summary>
+    /// Triángulos del asfalto: todos, o solo los de las partes del objeto que
+    /// usan onlyMaterial (si el objeto tiene ese material).
+    /// </summary>
+    private static int[] GetRoadTriangles(MeshCollider surface, Mesh mesh, HashSet<Material> onlyMaterials)
+    {
+        MeshRenderer renderer = surface.GetComponent<MeshRenderer>();
+
+        if (onlyMaterials == null || onlyMaterials.Count == 0 || renderer == null)
+            return mesh.triangles;
+
+        Material[] materials = renderer.sharedMaterials;
+        List<int> result = new List<int>();
+
+        for (int sub = 0; sub < mesh.subMeshCount && sub < materials.Length; sub++)
+        {
+            if (materials[sub] != null && onlyMaterials.Contains(materials[sub]))
+                result.AddRange(mesh.GetTriangles(sub));
+        }
+
+        if (result.Count == 0)
+        {
+            Debug.LogWarning($"TrackCenterline: el objeto {surface.name} no usa los materiales del asfalto. Se usa todo el objeto.", surface);
+            return mesh.triangles;
+        }
+
+        return result.ToArray();
     }
 
     private static void CountEdge(Dictionary<long, int> edgeUse, int a, int b)

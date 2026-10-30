@@ -14,18 +14,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AeroKitData
   partID: kitaero_pro
   partName: Kit Aero Pro
-  description: 
+  description: "Carrocer\xEDa de karting de competencia (trompa, pontones y paragolpes):
+    casi no genera carga, pero corta bien el aire."
   effects:
-  - + Agarre en curva
-  - "- Velocidad m\xE1xima"
-  icon: {fileID: 0}
-  modelPrefab: {fileID: 919132149155446097, guid: bf2cbaeb166255e40b0b0c98bd8dd337,
+  - + Velocidad en recta
+  - "- Agarre en curvas r\xE1pidas"
+  icon: {fileID: 21300000, guid: 84f5c186851aedf4ba2b0a6506917c8d, type: 3}
+  modelPrefab: {fileID: 919132149155446097, guid: 4d2de96090bff8946b1cd6c6f0032c05,
     type: 3}
-  rarity: 0
-  downforce: 100
-  aerodynamicDrag: 0.02
+  rarity: 2
+  partNameEn: Pro Aero Kit
+  descriptionEn: 'Racing kart bodywork (nose, sidepods and bumper): almost no downforce,
+    but it cuts through the air.'
+  effectsEn:
+  - + Straight-line speed
+  - '- Grip in fast corners'
+  downforce: 50
+  aerodynamicDrag: 0.018
   aeroSettings:
     airDensity: 1.225
-    dragArea: 0.46
-    downforceArea: 0.08
+    dragArea: 0.4
+    downforceArea: 0.04
     centerOfPressure: {x: 0, y: 0.3, z: -0.5}
