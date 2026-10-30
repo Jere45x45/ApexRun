@@ -2134,8 +2134,10 @@ MonoBehaviour:
   startLightCount: 5
   startLightInterval: 1
   startHoldRange: {x: 0.2, y: 3}
-  jumpStartPenalty: 5
-  jumpStartDistance: 0.75
+  jumpStartMinPenalty: 2
+  jumpStartPenaltyPerSecond: 2
+  jumpStartMaxPenalty: 10
+  jumpStartDistance: 0.1
   penaltyManager: {fileID: 1087921607}
   startAutomatically: 1
   expectedPlayers: 1

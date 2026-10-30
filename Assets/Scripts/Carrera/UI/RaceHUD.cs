@@ -45,8 +45,12 @@ public class RaceHUD : MonoBehaviour
     [SerializeField] private TMP_Text warningText;
 
     private KartBehaviour playerBehaviour;
+    private RaceManager raceManager;
     private float penaltyMessageUntil = -1f;
     private float lastPenaltySeconds;
+
+    // El último aviso de penalización fue por salida en falso (no por límites).
+    private bool lastPenaltyWasJumpStart;
 
     // Últimos valores mostrados, para no rearmar el texto en cada frame.
     private int shownPosition = -1;
@@ -63,12 +67,21 @@ public class RaceHUD : MonoBehaviour
     {
         if (timingManager != null)
             timingManager.PenaltyApplied += HandlePenaltyApplied;
+
+        if (raceManager == null)
+            raceManager = FindFirstObjectByType<RaceManager>();
+
+        if (raceManager != null)
+            raceManager.JumpStart += HandleJumpStart;
     }
 
     private void OnDisable()
     {
         if (timingManager != null)
             timingManager.PenaltyApplied -= HandlePenaltyApplied;
+
+        if (raceManager != null)
+            raceManager.JumpStart -= HandleJumpStart;
     }
 
     private void Start()
@@ -114,8 +127,25 @@ public class RaceHUD : MonoBehaviour
         if (kart != playerKart)
             return;
 
+        // La de la salida en falso ya la avisó HandleJumpStart.
+        if (lastPenaltyWasJumpStart && Time.time < penaltyMessageUntil && Mathf.Approximately(seconds, lastPenaltySeconds))
+            return;
+
+        lastPenaltyWasJumpStart = false;
         lastPenaltySeconds = seconds;
         penaltyMessageUntil = Time.time + penaltyMessageDuration;
+        shownWarning = -1;
+    }
+
+    private void HandleJumpStart(KartBehaviour kart, float seconds)
+    {
+        if (kart == null || playerKart == null || kart.gameObject != playerKart.gameObject)
+            return;
+
+        lastPenaltyWasJumpStart = true;
+        lastPenaltySeconds = seconds;
+        penaltyMessageUntil = Time.time + penaltyMessageDuration + 1f;
+        shownWarning = -1;
     }
 
     private void UpdateLap()
@@ -219,7 +249,9 @@ public class RaceHUD : MonoBehaviour
             warningPanel.SetActive(warning != 0);
 
         if (warning == 2)
-            SetText(warningText, "<color=#FF5A4A>+" + FormatSeconds(lastPenaltySeconds) + " s</color>  " + GameLanguage.Text("LÍMITES DE PISTA", "TRACK LIMITS"));
+            SetText(warningText, "<color=#FF5A4A>+" + FormatSeconds(lastPenaltySeconds) + " s</color>  " + (lastPenaltyWasJumpStart
+                ? GameLanguage.Text("SALIDA EN FALSO", "JUMP START")
+                : GameLanguage.Text("LÍMITES DE PISTA", "TRACK LIMITS")));
         else if (warning == 1)
             SetText(warningText, "<color=#FFC23D>" + GameLanguage.Text("FUERA DE PISTA", "OFF TRACK") + "</color>");
         else

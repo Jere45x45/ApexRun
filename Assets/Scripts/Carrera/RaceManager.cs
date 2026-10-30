@@ -42,11 +42,17 @@ public class RaceManager : NetworkBehaviour
     [Tooltip("Con todas prendidas, se apagan (y se larga) después de un tiempo al azar entre estos dos (s).")]
     [SerializeField] private Vector2 startHoldRange = new Vector2(0.2f, 3f);
 
-    [Tooltip("Penalización por salir antes de que se apaguen las luces (s).")]
-    [SerializeField, Min(0f)] private float jumpStartPenalty = 5f;
+    [Tooltip("Salida en falso: penalización mínima (s), aunque salgas un instante antes.")]
+    [SerializeField, Min(0f)] private float jumpStartMinPenalty = 2f;
 
-    [Tooltip("Cuánto se puede mover un kart antes de la largada sin que cuente como salida en falso (m).")]
-    [SerializeField, Min(0.1f)] private float jumpStartDistance = 0.75f;
+    [Tooltip("Salida en falso: segundos de penalización que se suman por cada segundo que te adelantaste.")]
+    [SerializeField, Min(0f)] private float jumpStartPenaltyPerSecond = 2f;
+
+    [Tooltip("Salida en falso: penalización máxima (s).")]
+    [SerializeField, Min(0f)] private float jumpStartMaxPenalty = 10f;
+
+    [Tooltip("Cuánto se puede mover un kart antes de la largada sin que cuente como salida en falso (m). Es casi nada: solo para que no cuente el asentarse de la suspensión.")]
+    [SerializeField, Min(0.01f)] private float jumpStartDistance = 0.1f;
 
     [SerializeField] private RacePenaltyManager penaltyManager;
 
@@ -105,8 +111,8 @@ public class RaceManager : NetworkBehaviour
 
     public float StartLightInterval => startLightInterval;
 
-    /// <summary>Un kart se movió antes de la largada (ya se le pidió la penalización).</summary>
-    public event Action<KartBehaviour> JumpStart;
+    /// <summary>Un kart se movió antes de la largada (ya se le pidió la penalización): el kart y los segundos.</summary>
+    public event Action<KartBehaviour, float> JumpStart;
 
     /// <summary>Los karts que corren esta carrera (en esta computadora: todos, propios y ajenos).</summary>
     public IReadOnlyList<KartBehaviour> RaceKarts => raceKarts;
@@ -404,11 +410,16 @@ public class RaceManager : NetworkBehaviour
 
             jumpStarted.Add(kart);
 
-            if (penaltyManager != null && jumpStartPenalty > 0f)
-                penaltyManager.RequestPenalty(kart.GetComponent<Rigidbody>(), jumpStartPenalty);
+            // Cuanto antes sale, más penalización.
+            float early = Mathf.Max(0f, countdownTimer);
+            float penalty = Mathf.Clamp(jumpStartMinPenalty + early * jumpStartPenaltyPerSecond, jumpStartMinPenalty, Mathf.Max(jumpStartMinPenalty, jumpStartMaxPenalty));
+            penalty = Mathf.Round(penalty * 10f) / 10f;
 
-            Debug.Log($"Salida en falso: {kart.name} (+{jumpStartPenalty} s)", this);
-            JumpStart?.Invoke(kart);
+            if (penaltyManager != null && penalty > 0f)
+                penaltyManager.RequestPenalty(kart.GetComponent<Rigidbody>(), penalty);
+
+            Debug.Log($"Salida en falso: {kart.name}, {early:F2} s antes (+{penalty} s)", this);
+            JumpStart?.Invoke(kart, penalty);
         }
     }
 
