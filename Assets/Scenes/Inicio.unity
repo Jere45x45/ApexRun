@@ -8489,8 +8489,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Multijugador
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 3158a27e0c6fbc14ab8538cbe61724c4, type: 2}
-  m_sharedMaterial: {fileID: 8110862260727370267, guid: 3158a27e0c6fbc14ab8538cbe61724c4,
+  m_fontAsset: {fileID: 11400000, guid: 11868b6827247d24c898323839178a9b, type: 2}
+  m_sharedMaterial: {fileID: 5852569127028472861, guid: 11868b6827247d24c898323839178a9b,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -14203,8 +14203,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "Configuraci\xF3n"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 3158a27e0c6fbc14ab8538cbe61724c4, type: 2}
-  m_sharedMaterial: {fileID: 8110862260727370267, guid: 3158a27e0c6fbc14ab8538cbe61724c4,
+  m_fontAsset: {fileID: 11400000, guid: 11868b6827247d24c898323839178a9b, type: 2}
+  m_sharedMaterial: {fileID: 5852569127028472861, guid: 11868b6827247d24c898323839178a9b,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -20193,8 +20193,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Salir
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 3158a27e0c6fbc14ab8538cbe61724c4, type: 2}
-  m_sharedMaterial: {fileID: 8110862260727370267, guid: 3158a27e0c6fbc14ab8538cbe61724c4,
+  m_fontAsset: {fileID: 11400000, guid: 11868b6827247d24c898323839178a9b, type: 2}
+  m_sharedMaterial: {fileID: 5852569127028472861, guid: 11868b6827247d24c898323839178a9b,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -21714,8 +21714,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "Mec\xE1nico IA"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 3158a27e0c6fbc14ab8538cbe61724c4, type: 2}
-  m_sharedMaterial: {fileID: 8110862260727370267, guid: 3158a27e0c6fbc14ab8538cbe61724c4,
+  m_fontAsset: {fileID: 11400000, guid: 11868b6827247d24c898323839178a9b, type: 2}
+  m_sharedMaterial: {fileID: 5852569127028472861, guid: 11868b6827247d24c898323839178a9b,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -23273,8 +23273,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 3158a27e0c6fbc14ab8538cbe61724c4, type: 2}
-  m_sharedMaterial: {fileID: 8110862260727370267, guid: 3158a27e0c6fbc14ab8538cbe61724c4,
+  m_fontAsset: {fileID: 11400000, guid: 11868b6827247d24c898323839178a9b, type: 2}
+  m_sharedMaterial: {fileID: 5852569127028472861, guid: 11868b6827247d24c898323839178a9b,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 316239806}
@@ -29065,8 +29065,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Un jugador
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 3158a27e0c6fbc14ab8538cbe61724c4, type: 2}
-  m_sharedMaterial: {fileID: 8110862260727370267, guid: 3158a27e0c6fbc14ab8538cbe61724c4,
+  m_fontAsset: {fileID: 11400000, guid: 11868b6827247d24c898323839178a9b, type: 2}
+  m_sharedMaterial: {fileID: 5852569127028472861, guid: 11868b6827247d24c898323839178a9b,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
