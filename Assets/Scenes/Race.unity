@@ -7685,6 +7685,7 @@ MonoBehaviour:
   - {fileID: 2022065112}
   botPrefab: {fileID: 1076166561666605962, guid: 93823baeed8dfa14c8892be01e8f0084,
     type: 3}
+  botParts: {fileID: 11400000, guid: f22e53e9fcb9eda429d4cbee8da958c3, type: 2}
 --- !u!4 &1147469653
 Transform:
   m_ObjectHideFlags: 0

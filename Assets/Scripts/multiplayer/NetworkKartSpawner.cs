@@ -25,6 +25,9 @@ public class NetworkKartSpawner : MonoBehaviour
     [Tooltip("Prefab del bot de red (KartBotRed: un kart de red con CustomIABots y BotRandomizer).")]
     [SerializeField] private NetworkObject botPrefab;
 
+    [Tooltip("Con qué piezas corre cada nivel (solo estadísticas; lo que se ve lo elige BotRandomizer al azar). Es el mismo asset que usa el entrenamiento.")]
+    [SerializeField] private BotPartsByLevel botParts;
+
     private readonly Dictionary<ulong, int> slotByClient = new Dictionary<ulong, int>();
 
     private NetworkManager networkManager;
@@ -131,6 +134,10 @@ public class NetworkKartSpawner : MonoBehaviour
             if (driver != null)
                 driver.SetDifficulty(difficulty);
 
+            // Cómo anda: las piezas del nivel. Lo que se ve sigue siendo al
+            // azar (BotRandomizer, abajo), sin tocar las estadísticas.
+            InstallBotParts(bot, difficulty);
+
             // Las piezas van antes de aparecer en red: así todos lo ven igual.
             BotRandomizer parts = bot.GetComponent<BotRandomizer>();
 
@@ -146,6 +153,13 @@ public class NetworkKartSpawner : MonoBehaviour
         }
 
         Debug.Log($"CARRERA: {botSlots} bots, nivel {RaceDifficultySettings.Label(difficulty)}.", this);
+    }
+
+    /// <summary>Instala en el bot las piezas de su nivel (motor, ruedas, kit aero...).</summary>
+    private void InstallBotParts(NetworkObject bot, RaceDifficulty difficulty)
+    {
+        if (botParts != null)
+            botParts.Install(bot.GetComponentInChildren<KartConfigurationController>(true), difficulty);
     }
 
     private int FindFreeSlot()
