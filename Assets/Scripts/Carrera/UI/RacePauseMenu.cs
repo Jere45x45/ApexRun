@@ -19,7 +19,7 @@ using UnityEngine.UI;
 /// - En red la carrera es de todos y no se frena: el menú se abre arriba de
 ///   la carrera, que sigue andando. Mientras está abierto, el kart propio no
 ///   recibe los mandos (sigue de largo sin acelerar, como si soltaras todo).
-///   No se abre solo al perder el foco y no tiene REINICIAR.
+///   No se abre solo al perder el foco y REINICIAR aparece deshabilitado.
 /// - Menú: CONTINUAR, REINICIAR (vuelve a cargar la carrera, como Reintentar
 ///   de los resultados; solo en un jugador) y SALIR AL MENÚ (vuelve al Inicio).
 /// Si la escena se cierra estando en pausa, deja el tiempo y el sonido como
@@ -197,8 +197,8 @@ public class RacePauseMenu : MonoBehaviour
             BlockPlayerInput();
         }
 
-        // Reiniciar la carrera es para un jugador: en red la reinicia el anfitrión para todos.
-        ShowRestartButton(frozen);
+        // Reiniciar la carrera es para un jugador: en red se ve deshabilitado.
+        SetRestartEnabled(frozen);
 
         if (panel != null)
             panel.SetActive(true);
@@ -225,6 +225,10 @@ public class RacePauseMenu : MonoBehaviour
     /// <summary>Vuelve a cargar la carrera (con la misma configuración).</summary>
     private void Restart()
     {
+        // En red no se reinicia desde la pausa (el botón está deshabilitado).
+        if (!frozen)
+            return;
+
         ReleasePause();
 
         NetworkManager manager = NetworkManager.Singleton;
@@ -263,21 +267,20 @@ public class RacePauseMenu : MonoBehaviour
         SceneManager.LoadScene(menuSceneName);
     }
 
-    /// <summary>Muestra u oculta REINICIAR. Sin él, SALIR AL MENÚ sube a su lugar y no queda un hueco.</summary>
-    private void ShowRestartButton(bool show)
+    /// <summary>
+    /// REINICIAR siempre se ve; en red queda deshabilitado (gris y sin responder).
+    /// SALIR AL MENÚ queda en su lugar.
+    /// </summary>
+    private void SetRestartEnabled(bool enabled)
     {
         if (restartButton == null)
             return;
 
-        restartButton.gameObject.SetActive(show);
+        restartButton.gameObject.SetActive(true);
+        restartButton.interactable = enabled;
 
-        if (!hasMenuButtonPosition || !(menuButton.transform is RectTransform menuRect) ||
-            !(restartButton.transform is RectTransform restartRect))
-        {
-            return;
-        }
-
-        menuRect.anchoredPosition = show ? menuButtonPosition : restartRect.anchoredPosition;
+        if (hasMenuButtonPosition && menuButton.transform is RectTransform menuRect)
+            menuRect.anchoredPosition = menuButtonPosition;
     }
 
     /// <summary>

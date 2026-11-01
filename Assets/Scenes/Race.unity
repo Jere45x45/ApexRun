@@ -4630,6 +4630,8 @@ MonoBehaviour:
   label: {fileID: 1389960200}
   normalColor: {r: 0, g: 0, b: 0, a: 1}
   activeColor: {r: 1, g: 1, b: 1, a: 1}
+  fadeWhenDisabled: 0
+  disabledAlpha: 0.4
 --- !u!114 &661553015
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4956,6 +4958,8 @@ MonoBehaviour:
   label: {fileID: 1110435792}
   normalColor: {r: 0, g: 0, b: 0, a: 1}
   activeColor: {r: 1, g: 1, b: 1, a: 1}
+  fadeWhenDisabled: 0
+  disabledAlpha: 0.4
 --- !u!1 &689569410
 GameObject:
   m_ObjectHideFlags: 0
@@ -9353,6 +9357,8 @@ MonoBehaviour:
   label: {fileID: 1963231286}
   normalColor: {r: 0, g: 0, b: 0, a: 1}
   activeColor: {r: 1, g: 1, b: 1, a: 1}
+  fadeWhenDisabled: 0
+  disabledAlpha: 0.4
 --- !u!1001 &1234663911
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11493,6 +11499,8 @@ MonoBehaviour:
   label: {fileID: 1805478237}
   normalColor: {r: 0, g: 0, b: 0, a: 1}
   activeColor: {r: 1, g: 1, b: 1, a: 1}
+  fadeWhenDisabled: 1
+  disabledAlpha: 0.4
 --- !u!1 &1480953974
 GameObject:
   m_ObjectHideFlags: 0
@@ -16227,6 +16235,8 @@ MonoBehaviour:
   label: {fileID: 985158889}
   normalColor: {r: 0, g: 0, b: 0, a: 1}
   activeColor: {r: 1, g: 1, b: 1, a: 1}
+  fadeWhenDisabled: 1
+  disabledAlpha: 0.4
 --- !u!1 &1998520990
 GameObject:
   m_ObjectHideFlags: 0

@@ -131,14 +131,18 @@ public class RaceResultsUI : MonoBehaviour
         }
 
         // Reintentar es del host: vuelve a cargar la carrera para todos.
+        // Los demás jugadores lo ven deshabilitado.
         if (retryButton != null)
-            retryButton.gameObject.SetActive(NetworkRole.IsAuthority);
+        {
+            retryButton.gameObject.SetActive(true);
+            retryButton.interactable = NetworkRole.IsAuthority;
+        }
 
         panel.SetActive(true);
         RefreshTable();
 
         // Para manejar los botones con joystick o teclado.
-        Button first = retryButton != null && retryButton.gameObject.activeSelf ? retryButton : menuButton;
+        Button first = retryButton != null && retryButton.gameObject.activeSelf && retryButton.interactable ? retryButton : menuButton;
 
         if (first != null && EventSystem.current != null)
             EventSystem.current.SetSelectedGameObject(first.gameObject);
@@ -199,6 +203,9 @@ public class RaceResultsUI : MonoBehaviour
 
     private void Retry()
     {
+        if (!NetworkRole.IsAuthority)
+            return;
+
         NetworkManager manager = NetworkManager.Singleton;
         string scene = SceneManager.GetActiveScene().name;
 
