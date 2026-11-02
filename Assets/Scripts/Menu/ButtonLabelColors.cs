@@ -8,6 +8,9 @@ using UnityEngine.UI;
 /// cuyo sprite cambia de color (gris → rojo): texto negro sobre el gris y
 /// blanco sobre el rojo (con el mouse encima, seleccionado o apretado).
 /// Va en el mismo objeto que el Button.
+///
+/// Con fadeWhenDisabled, si el botón no es interactuable se ve deshabilitado:
+/// el sprite y el texto quedan semitransparentes (disabledAlpha).
 /// </summary>
 [RequireComponent(typeof(Selectable))]
 public class ButtonLabelColors : MonoBehaviour,
@@ -16,6 +19,14 @@ public class ButtonLabelColors : MonoBehaviour,
     [SerializeField] private TMP_Text label;
     [SerializeField] private Color normalColor = Color.black;
     [SerializeField] private Color activeColor = Color.white;
+
+    [Header("Deshabilitado")]
+    [Tooltip("Si el botón no es interactuable, el sprite y el texto se ven apagados.")]
+    [SerializeField] private bool fadeWhenDisabled;
+    [SerializeField, Range(0f, 1f)] private float disabledAlpha = 0.4f;
+
+    private Graphic targetGraphic;
+    private Color graphicColor = Color.white;
 
     private Selectable selectable;
     private bool hovered;
@@ -27,6 +38,11 @@ public class ButtonLabelColors : MonoBehaviour,
 
         if (label == null)
             label = GetComponentInChildren<TMP_Text>(true);
+
+        targetGraphic = selectable != null ? selectable.targetGraphic : null;
+
+        if (targetGraphic != null)
+            graphicColor = targetGraphic.color;
     }
 
     private void OnDisable()
@@ -48,12 +64,29 @@ public class ButtonLabelColors : MonoBehaviour,
 
     private void Apply()
     {
+        bool interactable = selectable == null || selectable.IsInteractable();
+        bool faded = fadeWhenDisabled && !interactable;
+
+        if (targetGraphic != null && fadeWhenDisabled)
+        {
+            Color graphic = graphicColor;
+
+            if (faded)
+                graphic.a *= disabledAlpha;
+
+            if (targetGraphic.color != graphic)
+                targetGraphic.color = graphic;
+        }
+
         if (label == null)
             return;
 
         bool selected = EventSystem.current != null && EventSystem.current.currentSelectedGameObject == gameObject;
-        bool active = selectable != null && selectable.IsInteractable() && (hovered || pressed || selected);
+        bool active = interactable && (hovered || pressed || selected);
         Color color = active ? activeColor : normalColor;
+
+        if (faded)
+            color.a *= disabledAlpha;
 
         if (label.color != color)
             label.color = color;
