@@ -19,7 +19,8 @@ using UnityEngine.UI;
 /// - En red la carrera es de todos y no se frena: el menú se abre arriba de
 ///   la carrera, que sigue andando. Mientras está abierto, el kart propio no
 ///   recibe los mandos (sigue de largo sin acelerar, como si soltaras todo).
-///   No se abre solo al perder el foco y REINICIAR aparece deshabilitado.
+///   No se abre solo al perder el foco. REINICIAR solo lo puede usar el
+///   anfitrión (reinicia la carrera para todos); a los demás les aparece deshabilitado.
 /// - Menú: CONTINUAR, REINICIAR (vuelve a cargar la carrera, como Reintentar
 ///   de los resultados; solo en un jugador) y SALIR AL MENÚ (vuelve al Inicio).
 /// Si la escena se cierra estando en pausa, deja el tiempo y el sonido como
@@ -197,8 +198,8 @@ public class RacePauseMenu : MonoBehaviour
             BlockPlayerInput();
         }
 
-        // Reiniciar la carrera es para un jugador: en red se ve deshabilitado.
-        SetRestartEnabled(frozen);
+        // En red, reiniciar es del anfitrión: vuelve a cargar la carrera para todos.
+        SetRestartEnabled(frozen || NetworkRole.IsAuthority);
 
         if (panel != null)
             panel.SetActive(true);
@@ -225,8 +226,8 @@ public class RacePauseMenu : MonoBehaviour
     /// <summary>Vuelve a cargar la carrera (con la misma configuración).</summary>
     private void Restart()
     {
-        // En red no se reinicia desde la pausa (el botón está deshabilitado).
-        if (!frozen)
+        // En red solo reinicia el anfitrión (a los demás el botón les aparece deshabilitado).
+        if (!frozen && !NetworkRole.IsAuthority)
             return;
 
         ReleasePause();
@@ -268,7 +269,8 @@ public class RacePauseMenu : MonoBehaviour
     }
 
     /// <summary>
-    /// REINICIAR siempre se ve; en red queda deshabilitado (gris y sin responder).
+    /// REINICIAR siempre se ve; en red, a los que no son el anfitrión les queda
+    /// deshabilitado (gris y sin responder).
     /// SALIR AL MENÚ queda en su lugar.
     /// </summary>
     private void SetRestartEnabled(bool enabled)

@@ -178,6 +178,9 @@ public class KartBehaviour : MonoBehaviour
 
     public bool InputEnabled => inputEnabled;
 
+    /// <summary>Acelerador pedido por el jugador o el bot (-1 a 1). Lo usa el tiempo de reacción.</summary>
+    public float ThrottleInput => throttle;
+
     /// <summary>
     /// True si la física de este kart corre en esta computadora (un jugador, o
     /// el kart propio en multiplayer). False en los karts de los demás jugadores.

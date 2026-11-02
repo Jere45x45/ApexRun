@@ -52,6 +52,9 @@ public class RaceResultsUI : MonoBehaviour
     // Tu fila va en rojo (el del juego) y en negrita.
     private const string PlayerColor = "#A00000";
 
+    // Salida en falso en la columna de reacción.
+    private const string JumpStartColor = "#D35400";
+
     private readonly StringBuilder builder = new StringBuilder();
 
     private float showAt = -1f;
@@ -155,7 +158,7 @@ public class RaceResultsUI : MonoBehaviour
         int playerPosition = 0;
 
         builder.Clear();
-        builder.Append(GameLanguage.Text("<b>Pos.<pos=10%>Piloto<pos=36%>Tiempo<pos=54%>Penal.<pos=67%>Final<pos=85%>Mejor vuelta</b>\n", "<b>Pos.<pos=10%>Driver<pos=36%>Time<pos=54%>Pen.<pos=67%>Final<pos=85%>Best lap</b>\n"));
+        builder.Append(GameLanguage.Text("<b>Pos.<pos=9%>Piloto<pos=29%>Reacción<pos=42%>Tiempo<pos=57%>Penal.<pos=67%>Final<pos=83%>Mejor vuelta</b>\n", "<b>Pos.<pos=9%>Driver<pos=29%>Reaction<pos=42%>Time<pos=57%>Pen.<pos=67%>Final<pos=83%>Best lap</b>\n"));
 
         foreach (RaceTimingManager.Result result in results)
         {
@@ -168,20 +171,22 @@ public class RaceResultsUI : MonoBehaviour
             }
 
             builder.Append(result.Position).Append(GameLanguage.IsEnglish ? RaceHUD.Ordinal(result.Position) : ".º");
-            builder.Append("<pos=10%>").Append(isPlayer ? GameLanguage.Text("Vos", "You") : GetDisplayName(result.Kart));
+            builder.Append("<pos=9%>").Append(isPlayer ? GameLanguage.Text("Vos", "You") : GetDisplayName(result.Kart));
+
+            builder.Append("<pos=29%>").Append(FormatReaction(result));
 
             if (result.Finished)
             {
-                builder.Append("<pos=36%>").Append(FormatTime(result.RaceTime));
-                builder.Append("<pos=54%>").Append(result.Penalty > 0f ? "+" + FormatSeconds(result.Penalty) + " s" : "-");
+                builder.Append("<pos=42%>").Append(FormatTime(result.RaceTime));
+                builder.Append("<pos=57%>").Append(result.Penalty > 0f ? "+" + FormatSeconds(result.Penalty) + " s" : "-");
                 builder.Append("<pos=67%>").Append(FormatTime(result.FinalTime));
             }
             else
             {
-                builder.Append("<pos=36%>").Append(GameLanguage.Text("En carrera (vuelta ", "Racing (lap ")).Append(result.Lap).Append(')');
+                builder.Append("<pos=42%>").Append(GameLanguage.Text("En carrera (vuelta ", "Racing (lap ")).Append(result.Lap).Append(')');
             }
 
-            builder.Append("<pos=85%>").Append(result.BestLap >= 0f ? FormatTime(result.BestLap) : "--:--.---");
+            builder.Append("<pos=83%>").Append(result.BestLap >= 0f ? FormatTime(result.BestLap) : "--:--.---");
 
             if (isPlayer)
                 builder.Append("</b></color>");
@@ -247,6 +252,17 @@ public class RaceResultsUI : MonoBehaviour
         float rest = seconds - minutes * 60f;
 
         return minutes + ":" + rest.ToString("00.000", CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>Tiempo de reacción con milésimas; la salida en falso, negativa y en otro color.</summary>
+    private static string FormatReaction(RaceTimingManager.Result result)
+    {
+        if (!result.HasReactionTime)
+            return "-";
+
+        string text = result.ReactionTime.ToString("0.000", CultureInfo.InvariantCulture);
+
+        return result.ReactionTime < 0f ? "<color=" + JumpStartColor + ">" + text + "</color>" : text;
     }
 
     private static string FormatSeconds(float seconds)

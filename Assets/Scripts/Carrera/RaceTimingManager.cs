@@ -8,6 +8,9 @@ using UnityEngine;
 /// - En el servidor (el host) se mide todo: tiempo de carrera desde la
 ///   largada, última y mejor vuelta, llegada, penalizaciones, vuelta y
 ///   posición en pista. Los tiempos usan la hora del servidor.
+/// - Tiempo de reacción: desde que se apagan las luces hasta que el kart
+///   acelera. Lo mide la computadora que maneja cada kart (el dueño) y se lo
+///   manda al servidor. Si salió antes, es negativo (salida en falso).
 /// - Cada décima de segundo el servidor publica el estado de cada kart en una
 ///   NetworkList, y los clientes leen de ahí.
 /// - Tiempo final = tiempo + penalizaciones. Clasificación: primero los que
@@ -31,6 +34,12 @@ public class RaceTimingManager : NetworkBehaviour
     [Tooltip("Cada cuánto el servidor publica el estado de la carrera (s).")]
     [SerializeField, Range(0.02f, 0.5f)] private float publishInterval = 0.1f;
 
+    [Tooltip("Cuánto acelerador cuenta como reacción en la largada (0 a 1).")]
+    [SerializeField, Range(0.05f, 1f)] private float reactionThrottle = 0.3f;
+
+    /// <summary>Valor de tiempo de reacción que significa "todavía no se midió".</summary>
+    public const float NoReaction = -999f;
+
     /// <summary>Resultado de un kart en la clasificación.</summary>
     public struct Result
     {
@@ -42,6 +51,11 @@ public class RaceTimingManager : NetworkBehaviour
         public float BestLap;
         public float Penalty;
         public float FinalTime;
+
+        /// <summary>Tiempo de reacción en la largada (s). Negativo: salida en falso. NoReaction: no se midió.</summary>
+        public float ReactionTime;
+
+        public bool HasReactionTime => ReactionTime > NoReaction + 1f;
     }
 
     /// <summary>Estado de un kart que el servidor publica para los clientes.</summary>
@@ -56,6 +70,7 @@ public class RaceTimingManager : NetworkBehaviour
         public float LastLap;
         public float BestLap;
         public float Penalty;
+        public float Reaction;
 
         public bool Equals(KartStatus other)
         {
@@ -67,7 +82,8 @@ public class RaceTimingManager : NetworkBehaviour
                 && FinishTime == other.FinishTime
                 && LastLap == other.LastLap
                 && BestLap == other.BestLap
-                && Penalty == other.Penalty;
+                && Penalty == other.Penalty
+                && Reaction == other.Reaction;
         }
     }
 
@@ -84,6 +100,13 @@ public class RaceTimingManager : NetworkBehaviour
 
     // Lo que ven los clientes.
     private NetworkList<KartStatus> statuses;
+
+    // Servidor: tiempo de reacción de cada kart. No se borra en la largada,
+    // porque las salidas en falso se miden antes.
+    private readonly Dictionary<Rigidbody, float> reactions = new Dictionary<Rigidbody, float>();
+
+    // Esta computadora: karts propios a los que ya se les midió la reacción.
+    private readonly HashSet<KartBehaviour> reactionMeasured = new HashSet<KartBehaviour>();
 
     private readonly List<Result> classification = new List<Result>();
     private float nextPublish;
@@ -117,6 +140,7 @@ public class RaceTimingManager : NetworkBehaviour
         {
             raceManager.RaceStarted += HandleRaceStarted;
             raceManager.ClockShifted += HandleClockShifted;
+            raceManager.JumpStart += HandleJumpStart;
         }
 
         if (lapManager != null)
@@ -135,6 +159,7 @@ public class RaceTimingManager : NetworkBehaviour
         {
             raceManager.RaceStarted -= HandleRaceStarted;
             raceManager.ClockShifted -= HandleClockShifted;
+            raceManager.JumpStart -= HandleJumpStart;
         }
 
         if (lapManager != null)
@@ -170,6 +195,8 @@ public class RaceTimingManager : NetworkBehaviour
 
     private void Update()
     {
+        MeasureReactions();
+
         if (!IsSpawned || !IsServer || Time.unscaledTime < nextPublish)
             return;
 
@@ -209,6 +236,15 @@ public class RaceTimingManager : NetworkBehaviour
             return TryGetTiming(kart, out KartTiming timing) ? timing.BestLap : -1f;
 
         return TryGetStatus(kart, out KartStatus status) ? status.BestLap : -1f;
+    }
+
+    /// <summary>Tiempo de reacción en la largada (s). Negativo: salida en falso. NoReaction si no se midió.</summary>
+    public float GetReactionTime(Rigidbody kart)
+    {
+        if (IsAuthority)
+            return kart != null && reactions.TryGetValue(kart, out float reaction) ? reaction : NoReaction;
+
+        return TryGetStatus(kart, out KartStatus status) ? status.Reaction : NoReaction;
     }
 
     public bool IsFinished(Rigidbody kart)
@@ -280,7 +316,8 @@ public class RaceTimingManager : NetworkBehaviour
                 RaceTime = raceTime,
                 BestLap = GetBestLap(kart),
                 Penalty = penalty,
-                FinalTime = raceTime + penalty
+                FinalTime = raceTime + penalty,
+                ReactionTime = GetReactionTime(kart)
             });
         }
 
@@ -347,6 +384,85 @@ public class RaceTimingManager : NetworkBehaviour
         }
 
         return false;
+    }
+
+    // ───────────── Tiempo de reacción ─────────────
+
+    /// <summary>
+    /// Cada computadora mide sus karts: el primer momento, después de que se
+    /// apagan las luces, en que el acelerador pasa de reactionThrottle.
+    /// </summary>
+    private void MeasureReactions()
+    {
+        if (raceManager == null || raceManager.CurrentState != RaceManager.RaceState.Racing)
+            return;
+
+        float sinceStart = (float)(raceManager.Now - raceManager.StartServerTime);
+
+        if (sinceStart < 0f)
+            return;
+
+        foreach (KartBehaviour kart in raceManager.RaceKarts)
+        {
+            if (kart == null || !kart.IsSimulated || reactionMeasured.Contains(kart))
+                continue;
+
+            if (kart.ThrottleInput < reactionThrottle)
+                continue;
+
+            reactionMeasured.Add(kart);
+            ReportReaction(kart.GetComponent<Rigidbody>(), sinceStart);
+        }
+    }
+
+    /// <summary>Salida en falso: la reacción es cuánto antes salió (negativa).</summary>
+    private void HandleJumpStart(KartBehaviour kart, float penalty)
+    {
+        if (kart == null || reactionMeasured.Contains(kart))
+            return;
+
+        reactionMeasured.Add(kart);
+        ReportReaction(kart.GetComponent<Rigidbody>(), Mathf.Min(0f, (float)(raceManager.Now - raceManager.StartServerTime)));
+    }
+
+    private void ReportReaction(Rigidbody kart, float seconds)
+    {
+        if (kart == null)
+            return;
+
+        if (IsAuthority)
+        {
+            SetReaction(kart, seconds);
+            return;
+        }
+
+        NetworkObject kartObject = kart.GetComponent<NetworkObject>();
+
+        if (kartObject != null && kartObject.IsSpawned && IsSpawned)
+            ReportReactionRpc(kartObject, seconds);
+    }
+
+    [Rpc(SendTo.Server, RequireOwnership = false)]
+    private void ReportReactionRpc(NetworkObjectReference kartReference, float seconds, RpcParams rpcParams = default)
+    {
+        if (!kartReference.TryGet(out NetworkObject kartObject))
+            return;
+
+        // Solo el dueño de un kart puede mandar su tiempo de reacción.
+        if (kartObject.OwnerClientId != rpcParams.Receive.SenderClientId)
+            return;
+
+        SetReaction(kartObject.GetComponent<Rigidbody>(), Mathf.Clamp(seconds, -10f, 60f));
+    }
+
+    /// <summary>Servidor: guarda la reacción (la primera que llega de cada kart).</summary>
+    private void SetReaction(Rigidbody kart, float seconds)
+    {
+        if (kart == null || reactions.ContainsKey(kart))
+            return;
+
+        reactions[kart] = seconds;
+        PublishStatuses();
     }
 
     // ───────────── Medición (servidor) ─────────────
@@ -447,7 +563,8 @@ public class RaceTimingManager : NetworkBehaviour
                 FinishTime = timing != null ? timing.FinishTime : -1f,
                 LastLap = timing != null ? timing.LastLap : -1f,
                 BestLap = timing != null ? timing.BestLap : -1f,
-                Penalty = penaltyManager.GetPenaltyTime(kart)
+                Penalty = penaltyManager.GetPenaltyTime(kart),
+                Reaction = reactions.TryGetValue(kart, out float reaction) ? reaction : NoReaction
             };
 
             int index = IndexOf(status.KartId);
