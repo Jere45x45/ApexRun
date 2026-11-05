@@ -14,6 +14,8 @@ using UnityEngine.UI;
 /// - Bots (de 0 a 6), con − y +, y su Nivel (fácil, medio, difícil), con
 ///   &lt; y &gt;. Un jugador y Crear servidor guardan la cantidad aparte: al
 ///   crear un servidor arranca en 0, así solo hay bots si se ponen.
+///   En un jugador, sin bots dice "Contrarreloj": se corre contra el fantasma
+///   de la mejor vuelta (KartGhost).
 /// - Pista se ve pero todavía no se puede cambiar.
 /// Lo elegido queda guardado (RaceSetupStore, WeatherChoiceStore) y lo
 /// aplican en la carrera RaceSetupSync y RaceWeather.
@@ -235,7 +237,9 @@ public class RaceSetupMenuUI : MonoBehaviour
 
         int bots = RaceSetupStore.GetBots(multiplayer);
 
-        SetValue(botsValue, bots == 0 ? GameLanguage.Text("Sin bots", "No bots") : bots.ToString());
+        // Un jugador sin bots es contrarreloj: corre contra su fantasma (KartGhost).
+        string noBots = multiplayer ? GameLanguage.Text("Sin bots", "No bots") : GameLanguage.Text("Contrarreloj", "Time trial");
+        SetValue(botsValue, bots == 0 ? noBots : bots.ToString());
 
         SetUsable(botsMinus, bots > 0);
         SetUsable(botsPlus, bots < RaceSetupStore.MaxBots);
