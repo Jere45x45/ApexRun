@@ -112,12 +112,18 @@ public class KartWheel
         }
     }
 
+    /// <summary>
+    /// Multiplica el agarre según el estado de la cubierta: temperatura y
+    /// desgaste (1 = en su punto). Lo pone KartTireThermals; sin él queda en 1.
+    /// </summary>
+    public float ConditionGripMultiplier { get; set; } = 1f;
+
     /// <summary>True si la rueda está apoyada fuera de los límites de pista.</summary>
     public bool IsOnInvalidSurface =>
         IsGrounded && CurrentSurface != null && !CurrentSurface.IsValidForTrack;
 
-    /// <summary>Carga que genera agarre: la vertical corregida por la superficie (N).</summary>
-    private float GripLoad => VerticalLoad * SurfaceGripMultiplier;
+    /// <summary>Carga que genera agarre: la vertical corregida por la superficie y el estado de la cubierta (N).</summary>
+    private float GripLoad => VerticalLoad * SurfaceGripMultiplier * Mathf.Max(0f, ConditionGripMultiplier);
 
     // ---------- Neumático ----------
 

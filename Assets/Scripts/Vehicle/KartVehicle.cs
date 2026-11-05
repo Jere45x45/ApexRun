@@ -37,6 +37,12 @@ public class KartVehicle
     public ChassisSettings Chassis { get; private set; }
     public TireSettings Tire { get; private set; }
 
+    /// <summary>
+    /// Temperatura y desgaste de las cubiertas. Null = cubiertas siempre en su
+    /// punto (lo usan las pruebas de física). Lo crea KartBehaviour.
+    /// </summary>
+    public KartTireThermals TireThermals { get; set; }
+
     /// <summary>True cuando ya recibió sus valores con Configure.</summary>
     public bool IsConfigured => Engine != null;
 
@@ -229,6 +235,9 @@ public class KartVehicle
 
         // 4. Aire: resistencia y carga aerodinámica.
         Aerodynamics.Apply(body);
+
+        // 5. Temperatura y desgaste de las cubiertas: cambian el agarre del paso siguiente.
+        TireThermals?.Step(Wheels, Tire, ForwardSpeed, deltaTime);
     }
 
     /// <summary>

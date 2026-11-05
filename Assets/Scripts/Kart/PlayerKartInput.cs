@@ -32,6 +32,12 @@ public class PlayerKartInput : MonoBehaviour
 
     private void OnEnable()
     {
+        // El ABS, el control de tracción y la ayuda de volante de este kart
+        // siguen lo que el jugador eligió en Configuración. En OnEnable y no en
+        // Awake: los bots tienen este componente apagado y Awake corre igual.
+        if (kart != null)
+            kart.UsesPlayerAssists = true;
+
         throttleAction?.Enable();
         steeringAction?.Enable();
         brakeAction?.Enable();
@@ -39,6 +45,9 @@ public class PlayerKartInput : MonoBehaviour
 
     private void OnDisable()
     {
+        if (kart != null)
+            kart.UsesPlayerAssists = false;
+
         throttleAction?.Disable();
         steeringAction?.Disable();
         brakeAction?.Disable();

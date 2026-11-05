@@ -124,6 +124,18 @@ public class KartBehaviour : MonoBehaviour
              "Así, frenando hasta parar, el kart no sale para atrás de golpe.")]
     [SerializeField, Min(0f)] private float reverseDelay = 0.3f;
 
+    [Header("Rebufo")]
+    [Tooltip("Ir pegado detrás de otro kart baja la resistencia del aire (ver KartSlipstream).")]
+    [SerializeField] private bool slipstream = true;
+
+    [SerializeField] private KartSlipstream.Settings slipstreamSettings = new KartSlipstream.Settings();
+
+    [Header("Cubiertas")]
+    [Tooltip("Las cubiertas se calientan y se gastan, y eso cambia el agarre (ver KartTireThermals).")]
+    [SerializeField] private bool tireTemperatureAndWear = true;
+
+    [SerializeField] private TireThermalSettings tireThermals = new TireThermalSettings();
+
     [Header("Sin mandos")]
     [Tooltip("Freno (0 a 1) mientras el kart no tiene mandos habilitados y todavía se mueve, " +
              "por ejemplo después de cruzar la meta. 0 = rueda suelto.")]
@@ -159,6 +171,15 @@ public class KartBehaviour : MonoBehaviour
 
     // Freno pedido, ya con la rampa del teclado (0 a 1).
     private float brakeInput;
+
+    // Ayudas que eligió el jugador en Configuración (DrivingAssists). Solo
+    // cuentan si UsesPlayerAssists: los bots usan siempre las del Inspector.
+    private bool playerAbs = true;
+    private bool playerTractionControl = true;
+    private bool playerSteeringAssist = true;
+
+    // Rebufo de ahora, de 0 a 1 (ya suavizado).
+    private float slipstreamAmount;
 
     // Kart de otro jugador (multiplayer): la física corre en su computadora y
     // acá solo se muestra. Estos valores llegan por red (ver NetworkKart).
@@ -207,6 +228,28 @@ public class KartBehaviour : MonoBehaviour
     /// <summary>True mientras el kart está yendo para atrás con la marcha atrás.</summary>
     public bool IsReversing => reversing;
 
+    /// <summary>
+    /// True en el kart del jugador (lo pone PlayerKartInput): el ABS, el control
+    /// de tracción y la ayuda de volante siguen lo que eligió en Configuración
+    /// (DrivingAssists). False en los bots: usan siempre las del Inspector.
+    /// </summary>
+    public bool UsesPlayerAssists { get; set; }
+
+    private bool AbsActive => antiLockBrakes && (!UsesPlayerAssists || playerAbs);
+
+    private bool TractionControlActive => lowSpeedTractionControl && (!UsesPlayerAssists || playerTractionControl);
+
+    /// <summary>Cuánto rebufo recibe el kart ahora: 0 = aire libre, 1 = pegado y centrado detrás de otro.</summary>
+    public float Slipstream => slipstreamAmount;
+
+    /// <summary>Cuánto baja la resistencia del aire en el mejor lugar del rebufo (0 a 1).</summary>
+    public float SlipstreamMaxDragReduction => slipstreamSettings.maxDragReduction;
+
+    /// <summary>Temperatura y desgaste de las cubiertas. Null si el kart no tiene física o están apagados.</summary>
+    public KartTireThermals TireThermals => vehicle != null ? vehicle.TireThermals : null;
+
+    private bool SteeringAssistActive => limitSteeringToGrip && (!UsesPlayerAssists || playerSteeringAssist);
+
     /// <summary>Ángulo de las ruedas delanteras (°).</summary>
     public float SteerAngle => isSimulated ? currentSteerAngle : remoteSteerAngle;
 
@@ -216,6 +259,12 @@ public class KartBehaviour : MonoBehaviour
         {
             configurationController.ConfigurationChanged += RefreshKart;
         }
+
+        DrivingAssists.Changed += ReadPlayerAssists;
+        ReadPlayerAssists();
+
+        if (rb != null && vehicle != null)
+            KartSlipstream.Register(rb);
     }
 
     private void OnDisable()
@@ -224,6 +273,17 @@ public class KartBehaviour : MonoBehaviour
         {
             configurationController.ConfigurationChanged -= RefreshKart;
         }
+
+        DrivingAssists.Changed -= ReadPlayerAssists;
+
+        KartSlipstream.Unregister(rb);
+    }
+
+    private void ReadPlayerAssists()
+    {
+        playerAbs = DrivingAssists.Abs;
+        playerTractionControl = DrivingAssists.TractionControl;
+        playerSteeringAssist = DrivingAssists.SteeringAssist;
     }
 
     private void Start()
@@ -275,6 +335,9 @@ public class KartBehaviour : MonoBehaviour
         if (HasWheelColliders())
         {
             CreateVehicle();
+
+            // Deja estela para los que vienen atrás (también los karts de otros jugadores).
+            KartSlipstream.Register(rb);
         }
 
         // Los mandos arrancan apagados (inputEnabled vale false) y los habilita
@@ -351,6 +414,7 @@ public class KartBehaviour : MonoBehaviour
         float deltaTime = Time.fixedDeltaTime;
 
         ApplyInputs(deltaTime);
+        UpdateSlipstream(deltaTime);
 
         vehicle.Step(deltaTime);
     }
@@ -422,6 +486,23 @@ public class KartBehaviour : MonoBehaviour
         UpdateSteering(speed, deltaTime);
 
         vehicle.RearDifferential = lowSpeedDifferential ? lowSpeedAssist : 0f;
+    }
+
+    /// <summary>
+    /// Rebufo (ver KartSlipstream): busca si va en la estela de otro kart y baja
+    /// la resistencia del aire en esa medida. Entra y sale de a poco.
+    /// </summary>
+    private void UpdateSlipstream(float deltaTime)
+    {
+        float target = slipstream ? KartSlipstream.Evaluate(rb, slipstreamSettings) : 0f;
+        float response = slipstreamSettings.response;
+
+        slipstreamAmount = response > 0f
+            ? Mathf.MoveTowards(slipstreamAmount, target, deltaTime / response)
+            : target;
+
+        if (vehicle.Aerodynamics != null)
+            vehicle.Aerodynamics.DragMultiplier = 1f - slipstreamSettings.maxDragReduction * slipstreamAmount;
     }
 
     /// <summary>
@@ -499,7 +580,7 @@ public class KartBehaviour : MonoBehaviour
 
     private float UpdateBrakeLimit(ref float limit, int leftIndex, int rightIndex, float speed, float deltaTime)
     {
-        if (!antiLockBrakes || speed * 3.6f < absMinSpeedKmh)
+        if (!AbsActive || speed * 3.6f < absMinSpeedKmh)
         {
             limit = 1f;
             return 1f;
@@ -550,7 +631,7 @@ public class KartBehaviour : MonoBehaviour
     /// </summary>
     private float GetTractionLimit(float assist, float deltaTime)
     {
-        if (!lowSpeedTractionControl || assist <= 0f)
+        if (!TractionControlActive || assist <= 0f)
         {
             tractionLimit = 1f;
             return 1f;
@@ -643,7 +724,7 @@ public class KartBehaviour : MonoBehaviour
         lower = -lockAngle;
         upper = lockAngle;
 
-        if (!limitSteeringToGrip)
+        if (!SteeringAssistActive)
             return;
 
         Vector3 frontVelocity = GetFrontAxleLocalVelocity();
@@ -766,6 +847,9 @@ public class KartBehaviour : MonoBehaviour
     private void CreateVehicle()
     {
         vehicle = new KartVehicle(rb, wheelColliders);
+
+        if (tireTemperatureAndWear)
+            vehicle.TireThermals = new KartTireThermals(tireThermals, vehicle.Wheels.Length);
         wheelVisuals = new KartWheelVisual[vehicle.Wheels.Length];
         wheelRadii = new float[vehicle.Wheels.Length];
 
