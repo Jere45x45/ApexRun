@@ -338,6 +338,10 @@ public class KartBehaviour : MonoBehaviour
 
             // Deja estela para los que vienen atrás (también los karts de otros jugadores).
             KartSlipstream.Register(rb);
+
+            // Humo, tierra, agua y chispas (ver KartEffects).
+            if (GetComponent<KartEffects>() == null)
+                gameObject.AddComponent<KartEffects>();
         }
 
         // Los mandos arrancan apagados (inputEnabled vale false) y los habilita

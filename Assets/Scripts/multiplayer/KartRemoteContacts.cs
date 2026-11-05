@@ -132,6 +132,9 @@ public class KartRemoteContacts : MonoBehaviour
         Vector3 point = body.position + body.rotation * localPoint;
         Vector3 up = body.transform.up;
 
+        // Chispas donde se tocaron (en la otra computadora salen al resolverlo).
+        KartEffects.Impact(body, point, impulse.normalized, impulse.magnitude / Mathf.Max(1f, body.mass));
+
         // A la altura del centro de masa, igual que el golpe propio.
         point -= up * Vector3.Dot(point - body.worldCenterOfMass, up);
 
@@ -317,6 +320,8 @@ public class KartRemoteContacts : MonoBehaviour
                 // computadora, con el punto en coordenadas de su kart.
                 Vector3 localPoint = Quaternion.Inverse(predictedRotation) * (point - predictedPosition);
                 remote.Kart.SendHit(-normal * impulse, localPoint);
+
+                KartEffects.Impact(body, point, normal, impulse / Mathf.Max(1f, body.mass));
 
                 // Acá recién se va a ver cuando llegue su próxima velocidad.
                 // Hasta entonces se lo considera ya golpeado: si no, cada
