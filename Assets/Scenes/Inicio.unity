@@ -29036,6 +29036,7 @@ MonoBehaviour:
   languageValue: {fileID: 962318029}
   languagePrevious: {fileID: 1150255086}
   languageNext: {fileID: 2072703385}
+  columnOffset: 185
 --- !u!1 &2040329485
 GameObject:
   m_ObjectHideFlags: 0

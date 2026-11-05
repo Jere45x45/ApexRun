@@ -23,6 +23,11 @@ using UnityEngine;
 /// Todos los karts emiten en las mismas cuatro partículas de la escena (se
 /// crean solas). Lejos de la cámara se emite menos, y nada más allá de
 /// maxDistance. KartBehaviour lo agrega solo.
+///
+/// Repetición (RaceReplay): cada rueda deja lo que está largando en
+/// GetWheelFx (sin contar la distancia a la cámara), y las chispas avisan con
+/// SparksEmitted. La repetición lo graba y lo vuelve a largar con
+/// EmitWheelFx / EmitSparks.
 /// </summary>
 [DisallowMultipleComponent]
 public class KartEffects : MonoBehaviour
@@ -72,14 +77,36 @@ public class KartEffects : MonoBehaviour
 
     private const float FallbackTireRadius = 0.14f;
 
+    /// <summary>
+    /// Lo que larga una rueda ahora, en partículas por segundo (sin contar la
+    /// distancia a la cámara). Lo graba la repetición.
+    /// </summary>
+    public struct WheelFx
+    {
+        public float Smoke;
+        public float SmokeStrength;
+        public float Dirt;
+        public float Spray;
+        public float Wetness;
+        public Color32 DirtColor;
+
+        public bool IsEmpty => Smoke <= 0f && Dirt <= 0f && Spray <= 0f;
+    }
+
+    /// <summary>Saltaron chispas: punto, normal, velocidad que arrastran, cantidad (sin la distancia) y fuerza (0 a 1).</summary>
+    public static event System.Action<Vector3, Vector3, Vector3, int, float> SparksEmitted;
+
     private KartBehaviour kart;
     private Rigidbody body;
 
-    // Partículas que quedaron "a medias" por rueda (se emiten enteras).
-    private float[] smokeCarry = new float[0];
-    private float[] dirtCarry = new float[0];
-    private float[] sprayCarry = new float[0];
+    // Lo que larga cada rueda ahora, y las partículas que quedaron "a medias"
+    // (x humo, y tierra, z agua; se emiten enteras).
+    private WheelFx[] wheelFx = new WheelFx[0];
+    private Vector3[] carries = new Vector3[0];
     private float scrapeCarry;
+
+    /// <summary>Lo que larga la rueda (FL, FR, RL, RR) ahora.</summary>
+    public WheelFx GetWheelFx(int wheel) => wheel >= 0 && wheel < wheelFx.Length ? wheelFx[wheel] : default;
 
     // Karts remotos: superficie de cada rueda (por collider, para no buscarla siempre).
     private Collider[] remoteGround = new Collider[0];
@@ -129,74 +156,112 @@ public class KartEffects : MonoBehaviour
         else
             hasLastPose = false;
 
-        float detail = Detail(transform.position);
-
-        if (detail <= 0f || !Pool.Ensure())
-            return;
-
         int count = vehicle.Wheels.Length;
         Resize(count);
 
+        // Se calcula siempre (también lejos de la cámara) para la repetición;
+        // se emite según la distancia.
+        float detail = Detail(transform.position);
+        bool emit = detail > 0f && Pool.Ensure();
         float wetness = Mathf.Clamp01(TrackConditions.Wetness);
 
         for (int i = 0; i < count; i++)
         {
             if (!Sample(vehicle, i, out WheelSample wheel))
             {
-                smokeCarry[i] = dirtCarry[i] = sprayCarry[i] = 0f;
+                wheelFx[i] = default;
+                carries[i] = Vector3.zero;
                 continue;
             }
 
-            float speedKmh = wheel.Velocity.magnitude * 3.6f;
-            TrackSurfaceData.SurfaceEffect effect = TrackSurfaceData.EffectOf(wheel.Surface);
+            wheelFx[i] = Compute(wheel, wetness);
 
-            if (effect == TrackSurfaceData.SurfaceEffect.None)
-            {
-                smokeCarry[i] = dirtCarry[i] = sprayCarry[i] = 0f;
-                continue;
-            }
-
-            if (effect == TrackSurfaceData.SurfaceEffect.Dirt)
-            {
-                // Tierra: con la velocidad, y más si además desliza.
-                float amount = Mathf.InverseLerp(dirtMinSpeedKmh, 50f, speedKmh);
-
-                if (speedKmh >= dirtMinSpeedKmh)
-                    amount = Mathf.Max(amount, 0.15f) * (0.6f + 0.4f * Mathf.InverseLerp(1f, 6f, wheel.Slide));
-
-                int n = Accumulate(ref dirtCarry[i], dirtPerSecond * amount * detail * deltaTime);
-
-                for (int k = 0; k < n; k++)
-                    Pool.EmitDirt(wheel.Point, wheel.Normal, wheel.Velocity, TrackSurfaceData.DirtColorOf(wheel.Surface), k % 2 == 0);
-            }
-            else
-            {
-                dirtCarry[i] = 0f;
-
-                // Humo: deslizando fuerte. El agua no deja que salga.
-                float smoke = Mathf.InverseLerp(smokeSlideMin, Mathf.Max(smokeSlideMin + 0.1f, smokeSlideFull), wheel.Slide);
-                smoke *= 1f - 0.9f * wetness;
-
-                int n = wheel.Slide >= smokeSlideMin
-                    ? Accumulate(ref smokeCarry[i], smokePerSecond * Mathf.Max(smoke, 0.1f) * detail * deltaTime)
-                    : Accumulate(ref smokeCarry[i], 0f);
-
-                for (int k = 0; k < n; k++)
-                    Pool.EmitSmoke(wheel.Point, wheel.Normal, wheel.Velocity, smoke);
-
-                // Agua: según qué tan mojada esté y la velocidad.
-                float spray = wetness >= sprayMinWetness && speedKmh >= sprayMinSpeedKmh
-                    ? Mathf.InverseLerp(sprayMinWetness, 1f, wetness) * Mathf.InverseLerp(sprayMinSpeedKmh, sprayMinSpeedKmh + 50f, speedKmh)
-                    : 0f;
-
-                spray = Mathf.Max(spray, spray > 0f ? 0.1f : 0f) * (wheel.Rear ? 1f : 0.45f);
-
-                int m = Accumulate(ref sprayCarry[i], sprayPerSecond * spray * detail * deltaTime);
-
-                for (int k = 0; k < m; k++)
-                    Pool.EmitSpray(wheel.Point, wheel.Velocity, wetness);
-            }
+            if (emit)
+                EmitWheelFx(wheelFx[i], wheel.Point, wheel.Normal, wheel.Velocity, ref carries[i], detail * deltaTime);
         }
+    }
+
+    /// <summary>Qué larga una rueda según su superficie, deslizamiento y velocidad (partículas por segundo).</summary>
+    private WheelFx Compute(WheelSample wheel, float wetness)
+    {
+        var fx = new WheelFx { Wetness = wetness };
+        float speedKmh = wheel.Velocity.magnitude * 3.6f;
+        TrackSurfaceData.SurfaceEffect effect = TrackSurfaceData.EffectOf(wheel.Surface);
+
+        if (effect == TrackSurfaceData.SurfaceEffect.None)
+            return fx;
+
+        if (effect == TrackSurfaceData.SurfaceEffect.Dirt)
+        {
+            // Tierra: con la velocidad, y más si además desliza.
+            if (speedKmh >= dirtMinSpeedKmh)
+            {
+                float amount = Mathf.Max(Mathf.InverseLerp(dirtMinSpeedKmh, 50f, speedKmh), 0.15f);
+                amount *= 0.6f + 0.4f * Mathf.InverseLerp(1f, 6f, wheel.Slide);
+
+                fx.Dirt = dirtPerSecond * amount;
+                fx.DirtColor = TrackSurfaceData.DirtColorOf(wheel.Surface);
+            }
+
+            return fx;
+        }
+
+        // Humo: deslizando fuerte. El agua no deja que salga.
+        if (wheel.Slide >= smokeSlideMin)
+        {
+            float smoke = Mathf.InverseLerp(smokeSlideMin, Mathf.Max(smokeSlideMin + 0.1f, smokeSlideFull), wheel.Slide);
+            smoke *= 1f - 0.9f * wetness;
+
+            fx.SmokeStrength = smoke;
+            fx.Smoke = smokePerSecond * Mathf.Max(smoke, 0.1f);
+        }
+
+        // Agua: según qué tan mojada esté y la velocidad.
+        if (wetness >= sprayMinWetness && speedKmh >= sprayMinSpeedKmh)
+        {
+            float spray = Mathf.InverseLerp(sprayMinWetness, 1f, wetness) * Mathf.InverseLerp(sprayMinSpeedKmh, sprayMinSpeedKmh + 50f, speedKmh);
+            fx.Spray = sprayPerSecond * Mathf.Max(spray, 0.1f) * (wheel.Rear ? 1f : 0.45f);
+        }
+
+        return fx;
+    }
+
+    /// <summary>
+    /// Larga lo de una rueda en un punto. amount = segundos × detalle (lo que
+    /// se larga es fx × amount). La usan los karts y la repetición.
+    /// </summary>
+    public static void EmitWheelFx(WheelFx fx, Vector3 point, Vector3 normal, Vector3 velocity, ref Vector3 carry, float amount)
+    {
+        if (fx.IsEmpty || amount <= 0f)
+        {
+            carry = Vector3.zero;
+            return;
+        }
+
+        if (!Pool.Ensure())
+            return;
+
+        int smoke = Accumulate(ref carry.x, fx.Smoke * amount);
+
+        for (int k = 0; k < smoke; k++)
+            Pool.EmitSmoke(point, normal, velocity, fx.SmokeStrength);
+
+        int dirt = Accumulate(ref carry.y, fx.Dirt * amount);
+
+        for (int k = 0; k < dirt; k++)
+            Pool.EmitDirt(point, normal, velocity, fx.DirtColor, k % 2 == 0);
+
+        int spray = Accumulate(ref carry.z, fx.Spray * amount);
+
+        for (int k = 0; k < spray; k++)
+            Pool.EmitSpray(point, velocity, fx.Wetness);
+    }
+
+    /// <summary>Chispas (la usa la repetición): cantidad ya con la distancia.</summary>
+    public static void EmitSparks(Vector3 point, Vector3 normal, Vector3 carry, int count, float strength)
+    {
+        if (count > 0 && Pool.Ensure())
+            Pool.EmitSparks(point, normal, carry, count, strength);
     }
 
     // ------------------------------------------------------------------
@@ -373,11 +438,26 @@ public class KartEffects : MonoBehaviour
         if (speed < scrapeMinSpeed)
             return;
 
-        float detail = Detail(contact.point);
-        int n = Accumulate(ref scrapeCarry, 90f * Mathf.InverseLerp(scrapeMinSpeed, 15f, speed) * detail * Time.fixedDeltaTime);
+        // Se cuentan sin la distancia (para la repetición) y se larga cada
+        // una con probabilidad según la distancia.
+        int n = Accumulate(ref scrapeCarry, 90f * Mathf.InverseLerp(scrapeMinSpeed, 15f, speed) * Time.fixedDeltaTime);
 
-        if (n > 0 && Pool.Ensure())
-            Pool.EmitSparks(contact.point, contact.normal, body.linearVelocity, n, 0.6f);
+        if (n <= 0)
+            return;
+
+        SparksEmitted?.Invoke(contact.point, contact.normal, body.linearVelocity, n, 0.6f);
+
+        float detail = Detail(contact.point);
+        int shown = 0;
+
+        for (int k = 0; k < n; k++)
+        {
+            if (Random.value < detail)
+                shown++;
+        }
+
+        if (shown > 0 && Pool.Ensure())
+            Pool.EmitSparks(contact.point, contact.normal, body.linearVelocity, shown, 0.6f);
     }
 
     // Últimos choques (para no repetir las chispas de un mismo golpe).
@@ -405,14 +485,19 @@ public class KartEffects : MonoBehaviour
         if (recentImpacts.Count > 8)
             recentImpacts.RemoveAt(0);
 
+        int full = Mathf.RoundToInt(Mathf.Clamp(speedChange * 6f, 8f, 50f));
+        Vector3 carry = kartBody != null ? kartBody.linearVelocity : Vector3.zero;
+        float strength = Mathf.Clamp01(speedChange / 8f);
+
+        // La repetición lo graba aunque acá no se vea (lejos de la cámara).
+        SparksEmitted?.Invoke(point, normal, carry, full, strength);
+
         float detail = effects != null ? effects.Detail(point) : 1f;
 
         if (detail <= 0f || !Pool.Ensure())
             return;
 
-        int count = Mathf.RoundToInt(Mathf.Clamp(speedChange * 6f, 8f, 50f) * Mathf.Max(0.3f, detail));
-        Vector3 carry = kartBody != null ? kartBody.linearVelocity : Vector3.zero;
-        Pool.EmitSparks(point, normal, carry, count, Mathf.Clamp01(speedChange / 8f));
+        Pool.EmitSparks(point, normal, carry, Mathf.RoundToInt(full * Mathf.Max(0.3f, detail)), strength);
     }
 
     private static bool RecentImpactNear(Vector3 position)
@@ -438,8 +523,14 @@ public class KartEffects : MonoBehaviour
         if (camera == null)
             return 0f;
 
-        float distance = Vector3.Distance(camera.transform.position, position);
-        return 1f - Mathf.InverseLerp(fullDetailDistance, Mathf.Max(fullDetailDistance + 1f, maxDistance), distance);
+        return DetailFrom(camera.transform.position, position, fullDetailDistance, maxDistance);
+    }
+
+    /// <summary>Lo mismo desde cualquier cámara (la de la repetición), con las distancias por defecto.</summary>
+    public static float DetailFrom(Vector3 cameraPosition, Vector3 position, float full = 25f, float max = 70f)
+    {
+        float distance = Vector3.Distance(cameraPosition, position);
+        return 1f - Mathf.InverseLerp(full, Mathf.Max(full + 1f, max), distance);
     }
 
     private static int Accumulate(ref float carry, float amount)
@@ -458,12 +549,11 @@ public class KartEffects : MonoBehaviour
 
     private void Resize(int count)
     {
-        if (smokeCarry.Length == count)
+        if (wheelFx.Length == count)
             return;
 
-        smokeCarry = new float[count];
-        dirtCarry = new float[count];
-        sprayCarry = new float[count];
+        wheelFx = new WheelFx[count];
+        carries = new Vector3[count];
         remoteGround = new Collider[count];
         remoteSurface = new TrackSurfaceData[count];
     }
