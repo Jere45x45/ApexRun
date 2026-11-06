@@ -405,6 +405,9 @@ public class RaceManager : NetworkBehaviour
     /// <summary>Cada computadora revisa sus karts: si uno se movió antes de la largada, lo penaliza.</summary>
     private void CheckJumpStarts()
     {
+        // En la qualy no hay salida en falso: es una tanda con tiempo.
+        if (RaceSession.IsQualifying)
+            return;
         foreach (KeyValuePair<KartBehaviour, Vector3> pair in gridPositions)
         {
             KartBehaviour kart = pair.Key;

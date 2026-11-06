@@ -10,6 +10,12 @@ using UnityEngine;
 /// - Bots: cuántos (de 0 a 6) y de qué nivel. Un jugador y multijugador
 ///   guardan la cantidad aparte: en multijugador arranca en 0, así solo hay
 ///   bots si el que crea la partida los pone.
+/// - Modo: carrera suelta o campeonato (de MinRounds a MaxRounds fechas; cada
+///   fecha alterna el sentido).
+/// - Qualy: sin qualy o una tanda de QualifyingOptions minutos antes de cada
+///   carrera (la mejor vuelta arma la grilla).
+/// - Sentido: normal o al revés (en el campeonato, el de la primera fecha).
+/// Al confirmar, el menú arma RaceSession con esto.
 /// </summary>
 public static class RaceSetupStore
 {
@@ -26,6 +32,17 @@ public static class RaceSetupStore
     private const string SinglePlayerBotsKey = "ApexRun.BotsUnJugador";
     private const string MultiplayerBotsKey = "ApexRun.BotsMultijugador";
     private const string BotLevelKey = "ApexRun.NivelBots";
+    private const string ChampionshipKey = "ApexRun.Campeonato";
+    private const string RoundsKey = "ApexRun.Fechas";
+    private const string QualifyingKey = "ApexRun.QualyMinutos";
+    private const string ReversedKey = "ApexRun.AlReves";
+
+    public const int MinRounds = 2;
+    public const int MaxRounds = 6;
+    public const int DefaultRounds = 4;
+
+    /// <summary>Duraciones de la qualy que se pueden elegir (minutos; 0 = sin qualy).</summary>
+    public static readonly int[] QualifyingOptions = { 0, 3, 5, 10 };
 
     private static int? laps;
     private static bool? privateServer;
@@ -105,6 +122,54 @@ public static class RaceSetupStore
         {
             privateServer = value;
             PlayerPrefs.SetInt(PrivateKey, value ? 1 : 0);
+            PlayerPrefs.Save();
+        }
+    }
+
+    /// <summary>True: campeonato. False: carrera suelta.</summary>
+    public static bool Championship
+    {
+        get => PlayerPrefs.GetInt(ChampionshipKey, 0) == 1;
+        set
+        {
+            PlayerPrefs.SetInt(ChampionshipKey, value ? 1 : 0);
+            PlayerPrefs.Save();
+        }
+    }
+
+    /// <summary>Fechas del campeonato.</summary>
+    public static int Rounds
+    {
+        get => Mathf.Clamp(PlayerPrefs.GetInt(RoundsKey, DefaultRounds), MinRounds, MaxRounds);
+        set
+        {
+            PlayerPrefs.SetInt(RoundsKey, Mathf.Clamp(value, MinRounds, MaxRounds));
+            PlayerPrefs.Save();
+        }
+    }
+
+    /// <summary>Minutos de la qualy (uno de QualifyingOptions; 0 = sin qualy).</summary>
+    public static int QualifyingMinutes
+    {
+        get
+        {
+            int value = PlayerPrefs.GetInt(QualifyingKey, 0);
+            return System.Array.IndexOf(QualifyingOptions, value) >= 0 ? value : 0;
+        }
+        set
+        {
+            PlayerPrefs.SetInt(QualifyingKey, System.Array.IndexOf(QualifyingOptions, value) >= 0 ? value : 0);
+            PlayerPrefs.Save();
+        }
+    }
+
+    /// <summary>Pista al revés (en el campeonato, la primera fecha).</summary>
+    public static bool Reversed
+    {
+        get => PlayerPrefs.GetInt(ReversedKey, 0) == 1;
+        set
+        {
+            PlayerPrefs.SetInt(ReversedKey, value ? 1 : 0);
             PlayerPrefs.Save();
         }
     }

@@ -162,6 +162,13 @@ public class RaceStandingsTower : MonoBehaviour
         if (header == null)
             header = CreateRow("Encabezado", -1);
 
+        // En la qualy: por mejor vuelta, con la diferencia con la pole.
+        if (RaceSession.IsQualifying && RaceWeekend.Instance != null)
+        {
+            RefreshQualifying(own);
+            return;
+        }
+
         int leaderLap = results.Count > 0 ? Mathf.Min(results[0].Lap, timing.TotalLaps) : 1;
         header.Name.text = GameLanguage.Text("VUELTA ", "LAP ") + leaderLap + "/" + timing.TotalLaps;
 
@@ -190,6 +197,66 @@ public class RaceStandingsTower : MonoBehaviour
             rows[i].Root.SetActive(false);
 
         header.Root.SetActive(visible);
+    }
+
+    /// <summary>
+    /// Qualy: arriba, lo que queda de la tanda (BANDERA cuando se termina);
+    /// las filas, por mejor vuelta. El primero muestra su tiempo; los demás, la
+    /// diferencia con él; los que todavía no tienen vuelta, un guion.
+    /// </summary>
+    private void RefreshQualifying(Rigidbody own)
+    {
+        RaceWeekend weekend = RaceWeekend.Instance;
+        IReadOnlyList<Rigidbody> order = weekend.GetQualifyingOrder();
+
+        if (weekend.IsFlagged)
+        {
+            header.Name.text = GameLanguage.Text("BANDERA", "CHEQUERED");
+        }
+        else
+        {
+            int left = Mathf.Max(0, Mathf.CeilToInt(weekend.Remaining));
+            header.Name.text = "QUALY " + (left / 60) + ":" + (left % 60).ToString("00", CultureInfo.InvariantCulture);
+        }
+
+        float pole = order.Count > 0 ? weekend.GetBestLap(order[0]) : -1f;
+
+        for (int i = 0; i < order.Count; i++)
+        {
+            Rigidbody kart = order[i];
+            Row row = i < rows.Count ? rows[i] : CreateRow("Fila" + (i + 1), i);
+
+            if (i >= rows.Count)
+                rows.Add(row);
+
+            bool isPlayer = kart == own;
+            float best = weekend.GetBestLap(kart);
+
+            row.Position.text = (i + 1).ToString(CultureInfo.InvariantCulture);
+            row.Name.text = DisplayName(kart);
+
+            if (best < 0f)
+                row.Gap.text = "-";
+            else if (i == 0 || pole < 0f)
+                row.Gap.text = FormatLap(best);
+            else
+                row.Gap.text = "+" + Mathf.Max(0f, best - pole).ToString("0.000", CultureInfo.InvariantCulture);
+
+            row.Background.color = isPlayer ? playerRowColor : rowColor;
+            row.Gap.color = isPlayer ? Color.white : gapColor;
+            row.Root.SetActive(visible);
+        }
+
+        for (int i = order.Count; i < rows.Count; i++)
+            rows[i].Root.SetActive(false);
+
+        header.Root.SetActive(visible);
+    }
+
+    private static string FormatLap(float seconds)
+    {
+        int minutes = Mathf.FloorToInt(seconds / 60f);
+        return minutes + ":" + (seconds - minutes * 60f).ToString("00.000", CultureInfo.InvariantCulture);
     }
 
     /// <summary>

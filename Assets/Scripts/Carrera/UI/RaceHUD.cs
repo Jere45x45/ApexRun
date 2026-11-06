@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Globalization;
 using TMPro;
 using UnityEngine;
@@ -13,6 +14,12 @@ using UnityEngine;
 /// Todo sale de RaceTimingManager (el mismo que usa la pantalla de
 /// resultados), que en los clientes trae lo que publica el servidor. El kart
 /// del jugador lo asigna LocalPlayerKartBinder cuando aparece por red.
+///
+/// En la qualy (RaceSession.IsQualifying, ver RaceWeekend):
+/// - Donde va la vuelta dice CLASIFICACIÓN (con el tiempo terminado, ÚLTIMA
+///   VUELTA), y el reloj cuenta lo que le queda a la tanda.
+/// - La posición es la de la tabla de tiempos (mejor vuelta).
+/// - Salirse de los límites no suma segundos: anula la vuelta.
 /// </summary>
 public class RaceHUD : MonoBehaviour
 {
@@ -153,6 +160,20 @@ public class RaceHUD : MonoBehaviour
         int lap = timingManager.GetLap(playerKart);
         bool finished = timingManager.IsFinished(playerKart);
 
+        if (RaceSession.IsQualifying)
+        {
+            RaceWeekend weekend = RaceWeekend.Instance;
+
+            SetTextIfChanged(lapText, finished
+                ? GameLanguage.Text("TERMINADO", "FINISHED")
+                : weekend != null && weekend.IsFlagged
+                    ? GameLanguage.Text("ÚLTIMA VUELTA", "FINAL LAP")
+                    : GameLanguage.Text("CLASIFICACIÓN", "QUALIFYING"));
+
+            shownLap = -1;
+            return;
+        }
+
         if (lap == shownLap && finished == shownFinished)
             return;
 
@@ -171,6 +192,19 @@ public class RaceHUD : MonoBehaviour
         int position = timingManager.GetPosition(playerKart);
         int kartCount = timingManager.KartCount;
 
+        // En la qualy, la posición es la de la tabla de tiempos.
+        if (RaceSession.IsQualifying && RaceWeekend.Instance != null)
+        {
+            IReadOnlyList<Rigidbody> order = RaceWeekend.Instance.GetQualifyingOrder();
+            position = 0;
+
+            for (int i = 0; i < order.Count; i++)
+            {
+                if (order[i] == playerKart)
+                    position = i + 1;
+            }
+        }
+
         if (position == shownPosition && kartCount == shownKartCount)
             return;
 
@@ -184,6 +218,13 @@ public class RaceHUD : MonoBehaviour
 
     private void UpdateRaceTime()
     {
+        // En la qualy, lo que le queda a la tanda.
+        if (RaceSession.IsQualifying && RaceWeekend.Instance != null)
+        {
+            SetTextIfChanged(raceTimeText, FormatClock(RaceWeekend.Instance.Remaining));
+            return;
+        }
+
         if (!timingManager.HasStarted)
             return;
 
@@ -209,7 +250,8 @@ public class RaceHUD : MonoBehaviour
 
         string text = GameLanguage.Text("ÚLTIMA ", "LAST ") + last + "\n" + GameLanguage.Text("MEJOR  ", "BEST  ") + best;
 
-        if (penalty > 0f)
+        // En la qualy las penalizaciones anulan vueltas: no se suman.
+        if (penalty > 0f && !RaceSession.IsQualifying)
             text += "\n<color=#FF5A4A>" + GameLanguage.Text("PENALIZACIÓN +", "PENALTY +") + FormatSeconds(penalty) + " s</color>";
 
         SetText(lapTimesText, text);
@@ -248,7 +290,9 @@ public class RaceHUD : MonoBehaviour
         if (warningPanel != null)
             warningPanel.SetActive(warning != 0);
 
-        if (warning == 2)
+        if (warning == 2 && RaceSession.IsQualifying && !lastPenaltyWasJumpStart)
+            SetText(warningText, "<color=#FF5A4A>" + GameLanguage.Text("VUELTA ANULADA", "LAP DELETED") + "</color>  " + GameLanguage.Text("LÍMITES DE PISTA", "TRACK LIMITS"));
+        else if (warning == 2)
             SetText(warningText, "<color=#FF5A4A>+" + FormatSeconds(lastPenaltySeconds) + " s</color>  " + (lastPenaltyWasJumpStart
                 ? GameLanguage.Text("SALIDA EN FALSO", "JUMP START")
                 : GameLanguage.Text("LÍMITES DE PISTA", "TRACK LIMITS")));
@@ -293,5 +337,18 @@ public class RaceHUD : MonoBehaviour
     {
         if (text != null)
             text.text = value;
+    }
+
+    private static void SetTextIfChanged(TMP_Text text, string value)
+    {
+        if (text != null && text.text != value)
+            text.text = value;
+    }
+
+    /// <summary>Reloj de la qualy: m:ss (redondeado para arriba, así llega a 0:00 justo en la bandera).</summary>
+    private static string FormatClock(float seconds)
+    {
+        int total = Mathf.Max(0, Mathf.CeilToInt(seconds));
+        return (total / 60) + ":" + (total % 60).ToString("00", CultureInfo.InvariantCulture);
     }
 }

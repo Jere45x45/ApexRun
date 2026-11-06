@@ -580,9 +580,9 @@ public class KartGhost : MonoBehaviour
     private string FilePath()
     {
         // La pista: la escena y cuántos checkpoints tiene (si cambia el
-        // trazado, el fantasma viejo no se usa).
+        // trazado, el fantasma viejo no se usa). Al revés es otra pista: "_R".
         int checkpoints = checkpointManager != null ? checkpointManager.CheckpointCount : 0;
-        string name = SceneManager.GetActiveScene().name + "_" + checkpoints + ".fantasma";
+        string name = SceneManager.GetActiveScene().name + "_" + checkpoints + (TrackDirection.IsReversed ? "_R" : "") + ".fantasma";
         return Path.Combine(Application.persistentDataPath, "Fantasmas", name);
     }
 

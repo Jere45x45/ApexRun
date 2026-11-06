@@ -12,6 +12,11 @@ using UnityEngine;
 /// - Jugadores: cuando uno se conecta, crea su kart en el primer lugar libre
 ///   detrás de los bots y se lo da (SpawnAsPlayerObject). Cuando se va,
 ///   Netcode borra su kart y el lugar queda libre.
+/// - Después de la qualy (RaceSession.GridOrder), cada uno larga en el lugar
+///   que sacó: bots y jugadores mezclados. El que no estaba en la qualy va al
+///   primer lugar libre de atrás.
+/// - Cada bot se arma con la misma semilla (RaceSession.BotSeed), así se ve
+///   igual en la qualy y en todas las fechas del campeonato.
 /// </summary>
 public class NetworkKartSpawner : MonoBehaviour
 {
@@ -29,6 +34,9 @@ public class NetworkKartSpawner : MonoBehaviour
     [SerializeField] private BotPartsByLevel botParts;
 
     private readonly Dictionary<ulong, int> slotByClient = new Dictionary<ulong, int>();
+
+    // Lugares ocupados (bots y jugadores).
+    private readonly HashSet<int> usedSlots = new HashSet<int>();
 
     private NetworkManager networkManager;
 
@@ -49,6 +57,9 @@ public class NetworkKartSpawner : MonoBehaviour
 
         // Siempre queda al menos un lugar para un jugador.
         botSlots = botPrefab != null ? Mathf.Clamp(RaceSetupStore.RaceBots, 0, Mathf.Max(0, gridSlots.Length - 1)) : 0;
+
+        // Cada escena arma los bots de nuevo, con las mismas combinaciones.
+        BotRandomizer.ResetUsedCombinations();
 
         networkManager.OnClientConnectedCallback += HandleClientConnected;
         networkManager.OnClientDisconnectCallback += HandleClientDisconnected;
@@ -83,8 +94,11 @@ public class NetworkKartSpawner : MonoBehaviour
 
     private void HandleClientDisconnected(ulong clientId)
     {
-        if (networkManager.IsServer)
+        if (networkManager.IsServer && slotByClient.TryGetValue(clientId, out int slot))
+        {
+            usedSlots.Remove(slot);
             slotByClient.Remove(clientId);
+        }
     }
 
     private void SpawnKart(ulong clientId)
@@ -92,7 +106,7 @@ public class NetworkKartSpawner : MonoBehaviour
         if (slotByClient.ContainsKey(clientId))
             return;
 
-        int slot = FindFreeSlot();
+        int slot = SlotFor("P:" + clientId, FindFreeSlot());
 
         if (slot < 0)
         {
@@ -107,6 +121,7 @@ public class NetworkKartSpawner : MonoBehaviour
         kart.SpawnAsPlayerObject(clientId, true);
 
         slotByClient[clientId] = slot;
+        usedSlots.Add(slot);
     }
 
     /// <summary>Los bots de la carrera, en los primeros lugares (una sola vez).</summary>
@@ -121,10 +136,13 @@ public class NetworkKartSpawner : MonoBehaviour
 
         for (int i = 0; i < botSlots; i++)
         {
-            Transform point = gridSlots[i];
+            int slot = SlotFor($"B:Bot{i + 1}", i);
 
-            if (point == null)
+            if (slot < 0 || gridSlots[slot] == null)
                 continue;
+
+            usedSlots.Add(slot);
+            Transform point = gridSlots[slot];
 
             NetworkObject bot = Instantiate(botPrefab, point.position, point.rotation);
             bot.name = $"Bot{i + 1}";
@@ -142,7 +160,13 @@ public class NetworkKartSpawner : MonoBehaviour
             BotRandomizer parts = bot.GetComponent<BotRandomizer>();
 
             if (parts != null)
+            {
+                // Siempre la misma para este bot en este campeonato.
+                Random.State previous = Random.state;
+                Random.InitState(RaceSession.BotSeed + (i + 1) * 7919);
                 parts.RandomizeKart();
+                Random.state = previous;
+            }
 
             bot.Spawn(true);
 
@@ -166,10 +190,53 @@ public class NetworkKartSpawner : MonoBehaviour
     {
         for (int i = botSlots; i < gridSlots.Length; i++)
         {
-            if (gridSlots[i] != null && !slotByClient.ContainsValue(i))
+            if (gridSlots[i] != null && !usedSlots.Contains(i) && !IsReserved(i))
                 return i;
         }
 
         return -1;
+    }
+
+    /// <summary>
+    /// Lugar de un kart: el que sacó en la qualy (RaceSession.GridOrder) si
+    /// está libre; si no, fallback; si tampoco, el primer lugar libre que no
+    /// sea de otro de la qualy (y como último recurso, cualquiera libre).
+    /// </summary>
+    private int SlotFor(string key, int fallback)
+    {
+        IReadOnlyList<string> order = RaceSession.GridOrder;
+
+        if (order != null)
+        {
+            for (int i = 0; i < order.Count && i < gridSlots.Length; i++)
+            {
+                if (order[i] == key && gridSlots[i] != null && !usedSlots.Contains(i))
+                    return i;
+            }
+        }
+
+        if (fallback >= 0 && fallback < gridSlots.Length && gridSlots[fallback] != null && !usedSlots.Contains(fallback) && !IsReserved(fallback))
+            return fallback;
+
+        for (int i = 0; i < gridSlots.Length; i++)
+        {
+            if (gridSlots[i] != null && !usedSlots.Contains(i) && !IsReserved(i))
+                return i;
+        }
+
+        for (int i = 0; i < gridSlots.Length; i++)
+        {
+            if (gridSlots[i] != null && !usedSlots.Contains(i))
+                return i;
+        }
+
+        return -1;
+    }
+
+    /// <summary>Ese lugar lo sacó otro en la qualy.</summary>
+    private static bool IsReserved(int slot)
+    {
+        IReadOnlyList<string> order = RaceSession.GridOrder;
+        return order != null && slot < order.Count;
     }
 }

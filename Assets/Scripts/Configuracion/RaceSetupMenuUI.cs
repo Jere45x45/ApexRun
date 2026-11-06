@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,7 +17,14 @@ using UnityEngine.UI;
 ///   crear un servidor arranca en 0, así solo hay bots si se ponen.
 ///   En un jugador, sin bots dice "Contrarreloj": se corre contra el fantasma
 ///   de la mejor vuelta (KartGhost).
-/// - Pista se ve pero todavía no se puede cambiar.
+/// - Pista: por ahora hay una sola; con &lt; y &gt; se elige el sentido
+///   (normal o al revés, RaceSetupStore.Reversed).
+/// - Modo: carrera suelta o campeonato de 2 a 6 fechas (cada fecha alterna el
+///   sentido), y Qualy: sin qualy o una tanda de 3, 5 o 10 minutos antes de
+///   cada carrera (la mejor vuelta arma la grilla). Estas dos filas se arman
+///   solas copiando la de Niebla (no hay que tocar la escena); para que
+///   entren, las filas se juntan un poco.
+/// Al confirmar se arma RaceSession (qualy, campeonato y sentido).
 /// Lo elegido queda guardado (RaceSetupStore, WeatherChoiceStore) y lo
 /// aplican en la carrera RaceSetupSync y RaceWeather.
 /// El cartel de arriba dice Create Server o Un jugador (con su ícono); los
@@ -95,6 +103,25 @@ public class RaceSetupMenuUI : MonoBehaviour
 
     private bool multiplayer;
 
+    // Filas que se arman solas (copias de la de Niebla) y la de Pista.
+    private Button modePrevious;
+    private Button modeNext;
+    private TMP_Text modeValue;
+    private Button qualifyingPrevious;
+    private Button qualifyingNext;
+    private TMP_Text qualifyingValue;
+    private Button directionPrevious;
+    private Button directionNext;
+    private TMP_Text trackValue;
+    private string trackSpanish = "Circuito 1";
+    private string trackEnglish = "Circuit 1";
+
+    /// <summary>Lo más que se suben las filas para que entren las nuevas (px).</summary>
+    private const float MaxRowRaise = 16f;
+
+    /// <summary>Lo mínimo entre la última fila y los botones de abajo (px).</summary>
+    private const float BottomMargin = 8f;
+
     private void Awake()
     {
         lapsMinus.onClick.AddListener(() => ChangeLaps(-1));
@@ -129,6 +156,282 @@ public class RaceSetupMenuUI : MonoBehaviour
 
         confirmButton.onClick.AddListener(Confirm);
         backButton.onClick.AddListener(Back);
+
+        BuildSessionRows();
+
+        if (modePrevious != null)
+            modePrevious.onClick.AddListener(() => ChangeMode(-1));
+
+        if (modeNext != null)
+            modeNext.onClick.AddListener(() => ChangeMode(+1));
+
+        if (qualifyingPrevious != null)
+            qualifyingPrevious.onClick.AddListener(() => ChangeQualifying(-1));
+
+        if (qualifyingNext != null)
+            qualifyingNext.onClick.AddListener(() => ChangeQualifying(+1));
+
+        if (directionPrevious != null)
+            directionPrevious.onClick.AddListener(ToggleDirection);
+
+        if (directionNext != null)
+            directionNext.onClick.AddListener(ToggleDirection);
+    }
+
+    // ------------------------------------------------------------------
+    // Filas de modo, qualy y sentido
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// Arma Modo (a la izquierda) y Qualy (a la derecha) en un renglón nuevo,
+    /// abajo de todo, copiando la fila de Niebla; le pone flechas a Pista para
+    /// el sentido, y acomoda las filas para que no se pisen con los botones.
+    /// </summary>
+    private void BuildSessionRows()
+    {
+        RectTransform fogRow = RowOf(fogValue);
+        RectTransform lapsRow = RowOf(lapsValue);
+
+        if (fogRow == null || lapsRow == null || fogPrevious == null || fogNext == null)
+            return;
+
+        Transform parent = fogRow.parent;
+        var rows = new List<RectTransform>();
+
+        foreach (Transform child in parent)
+        {
+            if (child.name.StartsWith("Fila_") && child is RectTransform)
+                rows.Add((RectTransform)child);
+        }
+
+        RectTransform modeRow = CloneRow(fogRow, "Fila_MODO", "Modo", "Mode", out modePrevious, out modeNext, out modeValue);
+        RectTransform qualifyingRow = CloneRow(fogRow, "Fila_QUALY", "Qualy", "Qualifying", out qualifyingPrevious, out qualifyingNext, out qualifyingValue);
+
+        SetupTrackRow(parent.Find("Fila_PISTA"));
+        PlaceRows(rows, lapsRow.anchoredPosition.x, fogRow.anchoredPosition.x, modeRow, qualifyingRow);
+    }
+
+    /// <summary>La fila (hijo directo del panel) que contiene un texto.</summary>
+    private static RectTransform RowOf(TMP_Text value)
+    {
+        if (value == null)
+            return null;
+
+        Transform current = value.transform;
+
+        while (current.parent != null && !current.name.StartsWith("Fila_"))
+            current = current.parent;
+
+        return current.name.StartsWith("Fila_") ? current as RectTransform : null;
+    }
+
+    /// <summary>Copia de una fila, con su etiqueta, sus flechas (sin acciones) y su valor.</summary>
+    private RectTransform CloneRow(RectTransform template, string name, string spanish, string english,
+                                   out Button previous, out Button next, out TMP_Text value)
+    {
+        GameObject clone = Instantiate(template.gameObject, template.parent);
+        clone.name = name;
+
+        previous = Same(template, clone.transform, fogPrevious.transform).GetComponent<Button>();
+        next = Same(template, clone.transform, fogNext.transform).GetComponent<Button>();
+        value = Same(template, clone.transform, fogValue.transform).GetComponent<TMP_Text>();
+
+        // Las acciones de la de Niebla se ponen por código: la copia no las trae,
+        // pero por las dudas se limpian.
+        previous.onClick = new Button.ButtonClickedEvent();
+        next.onClick = new Button.ButtonClickedEvent();
+
+        LocalizedText valueLocalized = value.GetComponent<LocalizedText>();
+
+        if (valueLocalized != null)
+            Destroy(valueLocalized);
+
+        foreach (TMP_Text text in clone.GetComponentsInChildren<TMP_Text>(true))
+        {
+            if (text == value || text.GetComponentInParent<Button>(true) != null)
+                continue;
+
+            LocalizedText localized = text.GetComponent<LocalizedText>();
+
+            if (localized != null)
+                localized.Set(spanish, english);
+            else
+                text.text = GameLanguage.Text(spanish, english);
+
+            break;
+        }
+
+        return (RectTransform)clone.transform;
+    }
+
+    /// <summary>En la copia, el objeto que está en el mismo lugar que target en la fila original.</summary>
+    private static Transform Same(Transform originalRow, Transform cloneRow, Transform target)
+    {
+        var path = new List<int>();
+
+        for (Transform current = target; current != originalRow && current != null; current = current.parent)
+            path.Insert(0, current.GetSiblingIndex());
+
+        Transform result = cloneRow;
+
+        foreach (int index in path)
+            result = result.GetChild(index);
+
+        return result;
+    }
+
+    /// <summary>Pista: se ve habilitada y con flechas (las de Niebla) para el sentido.</summary>
+    private void SetupTrackRow(Transform row)
+    {
+        if (row == null)
+            return;
+
+        TMP_Text label = null;
+
+        foreach (TMP_Text text in row.GetComponentsInChildren<TMP_Text>(true))
+        {
+            if (text.name == "Valor")
+                trackValue = text;
+            else if (label == null)
+                label = text;
+        }
+
+        if (trackValue == null)
+            return;
+
+        // El nombre de la pista, del texto que tenía (y desde ahora lo pone el código).
+        LocalizedText localized = trackValue.GetComponent<LocalizedText>();
+
+        if (localized != null)
+        {
+            if (!string.IsNullOrEmpty(localized.Spanish))
+                trackSpanish = localized.Spanish;
+
+            trackEnglish = !string.IsNullOrEmpty(localized.English) ? localized.English : trackSpanish;
+            Destroy(localized);
+        }
+        else if (!string.IsNullOrEmpty(trackValue.text))
+        {
+            trackSpanish = trackValue.text;
+            trackEnglish = trackValue.text;
+        }
+
+        trackValue.alpha = 1f;
+
+        if (label != null)
+            label.alpha = 1f;
+
+        Image background = row.GetComponent<Image>();
+
+        if (background != null && rowSprite != null)
+            background.sprite = rowSprite;
+
+        // Las flechas, en el mismo lugar que en la fila de Niebla.
+        Transform control = trackValue.transform.parent;
+        directionPrevious = Instantiate(fogPrevious.gameObject, control).GetComponent<Button>();
+        directionNext = Instantiate(fogNext.gameObject, control).GetComponent<Button>();
+        directionPrevious.name = fogPrevious.name;
+        directionNext.name = fogNext.name;
+        directionPrevious.onClick = new Button.ButtonClickedEvent();
+        directionNext.onClick = new Button.ButtonClickedEvent();
+    }
+
+    /// <summary>
+    /// El renglón nuevo va abajo de todo. Si no entra arriba de los botones,
+    /// las filas se suben un poco (hasta MaxRowRaise) y después se juntan.
+    /// </summary>
+    private void PlaceRows(List<RectTransform> rows, float leftX, float rightX, RectTransform newLeft, RectTransform newRight)
+    {
+        if (rows.Count == 0)
+            return;
+
+        float rowHeight = rows[0].rect.height;
+
+        // Los renglones que hay (por altura), de arriba para abajo.
+        var levels = new List<float>();
+
+        foreach (RectTransform row in rows)
+        {
+            float y = row.anchoredPosition.y;
+
+            if (!levels.Exists(level => Mathf.Abs(level - y) < 1f))
+                levels.Add(y);
+        }
+
+        levels.Sort((a, b) => b.CompareTo(a));
+
+        float step = levels.Count > 1 ? levels[0] - levels[1] : rowHeight + 8f;
+        int count = levels.Count + 1;
+        float top = levels[0] + rowHeight * 0.5f;
+        float bottomLimit = ButtonsTop(newLeft.parent) + BottomMargin;
+
+        float bottom = top - rowHeight - (count - 1) * step;
+
+        if (bottom < bottomLimit)
+        {
+            top += Mathf.Min(MaxRowRaise, bottomLimit - bottom);
+            step = Mathf.Min(step, (top - rowHeight - bottomLimit) / (count - 1));
+            step = Mathf.Max(step, rowHeight + 2f);
+        }
+
+        foreach (RectTransform row in rows)
+        {
+            int level = levels.FindIndex(y => Mathf.Abs(y - row.anchoredPosition.y) < 1f);
+            row.anchoredPosition = new Vector2(row.anchoredPosition.x, top - rowHeight * 0.5f - level * step);
+        }
+
+        float newY = top - rowHeight * 0.5f - (count - 1) * step;
+        newLeft.anchoredPosition = new Vector2(leftX, newY);
+        newRight.anchoredPosition = new Vector2(rightX, newY);
+    }
+
+    /// <summary>Dónde empiezan los botones de abajo (Volver y Confirmar), en el espacio del panel.</summary>
+    private float ButtonsTop(Transform panel)
+    {
+        float top = float.MinValue;
+        var corners = new Vector3[4];
+
+        foreach (Button button in new[] { confirmButton, backButton })
+        {
+            if (button == null)
+                continue;
+
+            ((RectTransform)button.transform).GetWorldCorners(corners);
+
+            foreach (Vector3 corner in corners)
+                top = Mathf.Max(top, panel.InverseTransformPoint(corner).y);
+        }
+
+        return top > float.MinValue ? top : float.MinValue / 2f;
+    }
+
+    /// <summary>Carrera suelta, o campeonato de 2 a 6 fechas (en ese orden).</summary>
+    private void ChangeMode(int direction)
+    {
+        int index = RaceSetupStore.Championship ? RaceSetupStore.Rounds - RaceSetupStore.MinRounds + 1 : 0;
+        int last = RaceSetupStore.MaxRounds - RaceSetupStore.MinRounds + 1;
+        index = Mathf.Clamp(index + direction, 0, last);
+
+        RaceSetupStore.Championship = index > 0;
+
+        if (index > 0)
+            RaceSetupStore.Rounds = RaceSetupStore.MinRounds + index - 1;
+
+        Refresh();
+    }
+
+    private void ChangeQualifying(int direction)
+    {
+        int[] options = RaceSetupStore.QualifyingOptions;
+        int index = Mathf.Max(0, System.Array.IndexOf(options, RaceSetupStore.QualifyingMinutes));
+        RaceSetupStore.QualifyingMinutes = options[Mathf.Clamp(index + direction, 0, options.Length - 1)];
+        Refresh();
+    }
+
+    private void ToggleDirection()
+    {
+        RaceSetupStore.Reversed = !RaceSetupStore.Reversed;
+        Refresh();
     }
 
     /// <summary>Muestra la pantalla para un jugador (false) o para crear un servidor (true).</summary>
@@ -189,6 +492,11 @@ public class RaceSetupMenuUI : MonoBehaviour
     {
         // Los bots de esta carrera (los pone el host al cargar la pista).
         RaceSetupStore.BotsForRace = RaceSetupStore.GetBots(multiplayer);
+
+        // Qualy, campeonato y sentido (desde la fecha 1).
+        RaceSession.StartNew(RaceSetupStore.Championship ? RaceSetupStore.Rounds : 0,
+                             RaceSetupStore.QualifyingMinutes * 60f,
+                             RaceSetupStore.Reversed);
 
         if (multiplayer)
         {
@@ -264,6 +572,33 @@ public class RaceSetupMenuUI : MonoBehaviour
             visibilityRow.SetActive(multiplayer);
 
         SetValue(visibilityValue, RaceSetupStore.PrivateServer ? GameLanguage.Text("Privada", "Private") : GameLanguage.Text("Pública", "Public"));
+
+        RefreshSessionRows();
+    }
+
+    private void RefreshSessionRows()
+    {
+        bool championship = RaceSetupStore.Championship;
+        int rounds = RaceSetupStore.Rounds;
+
+        SetValue(modeValue, championship
+            ? GameLanguage.Text($"Campeonato, {rounds} fechas", $"Championship, {rounds} rounds")
+            : GameLanguage.Text("Carrera suelta", "Single race"));
+
+        SetUsable(modePrevious, championship);
+        SetUsable(modeNext, !championship || rounds < RaceSetupStore.MaxRounds);
+
+        int minutes = RaceSetupStore.QualifyingMinutes;
+        int[] options = RaceSetupStore.QualifyingOptions;
+        int index = Mathf.Max(0, System.Array.IndexOf(options, minutes));
+
+        SetValue(qualifyingValue, minutes > 0 ? minutes + " min" : GameLanguage.Text("Sin qualy", "No qualifying"));
+        SetUsable(qualifyingPrevious, index > 0);
+        SetUsable(qualifyingNext, index < options.Length - 1);
+
+        // Pista: el nombre y, si va al revés, dicho (en el campeonato, la primera fecha).
+        string track = GameLanguage.Text(trackSpanish, trackEnglish);
+        SetValue(trackValue, RaceSetupStore.Reversed ? track + GameLanguage.Text(" al revés", " reversed") : track);
     }
 
     /// <summary>

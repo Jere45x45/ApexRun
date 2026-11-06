@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using TMPro;
@@ -16,6 +17,17 @@ using UnityEngine.UI;
 /// - Reintentar: el host vuelve a cargar la carrera para todos (los clientes
 ///   no lo ven: esperan al host).
 /// - Menú: se sale de la partida y vuelve a la escena de inicio.
+///
+/// Qualy y campeonato (RaceSession):
+/// - Después de la qualy, la tabla es de tiempos (mejor vuelta y diferencia
+///   con la pole) y el botón de Reintentar pasa a A LA CARRERA: el anfitrión
+///   carga la carrera con esa grilla (cuando todos terminaron su vuelta).
+/// - En el campeonato, abajo de la carrera va la tabla del campeonato
+///   (puntos de esta carrera y total), y el botón pasa a SIGUIENTE FECHA (o,
+///   después de la última, NUEVO CAMPEONATO). Se habilita cuando llegaron
+///   todos, que es cuando se anotan los puntos.
+/// - También aparece si la sesión se cierra sin que el jugador cruce la meta
+///   (por ejemplo, la qualy se cerró por tiempo).
 /// </summary>
 public class RaceResultsUI : MonoBehaviour
 {
@@ -61,6 +73,31 @@ public class RaceResultsUI : MonoBehaviour
     private float nextRefresh;
     private bool shown;
 
+    private RaceManager raceManager;
+
+    /// <summary>Qué hace el botón de Reintentar según la sesión.</summary>
+    private enum RetryAction
+    {
+        Retry,
+        ToRace,
+        NextRound,
+        NewChampionship
+    }
+
+    private RetryAction CurrentRetryAction
+    {
+        get
+        {
+            if (RaceSession.IsQualifying)
+                return RetryAction.ToRace;
+
+            if (RaceSession.IsChampionship)
+                return RaceSession.IsLastRound ? RetryAction.NewChampionship : RetryAction.NextRound;
+
+            return RetryAction.Retry;
+        }
+    }
+
     private void Awake()
     {
         if (panel != null)
@@ -71,18 +108,33 @@ public class RaceResultsUI : MonoBehaviour
 
         if (menuButton != null)
             menuButton.onClick.AddListener(GoToMenu);
+
+        raceManager = FindFirstObjectByType<RaceManager>();
     }
 
     private void OnEnable()
     {
         if (timingManager != null)
             timingManager.KartFinished += HandleKartFinished;
+
+        if (raceManager != null)
+            raceManager.RaceFinished += HandleRaceFinished;
     }
 
     private void OnDisable()
     {
         if (timingManager != null)
             timingManager.KartFinished -= HandleKartFinished;
+
+        if (raceManager != null)
+            raceManager.RaceFinished -= HandleRaceFinished;
+    }
+
+    /// <summary>Terminó la sesión: si el jugador no había cruzado la meta (qualy cerrada por tiempo), igual se muestran.</summary>
+    private void HandleRaceFinished()
+    {
+        if (!shown && showAt < 0f)
+            showAt = Time.time + showDelay;
     }
 
     private void Start()
@@ -114,6 +166,7 @@ public class RaceResultsUI : MonoBehaviour
         {
             nextRefresh = Time.unscaledTime + RefreshInterval;
             RefreshTable();
+            UpdateRetryButton();
         }
     }
 
@@ -138,7 +191,7 @@ public class RaceResultsUI : MonoBehaviour
         if (retryButton != null)
         {
             retryButton.gameObject.SetActive(true);
-            retryButton.interactable = NetworkRole.IsAuthority;
+            UpdateRetryButton();
         }
 
         panel.SetActive(true);
@@ -151,8 +204,66 @@ public class RaceResultsUI : MonoBehaviour
             EventSystem.current.SetSelectedGameObject(first.gameObject);
     }
 
+    /// <summary>
+    /// El botón de Reintentar según la sesión: texto y si se puede tocar. Pasar
+    /// a la carrera o a la fecha siguiente espera a que hayan llegado todos.
+    /// </summary>
+    private void UpdateRetryButton()
+    {
+        if (retryButton == null)
+            return;
+
+        RetryAction action = CurrentRetryAction;
+        bool everyoneIn = action == RetryAction.Retry || raceManager == null || raceManager.IsFinished();
+
+        retryButton.interactable = NetworkRole.IsAuthority && everyoneIn;
+
+        if (action == RetryAction.Retry)
+            return;
+
+        string spanish;
+        string english;
+
+        switch (action)
+        {
+            case RetryAction.ToRace:
+                spanish = "A la carrera";
+                english = "To the race";
+                break;
+            case RetryAction.NextRound:
+                spanish = "Siguiente fecha";
+                english = "Next round";
+                break;
+            default:
+                spanish = "Nuevo campeonato";
+                english = "New championship";
+                break;
+        }
+
+        LocalizedText localized = retryButton.GetComponentInChildren<LocalizedText>(true);
+
+        if (localized != null)
+        {
+            if (localized.Spanish != spanish)
+                localized.Set(spanish, english);
+            return;
+        }
+
+        TMP_Text label = retryButton.GetComponentInChildren<TMP_Text>(true);
+        string text = GameLanguage.Text(spanish, english);
+
+        if (label != null && label.text != text)
+            label.text = text;
+    }
+
     private void RefreshTable()
     {
+        if (RaceSession.IsQualifying && RaceWeekend.Instance != null)
+        {
+            RefreshQualifyingTable();
+            return;
+        }
+
         var results = timingManager.GetClassification();
 
         int playerPosition = 0;
@@ -194,10 +305,138 @@ public class RaceResultsUI : MonoBehaviour
             builder.Append('\n');
         }
 
+        if (RaceSession.IsChampionship)
+            AppendChampionship();
+
+        AppendWaiting();
         tableText.text = builder.ToString();
 
         if (titleText != null)
-            titleText.text = playerPosition > 0 ? (GameLanguage.IsEnglish ? $"You finished {playerPosition}{RaceHUD.Ordinal(playerPosition)}!" : $"¡Terminaste en {playerPosition}.º lugar!") : GameLanguage.Text("Resultados", "Results");
+            titleText.text = ChampionTitle() ?? (playerPosition > 0 ? (GameLanguage.IsEnglish ? $"You finished {playerPosition}{RaceHUD.Ordinal(playerPosition)}!" : $"¡Terminaste en {playerPosition}.º lugar!") : GameLanguage.Text("Resultados", "Results"));
+    }
+
+    /// <summary>Después de la qualy: por mejor vuelta, con la diferencia con la pole.</summary>
+    private void RefreshQualifyingTable()
+    {
+        RaceWeekend weekend = RaceWeekend.Instance;
+        IReadOnlyList<Rigidbody> order = weekend.GetQualifyingOrder();
+        float pole = order.Count > 0 ? weekend.GetBestLap(order[0]) : -1f;
+        int playerPosition = 0;
+
+        builder.Clear();
+
+        if (RaceSession.IsChampionship)
+            builder.Append("<b>").Append(GameLanguage.Text("FECHA ", "ROUND ")).Append(RaceSession.Round).Append('/').Append(RaceSession.Rounds).Append("</b>\n");
+
+        builder.Append(GameLanguage.Text("<b>Pos.<pos=9%>Piloto<pos=42%>Mejor vuelta<pos=62%>Diferencia</b>\n", "<b>Pos.<pos=9%>Driver<pos=42%>Best lap<pos=62%>Gap</b>\n"));
+
+        for (int i = 0; i < order.Count; i++)
+        {
+            Rigidbody kart = order[i];
+            bool isPlayer = kart == playerKart;
+            float best = weekend.GetBestLap(kart);
+
+            if (isPlayer)
+            {
+                playerPosition = i + 1;
+                builder.Append("<color=").Append(PlayerColor).Append("><b>");
+            }
+
+            builder.Append(i + 1).Append(GameLanguage.IsEnglish ? RaceHUD.Ordinal(i + 1) : ".º");
+            builder.Append("<pos=9%>").Append(isPlayer ? GameLanguage.Text("Vos", "You") : GetDisplayName(kart));
+            builder.Append("<pos=42%>").Append(best >= 0f ? FormatTime(best) : GameLanguage.Text("Sin tiempo", "No time"));
+            builder.Append("<pos=62%>").Append(i == 0 || best < 0f || pole < 0f ? "-" : "+" + (best - pole).ToString("0.000", CultureInfo.InvariantCulture));
+
+            if (isPlayer)
+                builder.Append("</b></color>");
+
+            builder.Append('\n');
+        }
+
+        AppendWaiting();
+        tableText.text = builder.ToString();
+
+        if (titleText != null)
+        {
+            titleText.text = playerPosition > 0 && weekend.GetBestLap(playerKart) >= 0f
+                ? (GameLanguage.IsEnglish ? $"You start {playerPosition}{RaceHUD.Ordinal(playerPosition)}!" : $"¡Largás {playerPosition}.º!")
+                : GameLanguage.Text("Clasificación", "Qualifying");
+        }
+    }
+
+    /// <summary>Tabla del campeonato, abajo de la carrera.</summary>
+    private void AppendChampionship()
+    {
+        List<RaceSession.Standing> standings = RaceSession.GetStandings();
+        string own = playerKart != null ? RaceSession.KartKey(playerKart) : null;
+
+        builder.Append("\n<b>").Append(GameLanguage.Text("CAMPEONATO", "CHAMPIONSHIP")).Append("  -  ")
+            .Append(GameLanguage.Text("FECHA ", "ROUND ")).Append(RaceSession.Round).Append('/').Append(RaceSession.Rounds).Append("</b>\n");
+
+        if (standings.Count == 0)
+        {
+            builder.Append("<color=#888888>").Append(GameLanguage.Text("Los puntos se suman cuando llegan todos.", "Points are added when everyone finishes.")).Append("</color>\n");
+            return;
+        }
+
+        builder.Append(GameLanguage.Text("<b>Pos.<pos=9%>Piloto<pos=42%>Esta carrera<pos=62%>Puntos</b>\n", "<b>Pos.<pos=9%>Driver<pos=42%>This race<pos=62%>Points</b>\n"));
+
+        for (int i = 0; i < standings.Count; i++)
+        {
+            RaceSession.Standing standing = standings[i];
+            bool isPlayer = standing.Key == own;
+
+            if (isPlayer)
+                builder.Append("<color=").Append(PlayerColor).Append("><b>");
+
+            builder.Append(i + 1).Append(GameLanguage.IsEnglish ? RaceHUD.Ordinal(i + 1) : ".º");
+            builder.Append("<pos=9%>").Append(isPlayer ? GameLanguage.Text("Vos", "You") : standing.Name);
+            builder.Append("<pos=42%>").Append(standing.LastPosition > 0 ? "+" + standing.LastPoints : "-");
+            builder.Append("<pos=62%>").Append(standing.Points);
+
+            if (isPlayer)
+                builder.Append("</b></color>");
+
+            builder.Append('\n');
+        }
+    }
+
+    /// <summary>Qué se espera (en gris): que terminen todos, o al anfitrión.</summary>
+    private void AppendWaiting()
+    {
+        if (CurrentRetryAction == RetryAction.Retry)
+            return;
+
+        string text = null;
+
+        if (raceManager != null && !raceManager.IsFinished())
+            text = RaceSession.IsQualifying
+                ? GameLanguage.Text("Esperando que todos terminen su vuelta...", "Waiting for everyone to finish their lap...")
+                : GameLanguage.Text("Esperando que lleguen todos...", "Waiting for everyone to finish...");
+        else if (!NetworkRole.IsAuthority)
+            text = GameLanguage.Text("Esperando al anfitrión...", "Waiting for the host...");
+
+        if (text != null)
+            builder.Append("\n<color=#888888>").Append(text).Append("</color>");
+    }
+
+    /// <summary>Terminó la última fecha: el título dice quién ganó el campeonato.</summary>
+    private string ChampionTitle()
+    {
+        if (!RaceSession.IsChampionship || !RaceSession.IsLastRound || raceManager == null || !raceManager.IsFinished())
+            return null;
+
+        List<RaceSession.Standing> standings = RaceSession.GetStandings();
+
+        if (standings.Count == 0)
+            return null;
+
+        string own = playerKart != null ? RaceSession.KartKey(playerKart) : null;
+
+        if (standings[0].Key == own)
+            return GameLanguage.Text("¡Sos campeón!", "You are the champion!");
+
+        return GameLanguage.IsEnglish ? $"{standings[0].Name} is the champion!" : $"¡{standings[0].Name} es campeón!";
     }
 
     private static string GetDisplayName(Rigidbody kart)
@@ -210,6 +449,27 @@ public class RaceResultsUI : MonoBehaviour
     {
         if (!NetworkRole.IsAuthority)
             return;
+
+        RetryAction action = CurrentRetryAction;
+
+        // Pasar de sesión espera a que estén todos.
+        if (action != RetryAction.Retry && raceManager != null && !raceManager.IsFinished())
+            return;
+
+        switch (action)
+        {
+            case RetryAction.ToRace:
+                RaceSession.GoToRace(RaceWeekend.Instance != null ? RaceWeekend.Instance.GetGridKeys() : null);
+                break;
+
+            case RetryAction.NextRound:
+                RaceSession.GoToNextRound();
+                break;
+
+            case RetryAction.NewChampionship:
+                RaceSession.RestartChampionship();
+                break;
+        }
 
         NetworkManager manager = NetworkManager.Singleton;
         string scene = SceneManager.GetActiveScene().name;

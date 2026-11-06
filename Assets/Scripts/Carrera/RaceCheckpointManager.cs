@@ -23,6 +23,55 @@ public class RaceCheckpointManager : MonoBehaviour
     public event Action<Rigidbody, int>
         CheckpointPassed;
 
+    // Pista al revés (ver SetReversed): de qué checkpoint de la escena es
+    // cada lugar del orden de carrera, y al revés. Null = al derecho.
+    private RaceCheckpoint[] checkpointByOrder;
+    private int[] orderByIndex;
+
+    /// <summary>True si los checkpoints se cuentan en el orden contrario.</summary>
+    public bool IsReversed => checkpointByOrder != null;
+
+    /// <summary>
+    /// Pista al revés (TrackDirection): los checkpoints se pasan en el orden
+    /// contrario. El último sigue siendo la llegada (cuenta la vuelta); el que
+    /// estaba justo antes de la llegada pasa a ser el primero, y así.
+    /// Todo lo demás (vueltas, posiciones, reaparición) sigue hablando del orden
+    /// de carrera: GetCheckpoint(0) es el primero que se pasa.
+    /// </summary>
+    public void SetReversed(bool reversed)
+    {
+        if (!reversed)
+        {
+            checkpointByOrder = null;
+            orderByIndex = null;
+            return;
+        }
+
+        int count = CheckpointCount;
+
+        if (count == 0)
+            return;
+
+        checkpointByOrder = new RaceCheckpoint[count];
+        orderByIndex = new int[count];
+
+        foreach (RaceCheckpoint checkpoint in checkpoints)
+        {
+            if (checkpoint == null)
+                continue;
+
+            int index = checkpoint.CheckpointIndex;
+
+            if (index < 0 || index >= count)
+                continue;
+
+            int order = index == count - 1 ? count - 1 : count - 2 - index;
+
+            orderByIndex[index] = order;
+            checkpointByOrder[order] = checkpoint;
+        }
+    }
+
     private void Awake()
     {
         ValidateCheckpoints();
@@ -44,6 +93,11 @@ public class RaceCheckpointManager : MonoBehaviour
         {
             return;
         }
+
+        // Al revés: el número del checkpoint de la escena pasa a su lugar en
+        // el orden de carrera.
+        if (orderByIndex != null)
+            checkpointIndex = orderByIndex[checkpointIndex];
 
         int expectedCheckpoint =
             GetNextCheckpoint(kart);
@@ -121,6 +175,9 @@ public class RaceCheckpointManager : MonoBehaviour
         {
             return null;
         }
+
+        if (checkpointByOrder != null)
+            return checkpointByOrder[checkpointIndex];
 
         return checkpoints[
             checkpointIndex

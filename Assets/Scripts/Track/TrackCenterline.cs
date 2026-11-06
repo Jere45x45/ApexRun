@@ -61,6 +61,31 @@ public class TrackCenterline : MonoBehaviour
 
     public bool IsValid => points != null && points.Length >= 3;
 
+    /// <summary>True si se dio vuelta para correr la pista al revés (TrackDirection).</summary>
+    public bool IsReversed { get; private set; }
+
+    /// <summary>
+    /// Pista al revés: da vuelta la línea (sigue empezando en la llegada). Todo
+    /// lo que la usa (bots, posiciones, minimapa) pasa a ir para el otro lado.
+    /// Es solo en esta carrera: no cambia lo guardado en la escena.
+    /// </summary>
+    public void SetReversed(bool reversed)
+    {
+        if (reversed == IsReversed || !IsValid)
+            return;
+
+        int count = points.Length;
+        var flipped = new Vector3[count];
+        flipped[0] = points[0];
+
+        for (int i = 1; i < count; i++)
+            flipped[i] = points[count - i];
+
+        points = flipped;
+        cumulative = null;
+        IsReversed = reversed;
+    }
+
     public float Length
     {
         get

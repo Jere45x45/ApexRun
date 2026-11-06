@@ -19,6 +19,16 @@ public class BotRandomizer : MonoBehaviour
 
     private bool applied;
 
+    /// <summary>
+    /// Vuelve a habilitar todas las combinaciones (lo llama NetworkKartSpawner
+    /// al empezar cada escena). Con la misma semilla, cada bot vuelve a salir
+    /// igual en la qualy y en todas las fechas del campeonato.
+    /// </summary>
+    public static void ResetUsedCombinations()
+    {
+        usedCombinations.Clear();
+    }
+
     private class VisualCombination
     {
         public KartPart engine;
