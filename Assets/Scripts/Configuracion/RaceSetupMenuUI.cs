@@ -597,8 +597,16 @@ public class RaceSetupMenuUI : MonoBehaviour
         SetUsable(qualifyingNext, index < options.Length - 1);
 
         // Pista: el nombre y, si va al revés, dicho (en el campeonato, la primera fecha).
+        // Al revés va en un segundo renglón (cortado a mano, así no queda "al" arriba).
         string track = GameLanguage.Text(trackSpanish, trackEnglish);
-        SetValue(trackValue, RaceSetupStore.Reversed ? track + GameLanguage.Text(" al revés", " reversed") : track);
+        SetValue(trackValue, track);
+
+        if (trackValue != null && RaceSetupStore.Reversed)
+        {
+            trackValue.text = track + "\n" + GameLanguage.Text("al revés", "reversed");
+            trackValue.textWrappingMode = TextWrappingModes.NoWrap;
+            trackValue.alignment = TextAlignmentOptions.Center;
+        }
     }
 
     /// <summary>
