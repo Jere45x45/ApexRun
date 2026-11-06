@@ -24,7 +24,9 @@ using UnityEngine.UI;
 ///   cada carrera (la mejor vuelta arma la grilla). Estas dos filas se arman
 ///   solas copiando la de Niebla (no hay que tocar la escena); para que
 ///   entren, las filas se juntan un poco.
-/// Al confirmar se arma RaceSession (qualy, campeonato y sentido).
+/// - Boxes: parada libre u obligatoria (una, en carreras de 2 vueltas o
+///   más; ver PitStops). También se arma sola.
+/// Al confirmar se arma RaceSession (qualy, campeonato, sentido y boxes).
 /// Lo elegido queda guardado (RaceSetupStore, WeatherChoiceStore) y lo
 /// aplican en la carrera RaceSetupSync y RaceWeather.
 /// El cartel de arriba dice Create Server o Un jugador (con su ícono); los
@@ -116,8 +118,34 @@ public class RaceSetupMenuUI : MonoBehaviour
     private string trackSpanish = "Circuito 1";
     private string trackEnglish = "Circuit 1";
 
-    /// <summary>Lo más que se suben las filas para que entren las nuevas (px).</summary>
-    private const float MaxRowRaise = 16f;
+    private Button pitPrevious;
+    private Button pitNext;
+    private TMP_Text pitValue;
+
+    // Para acomodar las filas (LayoutRows).
+    private readonly List<RectTransform> layoutRows = new List<RectTransform>();
+    private readonly List<int> layoutLevels = new List<int>();
+    private readonly List<RectTransform> buttonRects = new List<RectTransform>();
+    private readonly List<Vector2> buttonPositions = new List<Vector2>();
+    private RectTransform modeRow;
+    private RectTransform qualifyingRow;
+    private RectTransform pitRow;
+    private RectTransform titleRect;
+    private Vector2 titlePosition;
+    private float titleBottom;
+    private float buttonsTop;
+    private float rowHeight;
+    private float originalStep;
+    private int originalLevels;
+    private int partidaLevel = -1;
+    private float leftX;
+    private float rightX;
+
+    /// <summary>Lo más que puede subir el título para que entren las filas (px).</summary>
+    private const float MaxTitleRaise = 22f;
+
+    /// <summary>Lo más que pueden bajar los botones de abajo para que entren las filas (px).</summary>
+    private const float MaxButtonsDrop = 18f;
 
     /// <summary>Lo mínimo entre la última fila y los botones de abajo (px).</summary>
     private const float BottomMargin = 8f;
@@ -176,6 +204,12 @@ public class RaceSetupMenuUI : MonoBehaviour
 
         if (directionNext != null)
             directionNext.onClick.AddListener(ToggleDirection);
+
+        if (pitPrevious != null)
+            pitPrevious.onClick.AddListener(TogglePitStop);
+
+        if (pitNext != null)
+            pitNext.onClick.AddListener(TogglePitStop);
     }
 
     // ------------------------------------------------------------------
@@ -204,11 +238,70 @@ public class RaceSetupMenuUI : MonoBehaviour
                 rows.Add((RectTransform)child);
         }
 
-        RectTransform modeRow = CloneRow(fogRow, "Fila_MODO", "Modo", "Mode", out modePrevious, out modeNext, out modeValue);
-        RectTransform qualifyingRow = CloneRow(fogRow, "Fila_QUALY", "Qualy", "Qualifying", out qualifyingPrevious, out qualifyingNext, out qualifyingValue);
+        // Los renglones que hay (por altura), de arriba para abajo.
+        var levels = new List<float>();
+
+        foreach (RectTransform row in rows)
+        {
+            float y = row.anchoredPosition.y;
+
+            if (!levels.Exists(level => Mathf.Abs(level - y) < 1f))
+                levels.Add(y);
+        }
+
+        levels.Sort((a, b) => b.CompareTo(a));
+
+        rowHeight = fogRow.rect.height;
+        originalLevels = levels.Count;
+        originalStep = levels.Count > 1 ? levels[0] - levels[1] : rowHeight + 8f;
+        leftX = lapsRow.anchoredPosition.x;
+        rightX = fogRow.anchoredPosition.x;
+
+        foreach (RectTransform row in rows)
+        {
+            layoutRows.Add(row);
+            layoutLevels.Add(levels.FindIndex(y => Mathf.Abs(y - row.anchoredPosition.y) < 1f));
+        }
+
+        RectTransform visibility = visibilityRow != null ? visibilityRow.transform as RectTransform : null;
+        int visibilityIndex = visibility != null ? layoutRows.IndexOf(visibility) : -1;
+        partidaLevel = visibilityIndex >= 0 ? layoutLevels[visibilityIndex] : -1;
+
+        // El título (el cartel rojo) y los botones de abajo: lo que se puede mover.
+        Transform title = titleText != null ? titleText.transform : null;
+
+        while (title != null && title.parent != parent)
+            title = title.parent;
+
+        titleRect = title as RectTransform;
+
+        if (titleRect != null)
+        {
+            titlePosition = titleRect.anchoredPosition;
+            titleBottom = BottomOf(titleRect, parent);
+        }
+        else
+        {
+            titleBottom = levels[0] + rowHeight * 0.5f + BottomMargin;
+        }
+
+        buttonsTop = ButtonsTop(parent);
+
+        foreach (Button button in new[] { confirmButton, backButton })
+        {
+            if (button != null && button.transform.parent == parent)
+            {
+                buttonRects.Add((RectTransform)button.transform);
+                buttonPositions.Add(((RectTransform)button.transform).anchoredPosition);
+            }
+        }
+
+        modeRow = CloneRow(fogRow, "Fila_MODO", "Modo", "Mode", out modePrevious, out modeNext, out modeValue);
+        qualifyingRow = CloneRow(fogRow, "Fila_QUALY", "Qualy", "Qualifying", out qualifyingPrevious, out qualifyingNext, out qualifyingValue);
+        pitRow = CloneRow(fogRow, "Fila_BOXES", "Boxes", "Pit stop", out pitPrevious, out pitNext, out pitValue);
 
         SetupTrackRow(parent.Find("Fila_PISTA"));
-        PlaceRows(rows, lapsRow.anchoredPosition.x, fogRow.anchoredPosition.x, modeRow, qualifyingRow);
+        LayoutRows();
     }
 
     /// <summary>La fila (hijo directo del panel) que contiene un texto.</summary>
@@ -337,52 +430,73 @@ public class RaceSetupMenuUI : MonoBehaviour
     }
 
     /// <summary>
-    /// El renglón nuevo va abajo de todo. Si no entra arriba de los botones,
-    /// las filas se suben un poco (hasta MaxRowRaise) y después se juntan.
+    /// Acomoda las filas en renglones de dos columnas, de arriba para abajo:
+    /// - Un jugador (5 renglones): Boxes va en el lugar de Partida (que es
+    ///   solo para crear servidor). Modo y Qualy, en el renglón de abajo.
+    /// - Crear servidor (6 renglones): Boxes va abajo de Modo.
+    /// Si no entran entre el título y los botones de abajo, se juntan un poco
+    /// y, si hace falta, el título sube y los botones bajan (hasta MaxTitleRaise
+    /// y MaxButtonsDrop).
     /// </summary>
-    private void PlaceRows(List<RectTransform> rows, float leftX, float rightX, RectTransform newLeft, RectTransform newRight)
+    private void LayoutRows()
     {
-        if (rows.Count == 0)
+        if (layoutRows.Count == 0 || modeRow == null)
             return;
 
-        float rowHeight = rows[0].rect.height;
+        int levelCount = multiplayer ? originalLevels + 2 : originalLevels + 1;
+        float available = titleBottom - buttonsTop - 2f * BottomMargin;
+        float minStep = rowHeight + 6f;
+        float needed = rowHeight + (levelCount - 1) * minStep;
+        float titleRaise = 0f;
+        float buttonsDrop = 0f;
 
-        // Los renglones que hay (por altura), de arriba para abajo.
-        var levels = new List<float>();
-
-        foreach (RectTransform row in rows)
+        if (needed > available)
         {
-            float y = row.anchoredPosition.y;
-
-            if (!levels.Exists(level => Mathf.Abs(level - y) < 1f))
-                levels.Add(y);
+            float deficit = needed - available;
+            titleRaise = Mathf.Min(MaxTitleRaise, deficit * 0.5f);
+            buttonsDrop = Mathf.Min(MaxButtonsDrop, deficit - titleRaise);
+            titleRaise = Mathf.Min(MaxTitleRaise, deficit - buttonsDrop);
+            available += titleRaise + buttonsDrop;
         }
 
-        levels.Sort((a, b) => b.CompareTo(a));
+        float step = Mathf.Min(originalStep, (available - rowHeight) / (levelCount - 1));
+        float top = titleBottom + titleRaise - BottomMargin;
 
-        float step = levels.Count > 1 ? levels[0] - levels[1] : rowHeight + 8f;
-        int count = levels.Count + 1;
-        float top = levels[0] + rowHeight * 0.5f;
-        float bottomLimit = ButtonsTop(newLeft.parent) + BottomMargin;
+        if (titleRect != null)
+            titleRect.anchoredPosition = titlePosition + new Vector2(0f, titleRaise);
 
-        float bottom = top - rowHeight - (count - 1) * step;
+        for (int i = 0; i < buttonRects.Count; i++)
+            buttonRects[i].anchoredPosition = buttonPositions[i] - new Vector2(0f, buttonsDrop);
 
-        if (bottom < bottomLimit)
+        for (int i = 0; i < layoutRows.Count; i++)
+            layoutRows[i].anchoredPosition = new Vector2(layoutRows[i].anchoredPosition.x, LevelY(top, step, layoutLevels[i]));
+
+        modeRow.anchoredPosition = new Vector2(leftX, LevelY(top, step, originalLevels));
+        qualifyingRow.anchoredPosition = new Vector2(rightX, LevelY(top, step, originalLevels));
+
+        if (pitRow != null)
         {
-            top += Mathf.Min(MaxRowRaise, bottomLimit - bottom);
-            step = Mathf.Min(step, (top - rowHeight - bottomLimit) / (count - 1));
-            step = Mathf.Max(step, rowHeight + 2f);
+            int pitLevel = multiplayer || partidaLevel < 0 ? originalLevels + 1 : partidaLevel;
+            pitRow.anchoredPosition = new Vector2(leftX, LevelY(top, step, pitLevel));
         }
+    }
 
-        foreach (RectTransform row in rows)
-        {
-            int level = levels.FindIndex(y => Mathf.Abs(y - row.anchoredPosition.y) < 1f);
-            row.anchoredPosition = new Vector2(row.anchoredPosition.x, top - rowHeight * 0.5f - level * step);
-        }
+    private float LevelY(float top, float step, int level)
+    {
+        return top - rowHeight * 0.5f - level * step;
+    }
 
-        float newY = top - rowHeight * 0.5f - (count - 1) * step;
-        newLeft.anchoredPosition = new Vector2(leftX, newY);
-        newRight.anchoredPosition = new Vector2(rightX, newY);
+    /// <summary>Lo más bajo de un objeto, en el espacio del panel.</summary>
+    private static float BottomOf(RectTransform rect, Transform panel)
+    {
+        float bottom = float.MaxValue;
+        var corners = new Vector3[4];
+        rect.GetWorldCorners(corners);
+
+        foreach (Vector3 corner in corners)
+            bottom = Mathf.Min(bottom, panel.InverseTransformPoint(corner).y);
+
+        return bottom;
     }
 
     /// <summary>Dónde empiezan los botones de abajo (Volver y Confirmar), en el espacio del panel.</summary>
@@ -425,6 +539,12 @@ public class RaceSetupMenuUI : MonoBehaviour
         int[] options = RaceSetupStore.QualifyingOptions;
         int index = Mathf.Max(0, System.Array.IndexOf(options, RaceSetupStore.QualifyingMinutes));
         RaceSetupStore.QualifyingMinutes = options[Mathf.Clamp(index + direction, 0, options.Length - 1)];
+        Refresh();
+    }
+
+    private void TogglePitStop()
+    {
+        RaceSetupStore.MandatoryPitStop = !RaceSetupStore.MandatoryPitStop;
         Refresh();
     }
 
@@ -493,7 +613,8 @@ public class RaceSetupMenuUI : MonoBehaviour
         // Los bots de esta carrera (los pone el host al cargar la pista).
         RaceSetupStore.BotsForRace = RaceSetupStore.GetBots(multiplayer);
 
-        // Qualy, campeonato y sentido (desde la fecha 1).
+        // Qualy, campeonato y sentido (desde la fecha 1), y boxes.
+        RaceSession.MandatoryPitStop = RaceSetupStore.MandatoryPitStop;
         RaceSession.StartNew(RaceSetupStore.Championship ? RaceSetupStore.Rounds : 0,
                              RaceSetupStore.QualifyingMinutes * 60f,
                              RaceSetupStore.Reversed);
@@ -574,6 +695,7 @@ public class RaceSetupMenuUI : MonoBehaviour
         SetValue(visibilityValue, RaceSetupStore.PrivateServer ? GameLanguage.Text("Privada", "Private") : GameLanguage.Text("Pública", "Public"));
 
         RefreshSessionRows();
+        LayoutRows();
     }
 
     private void RefreshSessionRows()
@@ -587,6 +709,8 @@ public class RaceSetupMenuUI : MonoBehaviour
 
         SetUsable(modePrevious, championship);
         SetUsable(modeNext, !championship || rounds < RaceSetupStore.MaxRounds);
+
+        SetValue(pitValue, RaceSetupStore.MandatoryPitStop ? GameLanguage.Text("Obligatoria", "Mandatory") : GameLanguage.Text("Libre", "Optional"));
 
         int minutes = RaceSetupStore.QualifyingMinutes;
         int[] options = RaceSetupStore.QualifyingOptions;

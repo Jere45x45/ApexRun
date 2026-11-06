@@ -199,6 +199,21 @@ public class NetworkKart : NetworkBehaviour
         Spawned?.Invoke(this);
     }
 
+    /// <summary>Catálogo con el que se traducen las piezas (lo usan los boxes para las ruedas).</summary>
+    public PartCatalog Catalog => catalog;
+
+    public KartConfigurationController ConfigurationController => configurationController;
+
+    /// <summary>
+    /// El dueño cambió piezas en carrera (en boxes, PitStops): las publica para
+    /// que las copias de las otras computadoras se pongan las mismas.
+    /// </summary>
+    public void PublishLoadout()
+    {
+        if (IsSpawned && IsOwner)
+            loadout.Value = ReadLoadout();
+    }
+
     public override void OnNetworkDespawn()
     {
         loadout.OnValueChanged -= HandleLoadoutChanged;

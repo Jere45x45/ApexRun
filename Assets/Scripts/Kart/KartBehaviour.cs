@@ -235,6 +235,18 @@ public class KartBehaviour : MonoBehaviour
     /// </summary>
     public bool UsesPlayerAssists { get; set; }
 
+    /// <summary>
+    /// Limitador (m/s), por ejemplo en la calle de boxes (PitStops). Pasado el
+    /// límite no acelera y, si viene muy pasado, frena un poco. 0 = sin límite.
+    /// </summary>
+    public float SpeedLimit { get; set; }
+
+    /// <summary>
+    /// Quieto en boxes mientras le cambian las ruedas (PitStops): frena y no
+    /// hace caso de los mandos, como sin mandos habilitados.
+    /// </summary>
+    public bool PitHold { get; set; }
+
     private bool AbsActive => antiLockBrakes && (!UsesPlayerAssists || playerAbs);
 
     private bool TractionControlActive => lowSpeedTractionControl && (!UsesPlayerAssists || playerTractionControl);
@@ -462,7 +474,7 @@ public class KartBehaviour : MonoBehaviour
 
         UpdateReverse(deltaTime);
 
-        if (inputEnabled)
+        if (inputEnabled && !PitHold)
         {
             // Yendo para atrás, la S empuja para atrás en vez de frenar.
             float pedalBrake = reversing ? 0f : Mathf.Clamp01(-throttle);
@@ -477,6 +489,21 @@ public class KartBehaviour : MonoBehaviour
             vehicle.Brake = brakeInput * GetBrakeLimit(speed, deltaTime);
             vehicle.FrontBrake = brakeInput * GetFrontBrakeLimit(speed, deltaTime);
             vehicle.ReverseTorque = reversing ? -reverseTorque * GetReverseFade() : 0f;
+
+            // Limitador: pasado el límite no acelera; muy pasado, frena suave.
+            if (SpeedLimit > 0f && vehicle.ForwardSpeed > SpeedLimit)
+            {
+                vehicle.Throttle = 0f;
+
+                float over = vehicle.ForwardSpeed - SpeedLimit;
+
+                if (over > 1.5f)
+                {
+                    float limiterBrake = Mathf.Clamp01((over - 1.5f) / 5f) * 0.3f;
+                    vehicle.Brake = Mathf.Max(vehicle.Brake, limiterBrake);
+                    vehicle.FrontBrake = Mathf.Max(vehicle.FrontBrake, limiterBrake);
+                }
+            }
         }
         else
         {

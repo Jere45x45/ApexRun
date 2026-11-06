@@ -89,6 +89,12 @@ public static class RaceSession
 
     public static bool IsChampionship => Rounds > 0;
 
+    /// <summary>
+    /// Parada en boxes obligatoria (en carreras de 2 vueltas o más; ver
+    /// PitStops). La pone el menú y viaja por red con lo demás.
+    /// </summary>
+    public static bool MandatoryPitStop { get; set; }
+
     public static bool IsLastRound => !IsChampionship || Round >= Rounds;
 
     /// <summary>Semilla de los bots (así se ven igual en la qualy y en todas las fechas).</summary>

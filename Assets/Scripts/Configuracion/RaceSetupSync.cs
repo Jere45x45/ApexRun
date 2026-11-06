@@ -11,6 +11,8 @@ using UnityEngine;
 /// - Fase (qualy o carrera), sentido, duración de la qualy, fecha y cantidad
 ///   de fechas del campeonato, y la tabla del campeonato.
 /// - En la qualy, los mejores tiempos de cada kart (QualifyingSession).
+/// - Boxes: si la parada es obligatoria y cuántas hizo cada kart (PitStops);
+///   los clientes avisan sus paradas con ReportPitStop.
 /// - En el anfitrión se aplica en Awake, antes de que aparezcan los objetos de
 ///   red (así la grilla ya está del lado correcto y RaceWeather sortea el
 ///   cambio de clima con las vueltas reales).
@@ -33,12 +35,17 @@ public class RaceSetupSync : NetworkBehaviour
     private readonly NetworkVariable<int> rounds = new NetworkVariable<int>(0);
     private readonly NetworkVariable<FixedString4096Bytes> standings = new NetworkVariable<FixedString4096Bytes>();
     private readonly NetworkVariable<FixedString4096Bytes> qualifyingTimes = new NetworkVariable<FixedString4096Bytes>();
+    private readonly NetworkVariable<bool> mandatoryPitStop = new NetworkVariable<bool>(false);
+    private readonly NetworkVariable<FixedString512Bytes> pitStops = new NetworkVariable<FixedString512Bytes>();
 
     /// <summary>El de la escena (hay uno solo).</summary>
     public static RaceSetupSync Instance { get; private set; }
 
     /// <summary>Mejores tiempos de la qualy, como los publica el servidor (ver QualifyingSession).</summary>
     public string QualifyingTimes => qualifyingTimes.Value.ToString();
+
+    /// <summary>Paradas en boxes de cada kart, como las publica el servidor ("id:paradas;", ver PitStops).</summary>
+    public string PitStopsText => pitStops.Value.ToString();
 
     private void Awake()
     {
@@ -112,6 +119,47 @@ public class RaceSetupSync : NetworkBehaviour
             qualifyingTimes.Value = text;
     }
 
+    /// <summary>Servidor: publica las paradas en boxes.</summary>
+    public void PublishPitStops(string value)
+    {
+        if (!IsSpawned || !IsServer)
+            return;
+
+        var text = new FixedString512Bytes();
+        text.CopyFromTruncated(value ?? "");
+
+        if (!pitStops.Value.Equals(text))
+            pitStops.Value = text;
+    }
+
+    /// <summary>El dueño de un kart terminó una parada en boxes: se la cuenta el servidor.</summary>
+    public void ReportPitStop(NetworkObject kart)
+    {
+        if (kart == null || !IsSpawned)
+            return;
+
+        if (IsServer)
+        {
+            if (PitStops.Instance != null)
+                PitStops.Instance.ServerAddStop(kart.GetComponent<Rigidbody>());
+
+            return;
+        }
+
+        ReportPitStopRpc(kart);
+    }
+
+    [Rpc(SendTo.Server, RequireOwnership = false)]
+    private void ReportPitStopRpc(NetworkObjectReference kartReference, RpcParams rpcParams = default)
+    {
+        // Solo el dueño del kart avisa sus paradas.
+        if (!kartReference.TryGet(out NetworkObject kart) || kart.OwnerClientId != rpcParams.Receive.SenderClientId)
+            return;
+
+        if (PitStops.Instance != null)
+            PitStops.Instance.ServerAddStop(kart.GetComponent<Rigidbody>());
+    }
+
     /// <summary>Servidor: lo de RaceSession, para los demás.</summary>
     private void PublishSession()
     {
@@ -120,6 +168,7 @@ public class RaceSetupSync : NetworkBehaviour
         qualifyingSeconds.Value = RaceSession.QualifyingSeconds;
         round.Value = RaceSession.Round;
         rounds.Value = RaceSession.Rounds;
+        mandatoryPitStop.Value = RaceSession.MandatoryPitStop;
 
         var text = new FixedString4096Bytes();
         text.CopyFromTruncated(RaceSession.StandingsText ?? "");
@@ -148,6 +197,7 @@ public class RaceSetupSync : NetworkBehaviour
         RaceSession.QualifyingSeconds = qualifyingSeconds.Value;
         RaceSession.Round = round.Value;
         RaceSession.Rounds = rounds.Value;
+        RaceSession.MandatoryPitStop = mandatoryPitStop.Value;
         RaceSession.StandingsText = standings.Value.ToString();
         RaceSession.NotifyChanged();
     }

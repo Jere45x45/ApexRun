@@ -330,6 +330,23 @@ public class CustomIABots : MonoBehaviour
             BeginRace();
     }
 
+    /// <summary>
+    /// Vuelve a manejar después de boxes (PitStops lo apaga mientras entra,
+    /// para y sale): se ubica otra vez en la pista y empieza de cero sus
+    /// decisiones, sin contar como incidente lo que pasó en la calle de boxes.
+    /// </summary>
+    public void ResumeAfterPit()
+    {
+        if (!ready)
+            return;
+
+        trackDistance = centerline.GetDistance(transform.position);
+        lateralFraction = Mathf.Clamp(info.GetFraction(transform.position, trackDistance), -LaneWidth, LaneWidth);
+        laneIndex = NearestLane(lateralFraction);
+        ResetDecision();
+        ClearTraffic();
+    }
+
     /// <summary>Lo usa la escena de entrenamiento (DifficultyManager): habilita los mandos y arranca.</summary>
     public void StartRace()
     {

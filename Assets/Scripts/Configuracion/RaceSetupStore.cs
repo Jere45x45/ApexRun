@@ -15,6 +15,7 @@ using UnityEngine;
 /// - Qualy: sin qualy o una tanda de QualifyingOptions minutos antes de cada
 ///   carrera (la mejor vuelta arma la grilla).
 /// - Sentido: normal o al revés (en el campeonato, el de la primera fecha).
+/// - Boxes: parada libre u obligatoria (una, en carreras de 2 vueltas o más).
 /// Al confirmar, el menú arma RaceSession con esto.
 /// </summary>
 public static class RaceSetupStore
@@ -36,6 +37,7 @@ public static class RaceSetupStore
     private const string RoundsKey = "ApexRun.Fechas";
     private const string QualifyingKey = "ApexRun.QualyMinutos";
     private const string ReversedKey = "ApexRun.AlReves";
+    private const string MandatoryPitStopKey = "ApexRun.ParadaObligatoria";
 
     public const int MinRounds = 2;
     public const int MaxRounds = 6;
@@ -159,6 +161,17 @@ public static class RaceSetupStore
         set
         {
             PlayerPrefs.SetInt(QualifyingKey, System.Array.IndexOf(QualifyingOptions, value) >= 0 ? value : 0);
+            PlayerPrefs.Save();
+        }
+    }
+
+    /// <summary>Parada en boxes obligatoria (en carreras de 2 vueltas o más).</summary>
+    public static bool MandatoryPitStop
+    {
+        get => PlayerPrefs.GetInt(MandatoryPitStopKey, 0) == 1;
+        set
+        {
+            PlayerPrefs.SetInt(MandatoryPitStopKey, value ? 1 : 0);
             PlayerPrefs.Save();
         }
     }

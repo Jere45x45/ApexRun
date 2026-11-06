@@ -51,6 +51,17 @@ public class KartTireThermals
     /// <summary>Multiplicador de agarre de una rueda por temperatura y desgaste.</summary>
     public float GetGripMultiplier(int wheel) => settings.ThermalGrip(temperature[wheel]) * settings.WearGrip(wear[wheel]);
 
+    /// <summary>Cubiertas nuevas a una temperatura (en boxes vienen de los calentadores).</summary>
+    public void Fit(float startTemperature)
+    {
+        for (int i = 0; i < temperature.Length; i++)
+        {
+            temperature[i] = startTemperature;
+            wear[i] = 0f;
+            slidingPower[i] = 0f;
+        }
+    }
+
     /// <summary>Cubiertas nuevas a la temperatura de largada.</summary>
     public void Reset()
     {
