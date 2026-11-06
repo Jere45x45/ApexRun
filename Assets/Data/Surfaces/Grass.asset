@@ -14,5 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TrackSurfaceData
   surfaceName: Grass
   validForTrack: 0
-  gripMultiplier: 0.55
+  gripMultiplier: 0.75
   rollingResistanceMultiplier: 5
+  wetGripMultiplier: 0.9

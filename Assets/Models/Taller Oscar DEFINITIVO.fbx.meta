@@ -1,0 +1,641 @@
+fileFormatVersion: 2
+guid: 9215c6af6ecb75445b4dfe0f0b7b0919
+ModelImporter:
+  serializedVersion: 24300
+  internalIDToNameTable: []
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CajaMotor.001
+    second: {fileID: 2100000, guid: 3f47c7f91b1975c4c9d7258c0721873f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CarbonFiber
+    second: {fileID: 2100000, guid: 6fe8864c25f3d3240a23c169b6a01aec, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CarbonFiber.001
+    second: {fileID: 2100000, guid: f3b17322c49ba4445876c2730fd797af, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: ChapaCentro
+    second: {fileID: 2100000, guid: d2246526cfa3dcd4e803afd526e3c4aa, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: ChapaTecho
+    second: {fileID: 2100000, guid: 7c2751389fee30f4e8ceef62ae793937, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Chasis
+    second: {fileID: 2100000, guid: 93be06649a428cc479f397d90354e035, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Cuartito
+    second: {fileID: 2100000, guid: 25af5e6d763a0d14aada1b32f6dc1ba0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: DaftPunkMetal
+    second: {fileID: 2100000, guid: ed3f3ff2426708042b21465104c6e978, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: DaftPunkVisor
+    second: {fileID: 2100000, guid: dc3366ff41809e34cbbe8e479f4aa585, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Engranajes
+    second: {fileID: 2100000, guid: 7a92582de9382554c9c42bef775fff87, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: FerrariTexture
+    second: {fileID: 2100000, guid: 053dc3542696ac14ca2a5af5f0f3cdf0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: FibraCarbono
+    second: {fileID: 2100000, guid: f00b34b419cf1b14eb06bd0658258373, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Hojas
+    second: {fileID: 2100000, guid: 72f563b2cde63f44da65fdbce09b7f96, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Honda Mean Mower Llantas
+    second: {fileID: 2100000, guid: e74ee3a644456754c925a0de1949d39f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: LavarropasTexture
+    second: {fileID: 2100000, guid: 676fa52e21ef4bf4aa8f9bf8676d33ba, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Llanta
+    second: {fileID: 2100000, guid: 48d71e5544fc5864983a353892dd4ba4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Llantas
+    second: {fileID: 2100000, guid: f5b510917e641e94ca171457d5b9910f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Madera
+    second: {fileID: 2100000, guid: fa52fc98745cfba42b5a5da78b5774a2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MaderaRuedaCarroza
+    second: {fileID: 2100000, guid: 094bfe26892b88840acfc4fb4c556f19, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material.001
+    second: {fileID: 2100000, guid: 07da846edb512b941b9271f9c399a1ce, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material.002
+    second: {fileID: 2100000, guid: 80043c7f655ceb4428d3b50a9a942829, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Metal
+    second: {fileID: 2100000, guid: 40108af3baad92c4497577ada6dd4b42, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Metal.001
+    second: {fileID: 2100000, guid: 99dd3dde76cd38f4c88917f1e9d04b3e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MetalEscape
+    second: {fileID: 2100000, guid: 11abe74869267474a9d66db2e7820320, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MetalGris.001
+    second: {fileID: 2100000, guid: 915c83746053d2a4b9d45f70f8f87479, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MetalMotoNegro
+    second: {fileID: 2100000, guid: 96a03a5087e786841ae18ad9e68c20ad, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MetalMotorMoto
+    second: {fileID: 2100000, guid: 255fb2923de668a40af6df284fc15164, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MetalVolante
+    second: {fileID: 2100000, guid: 35411034735198748bb5cb69ffeba991, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Negativo
+    second: {fileID: 2100000, guid: 3b1ad745f738de64f9521967b912ff1f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Pared.001
+    second: {fileID: 2100000, guid: 808357e643b56f24b8de93f7227762b5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: ParedLadrillo
+    second: {fileID: 2100000, guid: 260fa5e1acd509b409a0b7a97a736b4d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PassatSteer
+    second: {fileID: 2100000, guid: 964c6c12a3ac5b04f9e813707fb5e7eb, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Pasto
+    second: {fileID: 2100000, guid: 03db2b5ca7c12f049a0d903117afdefe, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PisoConcreto
+    second: {fileID: 2100000, guid: e4835118e3cc339408ecff812f621bf3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Plastico
+    second: {fileID: 2100000, guid: 987dbbb7a2bc5f144a927ddea1c7b77d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PlasticoBeige.001
+    second: {fileID: 2100000, guid: 24e6bdc1b5f4675459f5a6121b3aebf8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PlasticoNegro.001
+    second: {fileID: 2100000, guid: 7f8f50b1ff389df41a88b325665135ab, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Positivo
+    second: {fileID: 2100000, guid: 24d9e3df1cdb0bb43bf8d793b1f52dd9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Rueda
+    second: {fileID: 2100000, guid: 45d6e2a34e88f344a8b5df1802229756, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Slicks
+    second: {fileID: 2100000, guid: 41d29662e2ebb4246840a971ae5be65a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Tela
+    second: {fileID: 2100000, guid: 1e187194ad40b40429fd6e9e17854c91, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Tela.001
+    second: {fileID: 2100000, guid: 96baff2fbdb4a034984108d56d5ac36c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Timon
+    second: {fileID: 2100000, guid: 4f24270f4b9e0254ab763f1dc3d7d7ce, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Tronco
+    second: {fileID: 2100000, guid: df76ea98718d1bc478d288e981ad44c9, type: 2}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Atlas UV de Metal Oscuro Desgastado
+    second: {fileID: 2800000, guid: 0a805647f7cd5e04293ab334c5a8c9d1, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: BoatSteerNormalMap
+    second: {fileID: 2800000, guid: dab9a384844f65a4182e7ae4a0020cc5, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: BoatSteerTexture
+    second: {fileID: 2800000, guid: 220e4cd805c19d1438cbe479ba97e199, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: CarbonFiberNormalMap
+    second: {fileID: 2800000, guid: 6e02cc5c7d039534b99ddadc827cb2f5, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: CarbonFiberTexture
+    second: {fileID: 2800000, guid: 6b1f9369a25a09a41a1d68e44deca3d0, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: CentroVolante
+    second: {fileID: 2800000, guid: 0b7ff9530f0cd2844a619c610f93a6cd, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: CentroVolanteNormalMap
+    second: {fileID: 2800000, guid: 74f3fa2c3cc745d4b8db07b704701208, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: ChatGPT Image 12 ago 2026, 02_31_47 p.m.
+    second: {fileID: 2800000, guid: 33aa4d6724aa01349ab4ca3bdb6f00dc, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: FerrariTextureDefinitive
+    second: {fileID: 2800000, guid: 8cef7b5bdd8d78540a5624e557b85f37, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Honda Mean Mower Tire Texture
+    second: {fileID: 2800000, guid: 4bfb730b96666a24a920a3ee289ab2dc, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: LogoTelaNormalMap
+    second: {fileID: 2800000, guid: f9a0717bb3f0de14599fcb4f7bfb9c31, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: LogoTelaTexture
+    second: {fileID: 2800000, guid: 9d408e01b0ca4ab4783b78516d7acfbb, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: MEtalNormalMap
+    second: {fileID: 2800000, guid: 63cb7638b12c12b4daf9297c84e94f19, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: MEtalTexture
+    second: {fileID: 2800000, guid: 9b7cf76cb0f141f4a980a24596979596, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Mapa UV normal azul y magenta
+    second: {fileID: 2800000, guid: 0b22beba020a5034aa618b28527eca43, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Mapa normal UV de armadura desgastada
+    second: {fileID: 2800000, guid: 68cbbef01babc1a49a6eccef80cc76c5, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: "Mapa normal UV de carro de F\xF3rmula 1"
+    second: {fileID: 2800000, guid: 54e93e3f33a09cd4a9d5b0f3da8b57c2, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Mapa normal UV de paneles desgastados
+    second: {fileID: 2800000, guid: eaa97d711b5c31649a973304eb75749a, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Mapa normal de corteza rugosa
+    second: {fileID: 2800000, guid: c1735be2e268fcb49a7484a30f8244e6, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Mapa normal de lavadora industrial
+    second: {fileID: 2800000, guid: c059feb6d803a4847865e071abc61931, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Mapa normal de vetas de madera
+    second: {fileID: 2800000, guid: b3ca4de95598d6e40917f6193f42ff31, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: MetalNegroVolante
+    second: {fileID: 2800000, guid: 86d0492b4855e1e42835046cf44202fc, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: MetalNegroVolanteNormalMap
+    second: {fileID: 2800000, guid: ce7c9966a3d767b428e0a46665994e72, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: NormalMapCortadora de pasto
+    second: {fileID: 2800000, guid: 911ef3a5253abf14fbd9e5f8aa21fb6b, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: NormalMapKartProTexture
+    second: {fileID: 2800000, guid: a876f79197204494e861c69f4b092169, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: NormalMapSlicks
+    second: {fileID: 2800000, guid: 4937ea00acd49f947a6fdd639ed6b5c6, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: NormalMapTexturaVolanteF1
+    second: {fileID: 2800000, guid: e3f7561b0dee28e40b63e7df97935ea4, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: NormalMap_PisoTaller_Blender
+    second: {fileID: 2800000, guid: e5f0602029d0a7c4aaf8f70f9e52ad2a, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: PassatSteerNormalMap
+    second: {fileID: 2800000, guid: 8228dda485b21cf4485526a2440aea5c, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: PassatSteerTexture
+    second: {fileID: 2800000, guid: 3fb7fdc6fcfbdf14181cfd2e5a876d40, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: PatinetaOverBoard_Normal_OpenGL
+    second: {fileID: 2800000, guid: 4027f760a98adbd409e4ecb1564a7c90, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: PatinetaOverBoardtexture
+    second: {fileID: 2800000, guid: 6f5866a56172ac544ac4c2b055cde652, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: PlasticBlackNormalMap
+    second: {fileID: 2800000, guid: ef089b6b0ac3db649b2887aac8cec383, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: PlaticBlackTexture
+    second: {fileID: 2800000, guid: 888487693b6f5ab4aaef49c39c195cc2, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: RuedasBiciNormalMap
+    second: {fileID: 2800000, guid: d29c3aa7c697b4b48b03361468f569f7, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: RuedasBiciTexture
+    second: {fileID: 2800000, guid: cbca8421eea553c4e8889712c427f0b4, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: TelaNegraTexture
+    second: {fileID: 2800000, guid: 80de440ec1719424cb57ff288a389a68, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: TelaRojaVolante
+    second: {fileID: 2800000, guid: c38433f1f5c48914a89489e020368f75, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: TelaRojaVolanteNormalMap
+    second: {fileID: 2800000, guid: 1cfb8987a591674468af470a0c53d290, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Textura Rueda Slick
+    second: {fileID: 2800000, guid: c2eca5c3adfff344eab5435952a7fe17, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: "Textura normal de follaje p\xFArpura"
+    second: {fileID: 2800000, guid: cf7be6983af002f47bc84b4277a281f6, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Textura piso2
+    second: {fileID: 2800000, guid: 3fa09e7174d06a94da139c716b2adc51, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: TexturaBaseMotorMoto
+    second: {fileID: 2800000, guid: 53e516735249ebd44a46b80d97ccc6df, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: TexturaHojasRealista
+    second: {fileID: 2800000, guid: f3a3a7fba382d8b4cb076b8864398dd9, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: TexturaLavarropas
+    second: {fileID: 2800000, guid: a33f827e6f5ae5741adb1ac5ed6123b2, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: TexturaMadera
+    second: {fileID: 2800000, guid: 3d621c9c0f58c6847a8f4e19e11ea1c2, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: TexturaMaderaRuedaCarroza
+    second: {fileID: 2800000, guid: 02e16ac5cf8860b48ad91491355bdad9, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: TexturaMotorLancha
+    second: {fileID: 2800000, guid: 8374d244748563e4394ce5d7b0621667, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: TexturaMotorMotoNegro
+    second: {fileID: 2800000, guid: cf9ed9442705faf4cae7421d0ba1f913, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: TexturaPared
+    second: {fileID: 2800000, guid: a9d99c0228a26d74ba2fc157e570cd5e, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: TexturaPisoTaller
+    second: {fileID: 2800000, guid: c72a099312a62cb45a540179b649e6e9, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: TexturaTronco
+    second: {fileID: 2800000, guid: 3443acd0079a06646a943b0107431c12, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: TexturaVolanteF1CarbonFiber (1)
+    second: {fileID: 2800000, guid: aa2f273efa8945c41bb42f68d7da73dc, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: TextureKartPro
+    second: {fileID: 2800000, guid: 4b6f7438fb5685049bd5ec6a076472d9, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: TexturesCom_Wall_Stone3_2x2_512_albedo
+    second: {fileID: 2800000, guid: d65b5a8671678ac4699ff5db3168cf3a, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: TexturesCom_Wall_Stone3_2x2_512_normal
+    second: {fileID: 2800000, guid: ca4e37c31b15ede4dabe694befc923fc, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: chapitatextur
+    second: {fileID: 2800000, guid: fdf6e95bb4ce6bf48ac38166258238b2, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: concrete_normal
+    second: {fileID: 2800000, guid: 843525779c7da5146ac0b28c1767784f, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: grass_dirt_normal
+    second: {fileID: 2800000, guid: 214b5d0b25737b04ca2b8fae6bb65ef7, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: normal_metal_negro_2048_fondo_negro
+    second: {fileID: 2800000, guid: d0e95039f56979b4ab1a57d32d5641db, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: peeling_paint_wall_normal
+    second: {fileID: 2800000, guid: 7589a757994743c4b9e3734a86d8e18d, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: wood_normal
+    second: {fileID: 2800000, guid: 35dd226f10faeaa49b75df0e82a9d406, type: 3}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+    searchTexturesGlobally: 0
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    removeConstantScaleCurves: 0
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importPhysicalCameras: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    nodeNameCollisionStrategy: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    generateMeshLods: 0
+    meshLodGenerationFlags: 0
+    maximumMeshLod: -1
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    strictVertexDataChecks: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 1
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 2
+  humanoidOversampling: 1
+  avatarSetup: 0
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  importBlendShapeDeformPercent: 1
+  remapMaterialsIfMaterialImportModeIsNone: 0
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

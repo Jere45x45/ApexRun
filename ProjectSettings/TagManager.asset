@@ -9,14 +9,14 @@ TagManager:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Track
   - Water
   - UI
   - MainCamera
   - kart
   - PostProcessing
-  - 
-  - 
+  - TrackBoundary
+  - BotTraining
   - 
   - 
   - 

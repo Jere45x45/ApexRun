@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: bf2cbaeb166255e40b0b0c98bd8dd337
+guid: 4d2de96090bff8946b1cd6c6f0032c05
 ModelImporter:
   serializedVersion: 24300
   internalIDToNameTable: []
@@ -8,32 +8,32 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: Chasis
-    second: {fileID: 2100000, guid: 73942a76aa92ccb449051fa29f01810e, type: 2}
+    second: {fileID: 2100000, guid: 8afb759d1a77546449975079683e05d7, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: Parachoques
-    second: {fileID: 2100000, guid: a1f4b2317f1b77d48acce232ef122b2e, type: 2}
+    second: {fileID: 2100000, guid: 4d74eaa70e1851e45ad91189a2fd7053, type: 2}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: CarbonFiberNormalMap
-    second: {fileID: 2800000, guid: 8b3bd8305821ab8449699358b1bb69b1, type: 3}
+    second: {fileID: 2800000, guid: 75e9274c3ef73ab41bb3f50e53ca1f7e, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: CarbonFiberTexture
-    second: {fileID: 2800000, guid: b5ed377aa2db9d2448bfcf47bf51ca2b, type: 3}
+    second: {fileID: 2800000, guid: 09dc03dbd2c0dbe47a583777ebbf6990, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: NormalMapKartProTexture
-    second: {fileID: 2800000, guid: 76eb361f6ef9b3b4ebcea8037f5b5785, type: 3}
+    second: {fileID: 2800000, guid: 7912737009a8ec24e9bf7199eaa03736, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: TextureKartPro
-    second: {fileID: 2800000, guid: d4e4e2162917d36499231963a4cf4afe, type: 3}
+    second: {fileID: 2800000, guid: 7eaa3f8c09c30af47a5b273b13d727d7, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0

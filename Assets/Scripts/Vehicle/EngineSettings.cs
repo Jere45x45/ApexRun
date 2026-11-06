@@ -64,7 +64,57 @@ public class EngineSettings
     [Range(0.5f, 1f)]
     public float drivetrainEfficiency = 0.95f;
 
+    [Header("Salida desde parado")]
+    [Tooltip("Relación al largar con el kart detenido: el empujón de la salida. Baja en línea " +
+             "recta hasta gearRatio y ahí termina la salida. Igual a gearRatio = sin salida especial.")]
+    [Min(0.1f)]
+    public float launchRatio = 22f;
+
+    [Tooltip("Revoluciones que tendría el motor con gearRatio a las que termina la salida " +
+             "(4.000 rpm = unos 40 km/h con ruedas de 0,18 m). Desde ahí, aceleración normal.")]
+    [Min(1f)]
+    public float launchEndRpm = 4000f;
+
+    [Tooltip("Durante la salida el embrague engancha arriba, con el motor cerca de su torque " +
+             "máximo, como un auto de carrera que larga con las vueltas arriba (rpm).")]
+    [Min(0f)]
+    public float launchClutchEngageRpm = 5500f;
+
+    [Tooltip("Revoluciones a las que el embrague de la salida transmite launchClutchFullTorque.")]
+    [Min(0f)]
+    public float launchClutchFullRpm = 8500f;
+
+    [Tooltip("Torque que transmite el embrague de la salida a launchClutchFullRpm (N·m).")]
+    [Min(0f)]
+    public float launchClutchFullTorque = 20f;
+
     public float IdleAngularVelocity => idleRpm / RadPerSecToRpm;
+
+    /// <summary>True si este motor tiene salida especial desde parado.</summary>
+    public bool HasLaunch => launchRatio > gearRatio && launchEndRpm > 0f;
+
+    /// <summary>
+    /// Revoluciones que tendría el motor con gearRatio para una velocidad del
+    /// eje trasero (rad/s). Sirve para medir la velocidad del kart sin saber
+    /// el tamaño de las ruedas.
+    /// </summary>
+    public float RpmAtGearRatio(float axleAngularVelocity)
+    {
+        return ToRpm(Mathf.Abs(axleAngularVelocity) * gearRatio);
+    }
+
+    /// <summary>
+    /// Relación motor/eje durante la salida: launchRatio con el kart quieto,
+    /// bajando en línea recta hasta gearRatio a launchEndRpm.
+    /// </summary>
+    public float EvaluateLaunchRatio(float axleAngularVelocity)
+    {
+        if (!HasLaunch)
+            return gearRatio;
+
+        float t = Mathf.Clamp01(RpmAtGearRatio(axleAngularVelocity) / launchEndRpm);
+        return Mathf.Lerp(launchRatio, gearRatio, t);
+    }
 
     public static float ToRpm(float angularVelocity) => angularVelocity * RadPerSecToRpm;
 
@@ -88,13 +138,24 @@ public class EngineSettings
     /// </summary>
     public float EvaluateClutchCapacity(float rpm)
     {
-        if (rpm <= clutchEngageRpm)
+        return ClutchCapacity(rpm, clutchEngageRpm, clutchFullRpm, clutchFullTorque);
+    }
+
+    /// <summary>Lo mismo, con el embrague de la salida desde parado.</summary>
+    public float EvaluateLaunchClutchCapacity(float rpm)
+    {
+        return ClutchCapacity(rpm, launchClutchEngageRpm, launchClutchFullRpm, launchClutchFullTorque);
+    }
+
+    private static float ClutchCapacity(float rpm, float engageRpm, float fullRpm, float fullTorque)
+    {
+        if (rpm <= engageRpm)
             return 0f;
 
-        float engageSquared = clutchEngageRpm * clutchEngageRpm;
-        float fullSquared = Mathf.Max(clutchFullRpm * clutchFullRpm, engageSquared + 1f);
+        float engageSquared = engageRpm * engageRpm;
+        float fullSquared = Mathf.Max(fullRpm * fullRpm, engageSquared + 1f);
 
-        return clutchFullTorque * (rpm * rpm - engageSquared) / (fullSquared - engageSquared);
+        return fullTorque * (rpm * rpm - engageSquared) / (fullSquared - engageSquared);
     }
 
     private static AnimationCurve CreateDefaultTorqueCurve()

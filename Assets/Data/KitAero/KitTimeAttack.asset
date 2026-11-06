@@ -14,18 +14,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AeroKitData
   partID: kitaero_timeattack
   partName: Kit Aero Time Attack
-  description: 
+  description: "Aler\xF3n trasero gigante y splitter adelante, como los autos de
+    time attack: mucha carga y mucha resistencia."
   effects:
-  - "+ Velocidad m\xE1xima"
-  - '- Agarre en curva'
-  icon: {fileID: 0}
-  modelPrefab: {fileID: 919132149155446097, guid: 60cafe77ccbeaeb4793fbd2665493010,
+  - "+ Agarre en curvas r\xE1pidas (el que m\xE1s)"
+  - '- Velocidad en recta'
+  icon: {fileID: 21300000, guid: 02f865be0e1581c448f159e42ef78952, type: 3}
+  modelPrefab: {fileID: 919132149155446097, guid: 85513ca6a7ed47a4f8d2deee3f7f8fd4,
     type: 3}
-  rarity: 0
-  downforce: 100
-  aerodynamicDrag: 0.02
+  rarity: 3
+  partNameEn: Time Attack Aero Kit
+  descriptionEn: 'Huge rear wing and front splitter, like time attack cars: lots
+    of downforce and lots of drag.'
+  effectsEn:
+  - + Grip in fast corners (the most)
+  - '- Straight-line speed'
+  downforce: 500
+  aerodynamicDrag: 0.03
   aeroSettings:
     airDensity: 1.225
-    dragArea: 0.46
-    downforceArea: 0.08
-    centerOfPressure: {x: 0, y: 0.3, z: -0.5}
+    dragArea: 0.66
+    downforceArea: 0.65
+    centerOfPressure: {x: 0, y: 0.35, z: -0.6}

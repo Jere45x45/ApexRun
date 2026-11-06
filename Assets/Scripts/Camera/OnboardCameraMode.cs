@@ -15,7 +15,7 @@ public class OnboardCameraMode : KartCameraMode
         public string name = "Trompa";
 
         [Tooltip("Posición en coordenadas del kart (m).")]
-        public Vector3 localPosition = new Vector3(0f, 0.55f, 0.55f);
+        public Vector3 localPosition = new Vector3(0f, 0.55f, 0.2f);
 
         [Tooltip("Rotación respecto del kart (grados): x = hacia abajo, y = hacia la derecha.")]
         public Vector3 localEulerAngles = new Vector3(8f, 0f, 0f);

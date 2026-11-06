@@ -25,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 1938067214138919614}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -0.35}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -37,6 +37,7 @@ Transform:
   - {fileID: 3378832667008019170}
   - {fileID: 5208075183251478425}
   - {fileID: 7088874536629746079}
+  - {fileID: 5172362594557469991}
   m_Father: {fileID: 6724297902558448153}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2356734766520076831
@@ -125,6 +126,7 @@ GameObject:
   - component: {fileID: 1475179307869758415}
   - component: {fileID: 5500287128892511253}
   - component: {fileID: 3684216999669853167}
+  - component: {fileID: 3470231710490591324}
   m_Layer: 0
   m_Name: KartRed
   m_TagString: Untagged
@@ -211,6 +213,20 @@ MonoBehaviour:
   steeringSmoothTime: 0.06
   limitSteeringToGrip: 1
   gripSteeringMargin: 1
+  lowSpeedDifferential: 1
+  differentialFullBelowKmh: 8
+  differentialOffAboveKmh: 25
+  lowSpeedTractionControl: 1
+  tractionSlipMargin: 1.3
+  antiLockBrakes: 1
+  absSlipMargin: 0.9
+  absMinSpeedKmh: 6
+  brakeApplyTime: 0.12
+  brakeReleaseTime: 0.05
+  allowReverse: 1
+  reverseMaxKmh: 12
+  reverseTorque: 100
+  reverseDelay: 0.3
   noInputBrake: 0.25
 --- !u!114 &7955980074788983492
 MonoBehaviour:
@@ -327,13 +343,17 @@ MonoBehaviour:
   PositionThreshold: 0.001
   RotAngleThreshold: 0.01
   ScaleThreshold: 0.01
-  UseQuaternionSynchronization: 0
+  UseQuaternionSynchronization: 1
   UseQuaternionCompression: 0
   UseHalfFloatPrecision: 0
   InLocalSpace: 0
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+  predictCopies: 1
+  maxPrediction: 0.25
+  correctionSharpness: 8
+  snapDistance: 4
 --- !u!114 &1475179307869758415
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -392,7 +412,29 @@ MonoBehaviour:
   restitution: 0
   overlapCorrection: 0.5
   overlapSlop: 0.01
-  maxPrediction: 0.25
+  maxCorrectionPerStep: 0.05
+--- !u!114 &3470231710490591324
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2802739453247863719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 534531cd562169d4ca341139e93f71e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KartFlipRecovery
+  kart: {fileID: 120240854046394885}
+  body: {fileID: 5308325793877818942}
+  tiltAngle: 70
+  maxSpeed: 2
+  maxAngularSpeed: 1.5
+  delay: 1.5
+  flippedFriction: 0.8
+  uprightAngle: 50
+  heightAboveGround: 0.4
+  groundSearchDistance: 4
 --- !u!1 &2823503327116068364
 GameObject:
   m_ObjectHideFlags: 0
@@ -1509,3 +1551,129 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.26, y: 0.22, z: 1.96}
   m_Center: {x: -0.68, y: 0.09, z: -0.4}
+--- !u!1001 &4633453176364778188
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 488746481565414947}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: ac75df66891a0554b846a9606978776a,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ac75df66891a0554b846a9606978776a,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ac75df66891a0554b846a9606978776a,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ac75df66891a0554b846a9606978776a,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ac75df66891a0554b846a9606978776a,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ac75df66891a0554b846a9606978776a,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ac75df66891a0554b846a9606978776a,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ac75df66891a0554b846a9606978776a,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ac75df66891a0554b846a9606978776a,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ac75df66891a0554b846a9606978776a,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: ac75df66891a0554b846a9606978776a,
+        type: 3}
+      propertyPath: m_Name
+      value: Piloto
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ac75df66891a0554b846a9606978776a,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6594650447504019472}
+  m_SourcePrefab: {fileID: 100100000, guid: ac75df66891a0554b846a9606978776a, type: 3}
+--- !u!4 &5172362594557469991 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: ac75df66891a0554b846a9606978776a,
+    type: 3}
+  m_PrefabInstance: {fileID: 4633453176364778188}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &5515850492651896733 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: ac75df66891a0554b846a9606978776a,
+    type: 3}
+  m_PrefabInstance: {fileID: 4633453176364778188}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6594650447504019472
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5515850492651896733}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e68a805f30bf8440a6e4b570c7d81e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DriverAnimator
+  kart: {fileID: 120240854046394885}
+  modelController: {fileID: 2988376580431116527}
+  wheels:
+  - wheelName: Karting
+    turnRight: {fileID: -1068458359271362131, guid: ac75df66891a0554b846a9606978776a,
+      type: 3}
+    turnLeft: {fileID: -6818204333800062089, guid: ac75df66891a0554b846a9606978776a,
+      type: 3}
+  - wheelName: F1
+    turnRight: {fileID: 4239043109088114707, guid: ac75df66891a0554b846a9606978776a,
+      type: 3}
+    turnLeft: {fileID: 4729271990690986034, guid: ac75df66891a0554b846a9606978776a,
+      type: 3}
+  - wheelName: Avion
+    turnRight: {fileID: -9030347045537393020, guid: ac75df66891a0554b846a9606978776a,
+      type: 3}
+    turnLeft: {fileID: 4474479379947738702, guid: ac75df66891a0554b846a9606978776a,
+      type: 3}
+  - wheelName: Passat
+    turnRight: {fileID: -2860811820855501143, guid: ac75df66891a0554b846a9606978776a,
+      type: 3}
+    turnLeft: {fileID: -1345688403190680259, guid: ac75df66891a0554b846a9606978776a,
+      type: 3}
+  - wheelName: Barco
+    turnRight: {fileID: 9202891725466637252, guid: ac75df66891a0554b846a9606978776a,
+      type: 3}
+    turnLeft: {fileID: -5645458725277416988, guid: ac75df66891a0554b846a9606978776a,
+      type: 3}
+  fullLockAngle: 25
+  peakFraction: 0.5

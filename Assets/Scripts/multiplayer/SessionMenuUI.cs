@@ -4,15 +4,24 @@ using UnityEngine.UI;
 
 /// <summary>
 /// Menú de Inicio conectado a GameSession:
-/// - Un jugador: arranca la partida local y va al Catálogo.
-/// - Multijugador: nombre del jugador, Crear partida (muestra el código para
-///   pasarles a los demás) o Unirse con código. En la sala se ve quién entró;
-///   el anfitrión aprieta Empezar y van todos al Catálogo.
+/// - Un jugador: abre la configuración de la carrera (RaceSetupMenuUI); al
+///   confirmar arranca la partida local y va al Catálogo.
+/// - Multijugador: nombre del jugador, Crear partida (primero la configuración
+///   de la carrera; después muestra el código para pasarles a los demás) o
+///   Unirse (JoinServerMenuUI: con el código o eligiendo de la lista de
+///   servidores). En la sala se ve quién entró; el anfitrión aprieta Empezar
+///   y van todos al Catálogo.
 /// - Abajo, un mensaje de estado (conectando, errores, conexión perdida).
 /// </summary>
 public class SessionMenuUI : MonoBehaviour
 {
     [SerializeField] private MenuManager menuManager;
+
+    [Tooltip("Configuración de la carrera. Sin ella, Un jugador y Crear partida arrancan directo.")]
+    [SerializeField] private RaceSetupMenuUI raceSetup;
+
+    [Tooltip("Pantalla para unirse (código y lista de servidores). Sin ella, Unirse abre la caja del código.")]
+    [SerializeField] private JoinServerMenuUI joinServer;
 
     [Header("Menú principal")]
     [SerializeField] private Button singlePlayerButton;
@@ -36,9 +45,22 @@ public class SessionMenuUI : MonoBehaviour
     [SerializeField] private Button joinCancelButton;
 
     [Header("Sala")]
+    [Tooltip("Contenido de la sala. Con la pantalla propia (MenuPanel.Room) es el panel de la sala.")]
     [SerializeField] private GameObject lobbyBox;
 
+    [Tooltip("La sala tiene su propia pantalla (MenuPanel.Room). Si no, se ve dentro de Multijugador.")]
+    [SerializeField] private bool useRoomPanel;
+
+    [Tooltip("Casilleros con los nombres (opcional).")]
+    [SerializeField] private PlayerNameGrid playerGrid;
+
+    [Tooltip("Texto \"Jugadores (X/X)\" (opcional).")]
+    [SerializeField] private TMP_Text playersCountText;
+
     [SerializeField] private TMP_Text codeText;
+
+    [Tooltip("Título de la sala: dice si la partida es pública o privada (opcional).")]
+    [SerializeField] private TMP_Text lobbyTitleText;
 
     [SerializeField] private Button copyCodeButton;
 
@@ -59,9 +81,32 @@ public class SessionMenuUI : MonoBehaviour
 
     private void Awake()
     {
-        singlePlayerButton.onClick.AddListener(HandleSinglePlayer);
-        createButton.onClick.AddListener(HandleCreate);
-        joinButton.onClick.AddListener(() => ShowJoinBox(true));
+        singlePlayerButton.onClick.AddListener(() =>
+        {
+            if (raceSetup != null)
+                raceSetup.Open(false);
+            else
+                HandleSinglePlayer();
+        });
+
+        createButton.onClick.AddListener(() =>
+        {
+            SaveName();
+
+            if (raceSetup != null)
+                raceSetup.Open(true);
+            else
+                HandleCreate();
+        });
+        joinButton.onClick.AddListener(() =>
+        {
+            SaveName();
+
+            if (joinServer != null)
+                joinServer.Open();
+            else
+                ShowJoinBox(true);
+        });
         backButton.onClick.AddListener(() => menuManager.Show(MenuPanel.Main));
         joinConfirmButton.onClick.AddListener(HandleJoin);
         joinCancelButton.onClick.AddListener(() => ShowJoinBox(false));
@@ -104,6 +149,40 @@ public class SessionMenuUI : MonoBehaviour
         Refresh();
     }
 
+    /// <summary>La configuración de la carrera confirmó Un jugador.</summary>
+    public void StartSinglePlayerFromSetup() => HandleSinglePlayer();
+
+    /// <summary>La configuración de la carrera confirmó Crear servidor.</summary>
+    public void CreateFromSetup() => HandleCreate();
+
+    /// <summary>La pantalla de Unirse eligió entrar con un código.</summary>
+    public async void JoinByCode(string code)
+    {
+        SetStatus(GameLanguage.Text("Uniéndose...", "Joining..."));
+
+        string error = await Session.JoinSessionAsync(code, nameInput.text);
+
+        SetStatus(error);
+        Refresh();
+    }
+
+    /// <summary>La pantalla de Unirse eligió una partida de la lista.</summary>
+    public async void JoinById(string sessionId)
+    {
+        SetStatus(GameLanguage.Text("Uniéndose...", "Joining..."));
+
+        string error = await Session.JoinSessionByIdAsync(sessionId, nameInput.text);
+
+        SetStatus(error);
+        Refresh();
+    }
+
+    /// <summary>Nombre que escribió el jugador (para buscar partidas con su cuenta).</summary>
+    public string PlayerName => nameInput.text;
+
+    /// <summary>Muestra un mensaje abajo (null lo borra).</summary>
+    public void ShowStatus(string message) => SetStatus(message);
+
     private void HandleSinglePlayer()
     {
         SetStatus(null);
@@ -115,7 +194,7 @@ public class SessionMenuUI : MonoBehaviour
     private async void HandleCreate()
     {
         SaveName();
-        SetStatus("Creando partida...");
+        SetStatus(GameLanguage.Text("Creando partida...", "Creating match..."));
 
         string error = await Session.CreateSessionAsync(nameInput.text);
 
@@ -126,7 +205,7 @@ public class SessionMenuUI : MonoBehaviour
     private async void HandleJoin()
     {
         SaveName();
-        SetStatus("Uniéndose...");
+        SetStatus(GameLanguage.Text("Uniéndose...", "Joining..."));
 
         string error = await Session.JoinSessionAsync(codeInput.text, nameInput.text);
 
@@ -148,7 +227,7 @@ public class SessionMenuUI : MonoBehaviour
             return;
 
         GUIUtility.systemCopyBuffer = Session.Session.Code;
-        SetStatus("Código copiado.");
+        SetStatus(GameLanguage.Text("Código copiado.", "Code copied."));
     }
 
     /// <summary>Muestra la sala si hay sesión, y bloquea los botones mientras se conecta.</summary>
@@ -171,18 +250,36 @@ public class SessionMenuUI : MonoBehaviour
         nameInput.gameObject.SetActive(!inSession);
         backButton.gameObject.SetActive(!inSession);
 
-        lobbyBox.SetActive(inSession);
+        // Con pantalla propia, la sala la muestra el MenuManager.
+        if (!useRoomPanel)
+            lobbyBox.SetActive(inSession);
 
         if (!inSession)
             return;
 
-        menuManager.Show(MenuPanel.Multiplayer);
+        menuManager.Show(useRoomPanel ? MenuPanel.Room : MenuPanel.Multiplayer);
         joinBox.SetActive(false);
 
-        codeText.text = "CÓDIGO  <b>" + Session.Session.Code + "</b>";
+        codeText.text = GameLanguage.Text("Código: ", "Code: ") + Session.Session.Code;
+
+        if (lobbyTitleText != null)
+        {
+            lobbyTitleText.text = Session.Session.IsPrivate
+                ? GameLanguage.Text("Sala privada", "Private room")
+                : GameLanguage.Text("Sala pública", "Public room");
+        }
 
         var names = Session.GetPlayerNames();
-        playersText.text = "JUGADORES (" + names.Count + "/" + Session.Session.MaxPlayers + ")\n• " + string.Join("\n• ", names);
+        int maxPlayers = Session.Session.MaxPlayers;
+
+        if (playersText != null)
+            playersText.text = GameLanguage.Text("JUGADORES (", "PLAYERS (") + names.Count + "/" + maxPlayers + ")\n• " + string.Join("\n• ", names);
+
+        if (playersCountText != null)
+            playersCountText.text = GameLanguage.Text("Jugadores", "Players") + " (" + names.Count + "/" + maxPlayers + ")";
+
+        if (playerGrid != null)
+            playerGrid.Show(names, null, maxPlayers);
 
         bool isHost = Session.Session.IsHost;
         startButton.gameObject.SetActive(isHost);
