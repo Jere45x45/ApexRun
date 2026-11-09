@@ -278,20 +278,36 @@ public class PitLane : MonoBehaviour
 
         float last = firstBoxDistance + (boxCount - 1) * boxSpacing;
 
+        // Los boxes van todos en fila, sobre la recta que une el primero con el
+        // último (así quedan todos derechos aunque la línea de la calle tenga
+        // algún zigzag), uno cada boxSpacing metros.
+        float firstS;
+        float lastS;
+
         if (Reversed)
         {
             // El primero en esta carrera es el último en el sentido normal.
-            s = Length - (last - index * boxSpacing);
+            firstS = Length - last;
+            lastS = Length - firstBoxDistance;
             lateral = -boxOffset;
         }
         else
         {
-            s = firstBoxDistance + index * boxSpacing;
+            firstS = firstBoxDistance;
+            lastS = last;
             lateral = boxOffset;
         }
 
-        center = GetPoint(s, lateral);
-        rotation = Quaternion.LookRotation(GetDirection(s), Vector3.up);
+        s = firstS + index * boxSpacing;
+
+        Vector3 start = GetPoint(firstS);
+        Vector3 row = Flat(GetPoint(lastS) - start);
+        Vector3 direction = boxCount > 1 && row.sqrMagnitude > 1f ? row.normalized : GetDirection(s);
+        Vector3 right = Vector3.Cross(Vector3.up, direction).normalized;
+
+        center = start + direction * (index * boxSpacing) + right * lateral;
+        center.y = GetPoint(s).y;
+        rotation = Quaternion.LookRotation(direction, Vector3.up);
     }
 
     /// <summary>True si el centro del kart está dentro del rectángulo del box.</summary>

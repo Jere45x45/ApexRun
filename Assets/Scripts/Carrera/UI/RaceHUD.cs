@@ -60,6 +60,10 @@ public class RaceHUD : MonoBehaviour
     private bool lastPenaltyWasJumpStart;
     private bool lastPenaltyWasPitStop;
 
+    // Qualy: la vuelta en curso quedó anulada (se avisa hasta que termina).
+    private bool lapInvalid;
+    private int invalidLap;
+
     // Últimos valores mostrados, para no rearmar el texto en cada frame.
     private int shownPosition = -1;
     private int shownKartCount = -1;
@@ -141,6 +145,14 @@ public class RaceHUD : MonoBehaviour
 
         lastPenaltyWasJumpStart = false;
         lastPenaltyWasPitStop = PitStops.Instance != null && PitStops.Instance.IsMissedStopPenalty(kart, seconds);
+
+        // En la qualy la vuelta queda anulada: se avisa hasta que termine.
+        if (RaceSession.IsQualifying)
+        {
+            lapInvalid = true;
+            invalidLap = timingManager.GetLap(playerKart);
+        }
+
         lastPenaltySeconds = seconds;
         penaltyMessageUntil = Time.time + penaltyMessageDuration;
         shownWarning = -1;
@@ -279,10 +291,16 @@ public class RaceHUD : MonoBehaviour
     {
         int warning = 0;
 
+        // La vuelta anulada vale hasta que empieza otra.
+        if (lapInvalid && (!RaceSession.IsQualifying || timingManager.GetLap(playerKart) != invalidLap))
+            lapInvalid = false;
+
         if (Time.time < penaltyMessageUntil)
             warning = 2;
         else if (trackLimits != null && playerBehaviour != null && trackLimits.IsOutsideTrackLimits(playerBehaviour))
             warning = 1;
+        else if (lapInvalid)
+            warning = 3;
 
         if (warning == shownWarning)
             return;
@@ -302,6 +320,8 @@ public class RaceHUD : MonoBehaviour
                     : GameLanguage.Text("LÍMITES DE PISTA", "TRACK LIMITS")));
         else if (warning == 1)
             SetText(warningText, "<color=#FFC23D>" + GameLanguage.Text("FUERA DE PISTA", "OFF TRACK") + "</color>");
+        else if (warning == 3)
+            SetText(warningText, "<color=#FF5A4A>" + GameLanguage.Text("VUELTA ANULADA", "LAP DELETED") + "</color>");
         else
             SetText(warningText, "");
     }

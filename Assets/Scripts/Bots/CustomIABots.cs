@@ -126,6 +126,16 @@ public class CustomIABots : MonoBehaviour
     [Tooltip("Ángulo con la pista (°) que cuenta como trompo.")]
     [SerializeField, Range(45f, 180f)] private float spinAngle = 100f;
 
+    [Header("Salir solo (carrera)")]
+    [Tooltip("Cuánto retrocede como mucho en cada intento (s).")]
+    [SerializeField, Min(0.5f)] private float recoverReverseTime = 2.2f;
+
+    [Tooltip("Cuánto avanza buscando la pista antes de volver a retroceder si no quedó derecho (s).")]
+    [SerializeField, Min(0.5f)] private float recoverForwardTime = 3f;
+
+    [Tooltip("A qué distancia de la línea central cuenta como caído del mapa y reaparece (m).")]
+    [SerializeField, Min(10f)] private float lostDistance = 40f;
+
     [Header("Entrenamiento")]
     [Tooltip("Al caerse, probabilidad de volver a arrancar en un lugar al azar de la pista (si no, un poco antes de donde se cayó).")]
     [SerializeField, Range(0f, 1f)] private float randomStartChance = 0.6f;
@@ -221,6 +231,13 @@ public class CustomIABots : MonoBehaviour
     private float spinTimer;
     private float backwardsProgress;
     private float lastIncidentDistance = -1f;
+
+    // Carrera: en vez de reaparecer, sale solo (marcha atrás y de nuevo a la pista).
+    private bool recovering;
+    private bool recoverReverse;
+    private float recoverPhaseTime;
+    private float recoverStill;
+    private bool mustRespawn;
 
     // Vueltas limpias (para las estadísticas del entrenamiento).
     private float lapProgress;
@@ -343,6 +360,7 @@ public class CustomIABots : MonoBehaviour
         trackDistance = centerline.GetDistance(transform.position);
         lateralFraction = Mathf.Clamp(info.GetFraction(transform.position, trackDistance), -LaneWidth, LaneWidth);
         laneIndex = NearestLane(lateralFraction);
+        recovering = false;
         ResetDecision();
         ClearTraffic();
     }
@@ -423,6 +441,12 @@ public class CustomIABots : MonoBehaviour
         float speed = Vector3.Dot(rb.linearVelocity, transform.forward);
 
         UpdateTrackDistance(deltaTime);
+
+        if (recovering)
+        {
+            Recover(speed, deltaTime);
+            return;
+        }
 
         if (CheckIncident(speed, deltaTime))
         {
@@ -1061,6 +1085,11 @@ public class CustomIABots : MonoBehaviour
     /// <summary>True si se cayó, se salió de la pista, hizo un trompo, va al revés o quedó trabado.</summary>
     private bool CheckIncident(float speed, float deltaTime)
     {
+        mustRespawn = false;
+
+        if (!Training)
+            return CheckRaceIncident(speed, deltaTime);
+
         int mode = Training ? 0 : 1;
         Vector3 position = transform.position;
 
@@ -1106,11 +1135,148 @@ public class CustomIABots : MonoBehaviour
         return stuckTimer > stuckTime[mode];
     }
 
+    /// <summary>
+    /// Carrera: solo reaparece si se cayó (muy por debajo de la pista o muy
+    /// lejos de ella). Trompo, ir al revés o quedar trabado: sale solo. Pasto
+    /// y grava no son incidente: sigue manejando hacia la pista. Volcado lo
+    /// endereza KartFlipRecovery.
+    /// </summary>
+    private bool CheckRaceIncident(float speed, float deltaTime)
+    {
+        Vector3 position = transform.position;
+        Vector3 onTrack = centerline.GetPointAtDistance(trackDistance);
+
+        offTrackTimer = 0f;
+        wheelsOutTimer = 0f;
+
+        // Se cayó del mapa.
+        Vector3 away = position - onTrack;
+        away.y = 0f;
+
+        if (position.y < onTrack.y - 4f || away.magnitude > lostDistance)
+        {
+            mustRespawn = true;
+            return true;
+        }
+
+        // Volcado: lo endereza KartFlipRecovery; mientras tanto no cuenta nada.
+        if (Vector3.Angle(transform.up, Vector3.up) > 70f)
+        {
+            spinTimer = 0f;
+            stuckTimer = 0f;
+            return false;
+        }
+
+        Vector3 forward = transform.forward;
+        forward.y = 0f;
+        Vector3 direction = centerline.GetDirectionAtDistance(trackDistance);
+        direction.y = 0f;
+
+        bool spun = Vector3.Angle(forward, direction) > spinAngle;
+        spinTimer = spun ? spinTimer + deltaTime : 0f;
+
+        if (spinTimer > 1.5f || backwardsProgress < -10f)
+            return true;
+
+        stuckTimer = Mathf.Abs(speed) < 1.5f ? stuckTimer + deltaTime : 0f;
+        return stuckTimer > stuckTime[1];
+    }
+
+    /// <summary>Empieza a salir solo: primero para atrás.</summary>
+    private void StartRecovery()
+    {
+        recovering = true;
+        recoverReverse = true;
+        recoverPhaseTime = 0f;
+        recoverStill = 0f;
+    }
+
+    /// <summary>
+    /// Sale solo: retrocede girando hacia la pista y después avanza hacia ella;
+    /// si no quedó derecho o se vuelve a trabar, otra vez para atrás (como una
+    /// maniobra de varios puntos). Termina mirando para adelante y andando.
+    /// </summary>
+    private void Recover(float speed, float deltaTime)
+    {
+        Vector3 position = transform.position;
+        Vector3 onTrack = centerline.GetPointAtDistance(trackDistance);
+        Vector3 away = position - onTrack;
+        away.y = 0f;
+
+        // Se cayó mientras salía.
+        if (position.y < onTrack.y - 4f || away.magnitude > lostDistance)
+        {
+            recovering = false;
+            RespawnInRace();
+            return;
+        }
+
+        recoverPhaseTime += deltaTime;
+
+        Vector3 forward = transform.forward;
+        forward.y = 0f;
+        Vector3 direction = centerline.GetDirectionAtDistance(trackDistance);
+        direction.y = 0f;
+
+        Vector3 aim = info.GetPoint(trackDistance + 8f, 0f) - position;
+        aim.y = 0f;
+
+        float toAim = Vector3.SignedAngle(forward, aim, Vector3.up);
+        float toTrack = Vector3.SignedAngle(forward, direction, Vector3.up);
+
+        if (recoverReverse)
+        {
+            // Para atrás, el volante al revés: la trompa gira hacia la pista.
+            kart.SetInputs(-1f, -Mathf.Clamp(toAim / 30f, -1f, 1f), false, canReverse: true);
+
+            if (recoverPhaseTime > recoverReverseTime || (recoverPhaseTime > 0.8f && Mathf.Abs(toAim) < 45f))
+            {
+                recoverReverse = false;
+                recoverPhaseTime = 0f;
+                recoverStill = 0f;
+            }
+
+            return;
+        }
+
+        kart.SetInputs(1f, Mathf.Clamp(toAim / 25f, -1f, 1f), false);
+
+        recoverStill = Mathf.Abs(speed) < 1f ? recoverStill + deltaTime : 0f;
+
+        // Derecho y andando: listo.
+        if (recoverPhaseTime > 0.5f && speed > 4f && Mathf.Abs(toTrack) < 35f)
+        {
+            EndRecovery();
+            return;
+        }
+
+        // Trabado otra vez, o no termina de enderezar: otro intento para atrás.
+        if (recoverStill > 1.2f || (recoverPhaseTime > recoverForwardTime && Mathf.Abs(toAim) > 60f))
+        {
+            recoverReverse = true;
+            recoverPhaseTime = 0f;
+        }
+    }
+
+    private void EndRecovery()
+    {
+        recovering = false;
+        trackDistance = centerline.GetDistance(rb.position);
+        lateralFraction = Mathf.Clamp(info.GetFraction(rb.position, trackDistance), -LaneWidth, LaneWidth);
+        laneIndex = NearestLane(lateralFraction);
+        ResetDecision();
+    }
+
     /// <summary>Lo usan TrainingBounds y las zonas de caída: el bot se cayó.</summary>
     public void FallOffTrack()
     {
-        if (ready && kart.IsSimulated && kart.InputEnabled)
-            HandleIncident();
+        if (!ready || !kart.IsSimulated || !kart.InputEnabled)
+            return;
+
+        // En carrera, una zona de caída sí lo hace reaparecer.
+        recovering = false;
+        mustRespawn = true;
+        HandleIncident();
     }
 
     private void HandleIncident()
@@ -1127,7 +1293,11 @@ public class CustomIABots : MonoBehaviour
             return;
         }
 
-        RespawnInRace();
+        // Carrera: solo reaparece si se cayó; si no, sale solo.
+        if (mustRespawn)
+            RespawnInRace();
+        else
+            StartRecovery();
     }
 
     /// <summary>Entrenamiento: vuelve a arrancar en otro lugar, con otra velocidad y otro carril.</summary>
@@ -1166,6 +1336,7 @@ public class CustomIABots : MonoBehaviour
     /// </summary>
     private void RespawnInRace()
     {
+        recovering = false;
         RefreshRivals();
 
         float[] fractions = { 0f, -0.5f, 0.5f };

@@ -90,6 +90,9 @@ public class KartEffects : MonoBehaviour
         public float Wetness;
         public Color32 DirtColor;
 
+        /// <summary>Lo que levanta son piedritas (grava), no tierra.</summary>
+        public bool Gravel;
+
         public bool IsEmpty => Smoke <= 0f && Dirt <= 0f && Spray <= 0f;
     }
 
@@ -191,9 +194,11 @@ public class KartEffects : MonoBehaviour
         if (effect == TrackSurfaceData.SurfaceEffect.None)
             return fx;
 
-        if (effect == TrackSurfaceData.SurfaceEffect.Dirt)
+        if (effect == TrackSurfaceData.SurfaceEffect.Dirt || effect == TrackSurfaceData.SurfaceEffect.Gravel)
         {
-            // Tierra: con la velocidad, y más si además desliza.
+            // Tierra o piedritas: con la velocidad, y más si además desliza.
+            fx.Gravel = effect == TrackSurfaceData.SurfaceEffect.Gravel;
+
             if (speedKmh >= dirtMinSpeedKmh)
             {
                 float amount = Mathf.Max(Mathf.InverseLerp(dirtMinSpeedKmh, 50f, speedKmh), 0.15f);
@@ -249,7 +254,7 @@ public class KartEffects : MonoBehaviour
         int dirt = Accumulate(ref carry.y, fx.Dirt * amount);
 
         for (int k = 0; k < dirt; k++)
-            Pool.EmitDirt(point, normal, velocity, fx.DirtColor, k % 2 == 0);
+            Pool.EmitDirt(point, normal, velocity, fx.DirtColor, fx.Gravel ? k % 3 == 0 : k % 2 == 0, fx.Gravel);
 
         int spray = Accumulate(ref carry.z, fx.Spray * amount);
 
@@ -615,18 +620,22 @@ public class KartEffects : MonoBehaviour
             smoke.Emit(emit, 1);
         }
 
-        public static void EmitDirt(Vector3 point, Vector3 normal, Vector3 wheelVelocity, Color surfaceColor, bool dust)
+        public static void EmitDirt(Vector3 point, Vector3 normal, Vector3 wheelVelocity, Color surfaceColor, bool dust, bool gravel = false)
         {
-            float shade = Random.Range(0.85f, 1.25f);
+            // Piedritas: cada una de un gris distinto, más chicas y tiradas más
+            // lejos y para los costados que la tierra.
+            float shade = gravel ? (Random.value < 0.5f ? Random.Range(0.35f, 0.6f) : Random.Range(1.2f, 1.6f)) : Random.Range(0.85f, 1.25f);
             Color color = surfaceColor * shade * LightLevel();
             color.a = 1f;
 
             var chunk = new ParticleSystem.EmitParams
             {
                 position = point + normal * 0.05f + Random.insideUnitSphere * 0.08f,
-                velocity = wheelVelocity * 0.2f + normal * Random.Range(1.5f, 3.5f) + Random.insideUnitSphere * 1f,
-                startSize = Random.Range(0.08f, 0.16f),
-                startLifetime = Random.Range(0.5f, 0.9f),
+                velocity = gravel
+                    ? wheelVelocity * 0.35f + normal * Random.Range(2f, 5f) + Random.insideUnitSphere * 2f
+                    : wheelVelocity * 0.2f + normal * Random.Range(1.5f, 3.5f) + Random.insideUnitSphere * 1f,
+                startSize = gravel ? Random.Range(0.06f, 0.13f) : Random.Range(0.08f, 0.16f),
+                startLifetime = gravel ? Random.Range(0.35f, 0.7f) : Random.Range(0.5f, 0.9f),
                 startColor = color
             };
 
@@ -635,9 +644,10 @@ public class KartEffects : MonoBehaviour
             if (!dust)
                 return;
 
-            // Polvo: una nube clara del mismo color, en las partículas del humo.
-            Color dustColor = Color.Lerp(surfaceColor, new Color(0.8f, 0.75f, 0.65f), 0.5f) * LightLevel();
-            dustColor.a = 0.4f;
+            // Polvo: una nube clara del mismo color, en las partículas del humo
+            // (la grava levanta menos y más gris).
+            Color dustColor = Color.Lerp(surfaceColor, gravel ? new Color(0.78f, 0.77f, 0.74f) : new Color(0.8f, 0.75f, 0.65f), 0.5f) * LightLevel();
+            dustColor.a = gravel ? 0.32f : 0.4f;
 
             var puff = new ParticleSystem.EmitParams
             {

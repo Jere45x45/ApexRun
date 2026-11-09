@@ -139,7 +139,10 @@ public class PitStopHUD : MonoBehaviour
                 break;
 
             case PitStops.StopState.Done:
-                line = GameLanguage.Text("¡Listo! Salí", "Done! Go");
+                // En la qualy todos arrancan en su box ya "parados".
+                line = RaceSession.IsQualifying && current.GetComponent<Rigidbody>().linearVelocity.sqrMagnitude < 1f
+                    ? GameLanguage.Text("Salí cuando quieras", "Leave whenever you want")
+                    : GameLanguage.Text("¡Listo! Salí", "Done! Go");
                 break;
 
             default:

@@ -64,6 +64,13 @@ public class PitStops : MonoBehaviour
     [Tooltip("Ángulo de las ruedas con el volante a fondo, para la cuenta del volante del bot (°).")]
     [SerializeField, Min(5f)] private float botSteerAngle = 25f;
 
+    [Header("Qualy (salida desde boxes)")]
+    [Tooltip("Cuánto espera el primer bot antes de salir de su box (s, al azar entre los dos).")]
+    [SerializeField] private Vector2 qualifyingFirstBotDelay = new Vector2(2f, 6f);
+
+    [Tooltip("Cuánto después sale cada bot que sigue (s).")]
+    [SerializeField, Min(0f)] private float qualifyingBotStagger = 6f;
+
     public enum StopState
     {
         None,
@@ -90,7 +97,11 @@ public class PitStops : MonoBehaviour
         public float WorkUntil;
         public WheelData Chosen;
 
+        // Qualy: en qué box se lo puso (-1 = todavía no).
+        public int PlacedBox = -1;
+
         // Bots.
+        public float BotHoldUntil;
         public int BotPitLap = -1;
         public bool BotDriving;
         public bool BotServed;
@@ -110,6 +121,7 @@ public class PitStops : MonoBehaviour
     private readonly Dictionary<KartBehaviour, KartPit> karts = new Dictionary<KartBehaviour, KartPit>();
     private readonly List<KartPit> ordered = new List<KartPit>();
     private float nextRefresh;
+    private bool qualifyingStarted;
 
     // Servidor: paradas hechas por kart, y a quién se le cobró no parar.
     private readonly Dictionary<Rigidbody, int> stopsByKart = new Dictionary<Rigidbody, int>();
@@ -417,6 +429,9 @@ public class PitStops : MonoBehaviour
 
         RefreshKarts();
 
+        if (RaceSession.IsQualifying)
+            UpdateQualifyingStart();
+
         foreach (KartPit pit in ordered)
         {
             if (pit.Kart == null || pit.Body == null)
@@ -431,6 +446,87 @@ public class PitStops : MonoBehaviour
             if (NetworkRole.IsAuthority && raceManager.IsRacing())
                 PassCheckpointsInLane(pit, position);
         }
+    }
+
+    /// <summary>
+    /// Qualy desde boxes: mientras se espera la largada, cada computadora pone
+    /// sus karts en su box. Al empezar, todos cuentan como "ya paró" (no
+    /// aparece la elección de ruedas hasta que salen de la calle); el jugador
+    /// sale cuando quiere y los bots de a uno, el más cercano a la salida
+    /// primero.
+    /// </summary>
+    private void UpdateQualifyingStart()
+    {
+        if (raceManager.IsWaiting() || raceManager.IsCountdown())
+        {
+            foreach (KartPit pit in ordered)
+            {
+                if (pit.Kart != null && pit.Kart.IsSimulated && pit.Box >= 0 && pit.PlacedBox != pit.Box)
+                    PlaceInBox(pit);
+            }
+
+            return;
+        }
+
+        if (qualifyingStarted || !raceManager.IsRacing())
+            return;
+
+        qualifyingStarted = true;
+
+        var bots = new List<KartPit>();
+
+        foreach (KartPit pit in ordered)
+        {
+            if (pit.Kart == null || !pit.Kart.IsSimulated || pit.Box < 0)
+                continue;
+
+            if (pit.PlacedBox < 0)
+                PlaceInBox(pit);
+
+            pit.State = StopState.Done;
+
+            if (pit.Bot != null && !pit.Kart.UsesPlayerAssists)
+                bots.Add(pit);
+        }
+
+        bots.Sort((a, b) => b.Box.CompareTo(a.Box));
+
+        float release = Time.time + Random.Range(qualifyingFirstBotDelay.x, Mathf.Max(qualifyingFirstBotDelay.x, qualifyingFirstBotDelay.y));
+
+        foreach (KartPit bot in bots)
+        {
+            bot.BotDriving = true;
+            bot.BotServed = true;
+            bot.BotHoldUntil = release;
+            bot.BotDrivingSince = release;
+            bot.Bot.enabled = false;
+            bot.Kart.PitHold = true;
+            release += qualifyingBotStagger;
+        }
+    }
+
+    /// <summary>Pone el kart quieto en su box, mirando en el sentido de la carrera.</summary>
+    private void PlaceInBox(KartPit pit)
+    {
+        lane.GetBox(pit.Box, out Vector3 center, out Quaternion rotation, out _, out _);
+        Vector3 position = center + Vector3.up * 0.35f;
+
+        // Directo en el Rigidbody (lo simula esta computadora; a las demás les
+        // llega por red). NetworkTransform.Teleport no queda en un kart con
+        // NetworkRigidbody que ya se está moviendo.
+        pit.Body.position = position;
+        pit.Body.rotation = rotation;
+        pit.Kart.transform.SetPositionAndRotation(position, rotation);
+
+        pit.Body.linearVelocity = Vector3.zero;
+        pit.Body.angularVelocity = Vector3.zero;
+        pit.Kart.ResetMotion();
+        pit.PlacedBox = pit.Box;
+
+        // El bot no maneja hasta que le toque salir (lo saca DriveBot): si no,
+        // al largar se vería lejos de donde estaba y reaparecería en la pista.
+        if (pit.Bot != null && !pit.Kart.UsesPlayerAssists)
+            pit.Bot.enabled = false;
     }
 
     /// <summary>Los karts de la carrera, con su box (en el orden de red, igual en todas las computadoras).</summary>
@@ -659,6 +755,20 @@ public class PitStops : MonoBehaviour
 
         lane.GetBox(pit.Box, out _, out _, out float boxS, out float boxLateral);
 
+        // Qualy: espera su turno para salir del box.
+        if (pit.BotHoldUntil > 0f)
+        {
+            if (Time.time < pit.BotHoldUntil)
+            {
+                kart.PitHold = true;
+                pit.BotDrivingSince = Time.time;
+                return;
+            }
+
+            pit.BotHoldUntil = 0f;
+            kart.PitHold = false;
+        }
+
         // Terminó: de vuelta en la pista, maneja solo otra vez.
         bool outOfLane = pit.BotServed && s >= lane.LimiterEnd + 15f;
         bool lost = toLane > lane.HalfWidth + 8f || Time.time - pit.BotDrivingSince > 90f;
@@ -690,14 +800,21 @@ public class PitStops : MonoBehaviour
 
         if (!pit.BotServed && boxS - s < 14f)
             lateralTarget = Mathf.Lerp(boxLateral, fastLane, Mathf.Clamp01((boxS - s - 3f) / 11f));
-        else if (pit.BotServed && s - boxS < 8f)
-            lateralTarget = Mathf.Lerp(boxLateral, fastLane, Mathf.Clamp01((s - boxS) / 8f));
+        // Saliendo del box: despacio y derecho al carril rápido, así no le pega
+        // al kart parado en el box de adelante.
+        bool leavingBox = pit.BotServed && s - boxS < 5f && Mathf.Abs(pit.Lateral - fastLane) > 0.6f;
+
+        if (leavingBox)
+        {
+            lateralTarget = fastLane;
+            target = Mathf.Min(target, 3f);
+        }
 
         // Afuera de la calle (entrando o saliendo), por el medio del recorrido.
         if (s < lane.LimiterStart - 5f || s > lane.LimiterEnd + 5f)
             lateralTarget = 0f;
 
-        float lookAhead = Mathf.Clamp(3f + 0.35f * Mathf.Max(0f, speed), 3f, 12f);
+        float lookAhead = leavingBox ? 2f : Mathf.Clamp(3f + 0.35f * Mathf.Max(0f, speed), 3f, 12f);
         Vector3 aim = lane.GetPoint(Mathf.Min(s + lookAhead, lane.Length), lateralTarget);
 
         Vector3 toAim = aim - position;

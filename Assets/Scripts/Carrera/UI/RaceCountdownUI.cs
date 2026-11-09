@@ -122,7 +122,11 @@ public class RaceCountdownUI : MonoBehaviour
 
             case RaceManager.RaceState.Racing:
 
-                ShowGo();
+                // En la qualy no hay largada: cada uno sale de boxes cuando quiere.
+                if (RaceSession.IsQualifying)
+                    HideText();
+                else
+                    ShowGo();
 
                 break;
 

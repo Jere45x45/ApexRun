@@ -96,8 +96,9 @@ public class KartAxle
             dampingVelocitySum += damping * radius * (wheel.LongitudinalVelocity - wheel.AxleSpeedOffset * radius);
 
             // En pasto o tierra la rueda se hunde y arrastra más que en asfalto.
+            // Casi quieto arrastra menos (si la superficie lo pide), así se puede salir.
             float surfaceRolling = wheel.CurrentSurface != null
-                ? Mathf.Max(0f, wheel.CurrentSurface.RollingResistanceMultiplier)
+                ? Mathf.Max(0f, wheel.CurrentSurface.RollingMultiplierAt(wheel.LongitudinalVelocity))
                 : 1f;
 
             rollingTorque += tire.rollingResistance * surfaceRolling * wheel.VerticalLoad * radius;

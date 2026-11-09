@@ -212,7 +212,8 @@ public class RaceReplay : MonoBehaviour
         {
             case RaceManager.RaceState.Countdown:
             case RaceManager.RaceState.Racing:
-                if (!recording && stopAt < 0f)
+                // En la qualy no se graba (no hay repetición).
+                if (!recording && stopAt < 0f && !RaceSession.IsQualifying)
                 {
                     recording = true;
 
@@ -244,6 +245,10 @@ public class RaceReplay : MonoBehaviour
 
     private void LateUpdate()
     {
+        // En la qualy no hay repetición (ni botón).
+        if (replayButton != null && replayButton.gameObject.activeSelf == RaceSession.IsQualifying)
+            replayButton.gameObject.SetActive(!RaceSession.IsQualifying);
+
         if (recording)
             Record();
 

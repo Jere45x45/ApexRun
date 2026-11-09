@@ -13,9 +13,6 @@ using UnityEngine.UI;
 ///   Más allá de maxDistance, o detrás de la cámara, no se muestra.
 /// - La tecla N los prende y apaga; la elección queda guardada (PlayerPrefs).
 /// - El kart propio no lleva nombre.
-/// - Si dos nombres se pisan (karts en fila, lejos), el del más cercano queda
-///   en su lugar y el del más lejano sube arriba de él. Sube y baja de a poco,
-///   así no salta cuando los karts se cruzan.
 /// Se arma solo al cargar una escena con RaceHUD (no hace falta tocar la escena),
 /// detrás de los paneles del HUD. Se oculta junto con el HUD en los resultados.
 /// </summary>
@@ -38,12 +35,6 @@ public class KartNameTags : MonoBehaviour
     [Tooltip("Distancia a la que el nombre tiene nearSize (m).")]
     [SerializeField, Min(0.5f)] private float nearDistance = 6f;
 
-    [Tooltip("Espacio entre dos nombres apilados (px del lienzo).")]
-    [SerializeField, Min(0f)] private float stackGap = 2f;
-
-    [Tooltip("Qué tan rápido sube o baja un nombre al apilarse (más = más rápido).")]
-    [SerializeField, Min(0.1f)] private float stackSpeed = 12f;
-
     [SerializeField] private Color textColor = Color.white;
     [SerializeField] private Color outlineColor = new Color(0f, 0f, 0f, 0.85f);
 
@@ -52,22 +43,6 @@ public class KartNameTags : MonoBehaviour
 
     private readonly Dictionary<KartBehaviour, TextMeshProUGUI> labels = new Dictionary<KartBehaviour, TextMeshProUGUI>();
     private readonly List<KartBehaviour> removed = new List<KartBehaviour>();
-
-    // Cuánto subió cada nombre para no pisar a otro (px, ya suavizado).
-    private readonly Dictionary<KartBehaviour, float> stackOffsets = new Dictionary<KartBehaviour, float>();
-
-    // Nombres visibles en este cuadro, para apilarlos.
-    private struct Shown
-    {
-        public KartBehaviour Kart;
-        public TextMeshProUGUI Label;
-        public Vector2 Position;
-        public Vector2 Size;
-        public float Distance;
-    }
-
-    private readonly List<Shown> shown = new List<Shown>();
-    private readonly List<Rect> placed = new List<Rect>();
 
     private RaceHUD hud;
     private RaceManager raceManager;
@@ -114,8 +89,6 @@ public class KartNameTags : MonoBehaviour
         Rigidbody own = hud != null && HudKartField != null ? HudKartField.GetValue(hud) as Rigidbody : null;
         Camera eventCamera = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
 
-        shown.Clear();
-
         foreach (KartBehaviour kart in raceManager.RaceKarts)
         {
             if (kart == null)
@@ -136,6 +109,7 @@ public class KartNameTags : MonoBehaviour
             if (show && RectTransformUtility.ScreenPointToLocalPointInRectangle(area, screen, eventCamera, out Vector2 local))
             {
                 float t = Mathf.InverseLerp(nearDistance, maxDistance, screen.z);
+                label.rectTransform.anchoredPosition = local;
                 label.fontSize = Mathf.Lerp(nearSize, farSize, t);
 
                 Color color = textColor;
@@ -148,29 +122,13 @@ public class KartNameTags : MonoBehaviour
                     label.text = name;
 
                 if (!label.gameObject.activeSelf)
-                {
                     label.gameObject.SetActive(true);
-
-                    // Recién aparece: arranca sin apilar en vez de bajar desde una altura vieja.
-                    stackOffsets.Remove(kart);
-                }
-
-                shown.Add(new Shown
-                {
-                    Kart = kart,
-                    Label = label,
-                    Position = local,
-                    Size = label.GetPreferredValues(name),
-                    Distance = screen.z
-                });
             }
             else if (label.gameObject.activeSelf)
             {
                 label.gameObject.SetActive(false);
             }
         }
-
-        PlaceWithoutOverlap();
 
         // Karts que ya no están (se fue un jugador).
         removed.Clear();
@@ -187,57 +145,6 @@ public class KartNameTags : MonoBehaviour
                 Destroy(labels[kart].gameObject);
 
             labels.Remove(kart);
-            stackOffsets.Remove(kart);
-        }
-    }
-
-    /// <summary>
-    /// Ubica los nombres visibles sin que se pisen: del kart más cercano al más
-    /// lejano, cada uno va a su lugar y, si choca con uno ya ubicado, sube
-    /// arriba de ese. La altura cambia de a poco (stackSpeed).
-    /// </summary>
-    private void PlaceWithoutOverlap()
-    {
-        shown.Sort((a, b) => a.Distance.CompareTo(b.Distance));
-        placed.Clear();
-
-        float blend = 1f - Mathf.Exp(-stackSpeed * Time.unscaledDeltaTime);
-
-        foreach (Shown item in shown)
-        {
-            // El nombre tiene el pivote abajo al centro. Un poco más ancho que el
-            // texto, así dos nombres lado a lado no quedan pegados.
-            float width = item.Size.x + stackGap * 4f;
-            var rect = new Rect(item.Position.x - width * 0.5f, item.Position.y, width, item.Size.y);
-
-            // Sube mientras choque con alguno ya ubicado. Como mucho tantas
-            // veces como nombres haya, así nunca queda en un bucle.
-            for (int tries = 0; tries <= placed.Count; tries++)
-            {
-                bool moved = false;
-
-                foreach (Rect other in placed)
-                {
-                    if (rect.Overlaps(other))
-                    {
-                        rect.y = other.yMax + stackGap;
-                        moved = true;
-                    }
-                }
-
-                if (!moved)
-                    break;
-            }
-
-            placed.Add(rect);
-
-            float target = rect.y - item.Position.y;
-            float offset = stackOffsets.TryGetValue(item.Kart, out float current)
-                ? Mathf.Lerp(current, target, blend)
-                : target;
-
-            stackOffsets[item.Kart] = offset;
-            item.Label.rectTransform.anchoredPosition = item.Position + new Vector2(0f, offset);
         }
     }
 

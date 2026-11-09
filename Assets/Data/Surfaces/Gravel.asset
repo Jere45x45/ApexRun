@@ -14,6 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TrackSurfaceData
   surfaceName: Gravel
   validForTrack: 0
-  gripMultiplier: 0.6
-  rollingResistanceMultiplier: 8
+  gripMultiplier: 0.55
+  rollingResistanceMultiplier: 25
+  lowSpeedRollingMultiplier: 12
+  fullRollingSpeed: 6
+  bumpHeight: 0.025
+  bumpLength: 1.1
   wetGripMultiplier: 0.85
+  effect: 4
+  dirtColor: {r: 0.55, g: 0.53, b: 0.5, a: 1}

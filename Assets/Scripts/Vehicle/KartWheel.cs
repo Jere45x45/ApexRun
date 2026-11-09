@@ -282,6 +282,12 @@ public class KartWheel
         CurrentSurface = surface != null ? surface.SurfaceData : null;
     }
 
+    /// <summary>Velocidad desde la que el relieve empieza a hacer saltar la rueda (m/s).</summary>
+    private const float BumpFadeStart = 0.4f;
+
+    /// <summary>Velocidad desde la que el relieve empuja entero (m/s, unos 10 km/h).</summary>
+    private const float BumpFadeFull = 2.8f;
+
     private void ApplyContactForce(
         Rigidbody body,
         Collider ground,
@@ -301,6 +307,19 @@ public class KartWheel
         Vector3 relativeVelocity = body.GetPointVelocity(point) - groundVelocity;
 
         float approachSpeed = -Vector3.Dot(relativeVelocity, normal);
+
+        // Relieve del piso (grava): las piedras empujan la rueda para arriba.
+        // La superficie se conoce desde el paso anterior (UpdateSurface).
+        // Solo rodando: quieto, apoyado sobre una piedra, no hay nada que lo
+        // haga saltar. Entra de a poco entre BumpFadeStart y BumpFadeFull.
+        if (ground == surfaceCollider && CurrentSurface != null && CurrentSurface.HasBumps)
+        {
+            Vector3 rolling = Vector3.ProjectOnPlane(relativeVelocity, normal);
+            float bumpFade = Mathf.InverseLerp(BumpFadeStart, BumpFadeFull, rolling.magnitude);
+
+            if (bumpFade > 0f)
+                depth += CurrentSurface.BumpAt(point) * bumpFade;
+        }
 
         float springForce = tire.verticalStiffness * depth;
 

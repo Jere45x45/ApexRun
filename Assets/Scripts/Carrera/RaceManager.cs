@@ -224,6 +224,18 @@ public class RaceManager : NetworkBehaviour
         // Como en F1: las luces se prenden de a una y, con todas prendidas,
         // se apagan en un momento al azar. Ese momento es la largada.
         double now = NetworkManager.ServerTime.Time;
+
+        // Qualy: sin semáforo. Todos están en su box (PitStops) y el reloj
+        // corre desde ya; cada uno sale cuando quiere.
+        if (RaceSession.IsQualifying && PitLane.Instance != null && PitLane.Instance.IsValid)
+        {
+            countdownStartServerTime.Value = now;
+            startServerTime.Value = now;
+            networkState.Value = RaceState.Racing;
+            ApplyNetworkState(RaceState.Racing);
+            return;
+        }
+
         float hold = UnityEngine.Random.Range(Mathf.Min(startHoldRange.x, startHoldRange.y), Mathf.Max(startHoldRange.x, startHoldRange.y));
 
         countdownStartServerTime.Value = now;
