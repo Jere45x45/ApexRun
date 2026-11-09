@@ -19,6 +19,12 @@ public class StartLights : MonoBehaviour
     [Tooltip("Luz opcional que ilumina alrededor del semáforo.")]
     [SerializeField] private Light glow;
 
+    [Tooltip("Cuánto adelante de las luces prendidas va el brillo (m, hacia los que largan). " +
+             "Pegado a las luces iluminaba la del medio como si ya estuviera prendida.")]
+    [SerializeField, Min(0f)] private float glowForward = 1.2f;
+
+    private TrackCenterline centerline;
+
     [SerializeField] private Color offColor = new Color(0.07f, 0.01f, 0.01f, 1f);
     [SerializeField] private Color redColor = new Color(1f, 0.05f, 0.03f, 1f);
 
@@ -81,6 +87,54 @@ public class StartLights : MonoBehaviour
             glow.enabled = lit > 0;
             glow.color = redColor;
             glow.intensity = 0.5f + 0.4f * lit;
+
+            if (lit > 0)
+                PlaceGlow(lit);
         }
+    }
+
+    /// <summary>
+    /// El brillo va frente a las luces que están prendidas (del lado de la
+    /// grilla), no sobre una luz apagada.
+    /// </summary>
+    private void PlaceGlow(int lit)
+    {
+        Vector3 center = Vector3.zero;
+        int count = 0;
+
+        for (int i = 0; i < lamps.Length && i < lit; i++)
+        {
+            if (lamps[i] == null)
+                continue;
+
+            center += lamps[i].bounds.center;
+            count++;
+        }
+
+        if (count == 0)
+            return;
+
+        center /= count;
+        glow.transform.position = center + FrontDirection() * glowForward;
+    }
+
+    /// <summary>Hacia dónde miran las luces: hacia los karts que vienen a la línea.</summary>
+    private Vector3 FrontDirection()
+    {
+        if (centerline == null)
+            centerline = FindFirstObjectByType<TrackCenterline>();
+
+        if (centerline != null && centerline.IsValid)
+        {
+            // Los karts llegan a la línea yendo en el sentido de la pista
+            // (al revés, la línea central ya está dada vuelta).
+            Vector3 direction = centerline.GetDirectionAtDistance(0f);
+            direction.y = 0f;
+
+            if (direction.sqrMagnitude > 1e-4f)
+                return -direction.normalized;
+        }
+
+        return -transform.right;
     }
 }

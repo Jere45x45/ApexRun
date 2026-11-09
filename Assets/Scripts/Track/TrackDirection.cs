@@ -13,6 +13,8 @@ using UnityEngine.SceneManagement;
 ///   los bots, las posiciones, el minimapa y las cámaras de TV.
 /// - Los checkpoints se cuentan en el orden contrario
 ///   (RaceCheckpointManager.SetReversed); la llegada sigue siendo la llegada.
+/// - El arco de largada y el semáforo (StartLights) giran 180° sobre el
+///   centro del arco, así miran a los que llegan en el sentido nuevo.
 /// En el anfitrión lo aplica RaceSetupSync al cargar la escena (con
 /// RaceSession.Reversed); en los demás, cuando llega por red.
 /// </summary>
@@ -58,6 +60,7 @@ public static class TrackDirection
         Transform pole = MoveGrid(centerline);
         MoveRespawnPoints(centerline, checkpoints);
         MoveStartRespawn(pole);
+        TurnStartArch(centerline);
 
         centerline.SetReversed(true);
         checkpoints.SetReversed(true);
@@ -157,6 +160,51 @@ public static class TrackDirection
 
         if (start != null && pole != null)
             start.SetPositionAndRotation(pole.position, pole.rotation);
+    }
+
+    /// <summary>
+    /// El arco de la meta (los objetos de la pista con "largada" en el nombre,
+    /// cerca de la línea) y el semáforo, dados vuelta sobre el centro del arco.
+    /// </summary>
+    private static void TurnStartArch(TrackCenterline centerline)
+    {
+        Vector3 line = centerline.StartFinishLine != null
+            ? centerline.StartFinishLine.position
+            : centerline.GetPointAtDistance(0f);
+
+        var arch = new System.Collections.Generic.List<Transform>();
+        Bounds bounds = new Bounds(line, Vector3.zero);
+        bool hasArch = false;
+
+        foreach (Renderer renderer in Object.FindObjectsByType<Renderer>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (!renderer.name.ToLowerInvariant().Contains("largada") || renderer.GetComponentInParent<StartLights>(true) != null)
+                continue;
+
+            Vector3 center = renderer.bounds.center;
+            center.y = line.y;
+
+            if (Vector3.Distance(center, line) > 15f)
+                continue;
+
+            arch.Add(renderer.transform);
+
+            if (hasArch)
+                bounds.Encapsulate(renderer.bounds);
+            else
+                bounds = renderer.bounds;
+
+            hasArch = true;
+        }
+
+        // El centro del arco (si no hay arco, la línea de llegada).
+        Vector3 pivot = hasArch ? bounds.center : line;
+
+        foreach (Transform part in arch)
+            part.RotateAround(pivot, Vector3.up, 180f);
+
+        foreach (StartLights lights in Object.FindObjectsByType<StartLights>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            lights.transform.RotateAround(pivot, Vector3.up, 180f);
     }
 
     /// <summary>Cuánto al costado de la línea central está una posición (m, + = derecha).</summary>
