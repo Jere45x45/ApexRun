@@ -95,6 +95,12 @@ public static class RaceSession
     /// </summary>
     public static bool MandatoryPitStop { get; set; }
 
+    /// <summary>
+    /// Contrarreloj de la tabla de clasificación: un jugador, sin bots y una
+    /// sola vuelta (ver TimeTrialRecords y KartGhost). La pone el menú.
+    /// </summary>
+    public static bool TimeTrial { get; set; }
+
     public static bool IsLastRound => !IsChampionship || Round >= Rounds;
 
     /// <summary>Semilla de los bots (así se ven igual en la qualy y en todas las fechas).</summary>

@@ -367,6 +367,42 @@ public class GameSession : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Entra a los servicios con ese nombre (la tabla de contrarreloj, que no
+    /// pasa por una sesión). Devuelve false si no se pudo (por ejemplo, sin internet).
+    /// </summary>
+    public async Task<bool> EnsureSignedInAsync(string playerName)
+    {
+        if (!string.IsNullOrWhiteSpace(playerName))
+            LocalPlayerName = CleanName(playerName);
+
+        // Puede fallar si otra parte del juego está entrando al mismo tiempo, o si
+        // el nombre se cambió hace muy poco: se reintenta un par de veces.
+        for (int attempt = 0; attempt < 3; attempt++)
+        {
+            try
+            {
+                await SignInAsync();
+                return true;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"GameSession: no se pudo entrar a los servicios ({exception.Message}).", this);
+
+                // Entró pero falló algo menor (por ejemplo, cambiar el nombre): sirve igual.
+                if (IsSignedInToServices)
+                    return true;
+            }
+
+            await Task.Delay(700);
+        }
+
+        return IsSignedInToServices;
+    }
+
+    private static bool IsSignedInToServices =>
+        UnityServices.State == ServicesInitializationState.Initialized && AuthenticationService.Instance.IsSignedIn;
+
     private async Task SignInAsync()
     {
         if (UnityServices.State == ServicesInitializationState.Uninitialized)

@@ -21,6 +21,8 @@ using UnityEngine.UI;
 ///   recibe los mandos (sigue de largo sin acelerar, como si soltaras todo).
 ///   No se abre solo al perder el foco. REINICIAR solo lo puede usar el
 ///   anfitrión (reinicia la carrera para todos); a los demás les aparece deshabilitado.
+/// - En la contrarreloj, R (o Select del joystick) reinicia la vuelta al instante,
+///   en cualquier momento (corriendo, en pausa o después de la meta).
 /// - Menú: CONTINUAR, REINICIAR (vuelve a cargar la carrera, como Reintentar
 ///   de los resultados; solo en un jugador) y SALIR AL MENÚ (vuelve al Inicio).
 /// Si la escena se cierra estando en pausa, deja el tiempo y el sonido como
@@ -46,6 +48,7 @@ public class RacePauseMenu : MonoBehaviour
     [SerializeField] private string menuSceneName = "Inicio";
 
     private InputAction pauseAction;
+    private InputAction restartAction;
 
     // Menú abierto (en un jugador, además, todo congelado).
     private bool open;
@@ -75,6 +78,10 @@ public class RacePauseMenu : MonoBehaviour
         pauseAction.AddBinding("<Keyboard>/p");
         pauseAction.AddBinding("<Gamepad>/start");
 
+        restartAction = new InputAction("Restart", InputActionType.Button);
+        restartAction.AddBinding("<Keyboard>/r");
+        restartAction.AddBinding("<Gamepad>/select");
+
         if (continueButton != null)
             continueButton.onClick.AddListener(Resume);
 
@@ -97,11 +104,13 @@ public class RacePauseMenu : MonoBehaviour
     private void OnEnable()
     {
         pauseAction.Enable();
+        restartAction.Enable();
     }
 
     private void OnDisable()
     {
         pauseAction.Disable();
+        restartAction.Disable();
         ReleasePause();
     }
 
@@ -109,10 +118,19 @@ public class RacePauseMenu : MonoBehaviour
     {
         ReleasePause();
         pauseAction.Dispose();
+        restartAction.Dispose();
     }
 
     private void Update()
     {
+        // Contrarreloj: R reinicia al instante (solo en un jugador).
+        if (restartAction.WasPressedThisFrame() && RaceSession.TimeTrial && IsSinglePlayer()
+            && raceManager != null && raceManager.IsSpawned)
+        {
+            Restart();
+            return;
+        }
+
         if (open && !frozen && !CanPause())
         {
             // En red la carrera sigue: si terminó con el menú abierto, se

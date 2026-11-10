@@ -26,6 +26,10 @@ using UnityEngine.UI;
 ///   entren, las filas se juntan un poco.
 /// - Boxes: parada libre u obligatoria (una, en carreras de 2 vueltas o
 ///   más; ver PitStops). También se arma sola.
+/// - Contrarreloj (un jugador sin bots): es de una sola vuelta, sin qualy,
+///   campeonato ni parada obligatoria (esas filas se ven fijas). ¡A CORRER!
+///   abre primero la tabla de clasificación de la pista (TimeTrialLeaderboardUI),
+///   donde se eligen los rivales; ahí ¡A CORRER! larga y Volver vuelve acá.
 /// Al confirmar se arma RaceSession (qualy, campeonato, sentido y boxes).
 /// Lo elegido queda guardado (RaceSetupStore, WeatherChoiceStore) y lo
 /// aplican en la carrera RaceSetupSync y RaceWeather.
@@ -104,6 +108,12 @@ public class RaceSetupMenuUI : MonoBehaviour
     [SerializeField] private Button backButton;
 
     private bool multiplayer;
+
+    // Tabla de la contrarreloj (se arma la primera vez que hace falta).
+    private TimeTrialLeaderboardUI leaderboard;
+
+    /// <summary>Un jugador sin bots: contrarreloj de una vuelta con tabla.</summary>
+    private bool IsTimeTrial => !multiplayer && RaceSetupStore.GetBots(false) == 0;
 
     // Filas que se arman solas (copias de la de Niebla) y la de Pista.
     private Button modePrevious;
@@ -557,6 +567,9 @@ public class RaceSetupMenuUI : MonoBehaviour
     /// <summary>Muestra la pantalla para un jugador (false) o para crear un servidor (true).</summary>
     public void Open(bool forMultiplayer)
     {
+        if (leaderboard != null && leaderboard.IsOpen)
+            leaderboard.Close();
+
         multiplayer = forMultiplayer;
         menuManager.Show(MenuPanel.RaceSetup);
         Refresh();
@@ -610,6 +623,14 @@ public class RaceSetupMenuUI : MonoBehaviour
 
     private void Confirm()
     {
+        if (IsTimeTrial)
+        {
+            ConfirmTimeTrial();
+            return;
+        }
+
+        RaceSession.TimeTrial = false;
+
         // Los bots de esta carrera (los pone el host al cargar la pista).
         RaceSetupStore.BotsForRace = RaceSetupStore.GetBots(multiplayer);
 
@@ -634,7 +655,58 @@ public class RaceSetupMenuUI : MonoBehaviour
 
     private void Back()
     {
+        // Desde la tabla se vuelve a la configuración.
+        if (leaderboard != null && leaderboard.IsOpen)
+        {
+            leaderboard.Close();
+            Refresh();
+            return;
+        }
+
         menuManager.Show(multiplayer ? MenuPanel.Multiplayer : MenuPanel.Main);
+    }
+
+    /// <summary>Contrarreloj: el primer ¡A CORRER! abre la tabla; el de la tabla larga.</summary>
+    private void ConfirmTimeTrial()
+    {
+        if (leaderboard == null)
+            leaderboard = TimeTrialLeaderboardUI.Create((RectTransform)transform, confirmText != null ? confirmText.font : null);
+
+        if (!leaderboard.IsOpen)
+        {
+            string track = GameLanguage.Text(trackSpanish, trackEnglish) +
+                           (RaceSetupStore.Reversed ? GameLanguage.Text(" al revés", " reversed") : "");
+
+            leaderboard.Open(TimeTrialRecords.BoardId(RaceSetupStore.Reversed), track, sessionMenu.PlayerName);
+
+            if (titleText != null)
+                titleText.text = GameLanguage.Text("Contrarreloj", "Time trial");
+
+            return;
+        }
+
+        StartTimeTrial();
+    }
+
+    private async void StartTimeTrial()
+    {
+        confirmButton.interactable = false;
+        backButton.interactable = false;
+
+        // Baja los fantasmas de los rivales elegidos (sin internet, no hace nada).
+        await leaderboard.PrepareRaceAsync();
+
+        if (this == null)
+            return;
+
+        backButton.interactable = true;
+
+        RaceSetupStore.BotsForRace = 0;
+        RaceSession.MandatoryPitStop = false;
+        RaceSession.StartNew(0, 0f, RaceSetupStore.Reversed);
+        RaceSession.TimeTrial = true;
+
+        sessionMenu.StartSinglePlayerFromSetup();
     }
 
     private void Refresh()
@@ -655,10 +727,12 @@ public class RaceSetupMenuUI : MonoBehaviour
 
         confirmButton.interactable = true;
 
+        // La contrarreloj es de una vuelta (lo elegido queda guardado para las carreras).
         int laps = RaceSetupStore.Laps;
-        SetValue(lapsValue, laps.ToString());
-        SetUsable(lapsMinus, laps > RaceSetupStore.MinLaps);
-        SetUsable(lapsPlus, laps < RaceSetupStore.MaxLaps);
+        bool timeTrial = IsTimeTrial;
+        SetValue(lapsValue, timeTrial ? "1" : laps.ToString());
+        SetUsable(lapsMinus, !timeTrial && laps > RaceSetupStore.MinLaps);
+        SetUsable(lapsPlus, !timeTrial && laps < RaceSetupStore.MaxLaps);
 
         SetValue(weatherValue, WeatherChoiceStore.Label(WeatherChoiceStore.Current));
         SetValue(timeValue, WeatherChoiceStore.Label(WeatherChoiceStore.Time));
@@ -710,15 +784,32 @@ public class RaceSetupMenuUI : MonoBehaviour
         SetUsable(modePrevious, championship);
         SetUsable(modeNext, !championship || rounds < RaceSetupStore.MaxRounds);
 
+        // Contrarreloj: carrera suelta, sin qualy y sin parada obligatoria (fijo).
+        bool timeTrial = IsTimeTrial;
+
+        if (timeTrial)
+        {
+            SetValue(modeValue, GameLanguage.Text("Carrera suelta", "Single race"));
+            SetUsable(modePrevious, false);
+            SetUsable(modeNext, false);
+        }
+
         SetValue(pitValue, RaceSetupStore.MandatoryPitStop ? GameLanguage.Text("Obligatoria", "Mandatory") : GameLanguage.Text("Libre", "Optional"));
 
         int minutes = RaceSetupStore.QualifyingMinutes;
         int[] options = RaceSetupStore.QualifyingOptions;
         int index = Mathf.Max(0, System.Array.IndexOf(options, minutes));
 
-        SetValue(qualifyingValue, minutes > 0 ? minutes + " min" : GameLanguage.Text("Sin qualy", "No qualifying"));
-        SetUsable(qualifyingPrevious, index > 0);
-        SetUsable(qualifyingNext, index < options.Length - 1);
+        SetValue(qualifyingValue, minutes > 0 && !timeTrial ? minutes + " min" : GameLanguage.Text("Sin qualy", "No qualifying"));
+        SetUsable(qualifyingPrevious, !timeTrial && index > 0);
+        SetUsable(qualifyingNext, !timeTrial && index < options.Length - 1);
+
+        if (timeTrial)
+        {
+            SetValue(pitValue, GameLanguage.Text("Libre", "Optional"));
+            SetUsable(pitPrevious, false);
+            SetUsable(pitNext, false);
+        }
 
         // Pista: el nombre y, si va al revés, dicho (en el campeonato, la primera fecha).
         // Al revés va en un segundo renglón (cortado a mano, así no queda "al" arriba).

@@ -15,6 +15,10 @@ using UnityEngine.UI;
 /// - Al cruzar la meta, si fue la mejor vuelta y no tuvo penalizaciones ni
 ///   reaparición, pasa a ser el fantasma y se guarda en disco
 ///   (persistentDataPath/Fantasmas): la próxima vez está de nuevo.
+/// - Contrarreloj del menú (RaceSession.TimeTrial, una vuelta): además corren
+///   los fantasmas de los rivales elegidos en la tabla (TimeTrialRecords), cada
+///   uno de su color y con su nombre arriba. Si la vuelta mejora tu marca de la
+///   tabla, se sube con su fantasma y aparece tu puesto.
 /// - En cada vuelta el fantasma sale de la meta junto con el jugador.
 /// - Cerca del jugador se vuelve casi invisible, para que no moleste.
 /// - La tecla G lo muestra u oculta (queda guardado).
@@ -28,7 +32,6 @@ using UnityEngine.UI;
 public class KartGhost : MonoBehaviour
 {
     private const string VisibleKey = "ApexRun.Fantasma";
-    private const int FileVersion = 1;
     private const string MaterialPath = "Efectos/Fantasma";
 
     [Tooltip("Tecla para mostrar u ocultar el fantasma.")]
@@ -54,19 +57,17 @@ public class KartGhost : MonoBehaviour
     [SerializeField] private Color slowerColor = new Color(1f, 0.36f, 0.31f);
     [SerializeField] private Color invalidColor = new Color(1f, 0.7f, 0.2f);
 
-    private struct Sample
-    {
-        public float Time;
-        public Vector3 Position;
-        public Quaternion Rotation;
-    }
+    [Tooltip("Altura del nombre de los rivales sobre su kart (m).")]
+    [SerializeField, Min(0f)] private float nameHeight = 1.05f;
 
-    private class GhostLap
+    /// <summary>Un kart transparente en pista: el propio fantasma o el de un rival.</summary>
+    private class GhostView
     {
-        public float LapTime;
-        public Sample[] Samples;
-
-        public float Duration => Samples.Length > 0 ? Samples[Samples.Length - 1].Time : 0f;
+        public GhostRecording Recording;
+        public Transform Root;
+        public Material Material;
+        public Color Color;
+        public TextMeshPro Label;
     }
 
     private RaceManager raceManager;
@@ -85,12 +86,16 @@ public class KartGhost : MonoBehaviour
     private double lapStart;
     private float nextSample;
     private bool lapValid;
-    private readonly List<Sample> recording = new List<Sample>();
+    private readonly List<GhostRecording.Sample> recording = new List<GhostRecording.Sample>();
 
-    private GhostLap best;
+    private GhostRecording best;
 
+    // El propio fantasma (siempre el primero) y los de los rivales.
     private Transform ghostRoot;
     private Material ghostMaterial;
+    private GhostView own;
+    private readonly List<GhostView> rivals = new List<GhostView>();
+    private bool uploading;
 
     private RectTransform infoBox;
     private TMP_Text infoText;
@@ -139,6 +144,12 @@ public class KartGhost : MonoBehaviour
 
         if (ghostMaterial != null)
             Destroy(ghostMaterial);
+
+        foreach (GhostView rival in rivals)
+        {
+            if (rival.Material != null)
+                Destroy(rival.Material);
+        }
     }
 
     // ------------------------------------------------------------------
@@ -165,9 +176,20 @@ public class KartGhost : MonoBehaviour
         if (best == null)
             best = Load();
 
+        // Mi fantasma de la tabla, si es mejor que el de esta computadora (por
+        // ejemplo, lo hice en otra): pasa a ser el local.
+        GhostRecording online = TimeTrialRecords.MyOnlineGhost;
+
+        if (IsTableRace && online != null && (best == null || online.LapTime < best.LapTime))
+        {
+            best = online;
+            Save(best);
+        }
+
         if (ghostRoot == null)
         {
             BuildVisual();
+            BuildRivals();
 
             // Un punto en el minimapa, con estilo de fantasma. Sigue al kart
             // transparente: se ve solo mientras está en pista.
@@ -225,14 +247,23 @@ public class KartGhost : MonoBehaviour
         if (lapTime <= 0f)
             lapTime = duration;
 
-        bool record = lapValid && recording.Count > 1 && (best == null || lapTime < best.LapTime);
+        var lap = new GhostRecording { LapTime = lapTime, Samples = recording.ToArray() };
+        bool valid = lapValid && recording.Count > 1;
+        bool record = valid && (best == null || lapTime < best.LapTime);
         ShowDelta(lapTime, record);
 
         if (record)
         {
-            best = new GhostLap { LapTime = lapTime, Samples = recording.ToArray() };
+            best = lap;
             Save(best);
+
+            if (own != null)
+                own.Recording = best;
         }
+
+        // Tabla: si mejora mi marca online (aunque no mejore la de esta computadora), se sube.
+        if (valid && IsTableRace && (TimeTrialRecords.MyOnlineBest < 0f || lapTime < TimeTrialRecords.MyOnlineBest))
+            Upload(lap);
 
         StartLap();
         RefreshInfo();
@@ -267,7 +298,7 @@ public class KartGhost : MonoBehaviour
         if (recording.Count > 0 && (position - recording[recording.Count - 1].Position).sqrMagnitude > 15f * 15f)
             lapValid = false;
 
-        recording.Add(new Sample { Time = time, Position = position, Rotation = playerBody.rotation });
+        recording.Add(new GhostRecording.Sample { Time = time, Position = position, Rotation = playerBody.rotation });
     }
 
     private void Update()
@@ -288,65 +319,53 @@ public class KartGhost : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (ghostRoot == null)
+        if (own == null)
             return;
 
         float t = (float)(Time.timeAsDouble - lapStart);
+        bool racing = active && visible && raceManager != null && raceManager.IsRacing();
 
-        bool show = active && visible && best != null && raceManager != null && raceManager.IsRacing() &&
-                    t <= best.Duration;
+        own.Recording = best;
+        Place(own, t, racing);
 
-        if (ghostRoot.gameObject.activeSelf != show)
-            ghostRoot.gameObject.SetActive(show);
+        foreach (GhostView rival in rivals)
+            Place(rival, t, racing);
+    }
+
+    /// <summary>Pone un fantasma donde estaba en ese momento de su vuelta (o lo esconde).</summary>
+    private void Place(GhostView view, float t, bool racing)
+    {
+        if (view.Root == null)
+            return;
+
+        bool show = racing && view.Recording != null && t <= view.Recording.Duration;
+
+        if (view.Root.gameObject.activeSelf != show)
+            view.Root.gameObject.SetActive(show);
 
         if (!show)
             return;
 
-        Evaluate(best.Samples, t, out Vector3 position, out Quaternion rotation);
-        ghostRoot.SetPositionAndRotation(position, rotation);
+        view.Recording.Evaluate(t, out Vector3 position, out Quaternion rotation);
+        view.Root.SetPositionAndRotation(position, rotation);
 
+        // Cerca del jugador casi no se ve, para que no moleste.
         float distance = playerBody != null ? Vector3.Distance(position, playerBody.position) : fadeFar;
-        Color color = ghostColor;
-        color.a = Mathf.Lerp(nearAlpha, ghostColor.a, Mathf.InverseLerp(fadeNear, fadeFar, distance));
-        ghostMaterial.color = color;
-    }
+        float fade = Mathf.InverseLerp(fadeNear, fadeFar, distance);
+        Color color = view.Color;
+        color.a = Mathf.Lerp(nearAlpha, view.Color.a, fade);
+        view.Material.color = color;
 
-    private static void Evaluate(Sample[] samples, float time, out Vector3 position, out Quaternion rotation)
-    {
-        int low = 0;
-        int high = samples.Length - 1;
-
-        if (time <= samples[0].Time)
+        if (view.Label != null)
         {
-            position = samples[0].Position;
-            rotation = samples[0].Rotation;
-            return;
+            Camera camera = Camera.main;
+
+            if (camera != null)
+                view.Label.transform.rotation = camera.transform.rotation;
+
+            view.Label.transform.position = position + Vector3.up * nameHeight;
+            view.Label.alpha = Mathf.Lerp(0.25f, 1f, fade);
         }
-
-        if (time >= samples[high].Time)
-        {
-            position = samples[high].Position;
-            rotation = samples[high].Rotation;
-            return;
-        }
-
-        // La muestra de antes y la de después de ese momento.
-        while (high - low > 1)
-        {
-            int middle = (low + high) / 2;
-
-            if (samples[middle].Time <= time)
-                low = middle;
-            else
-                high = middle;
-        }
-
-        Sample a = samples[low];
-        Sample b = samples[high];
-        float k = Mathf.InverseLerp(a.Time, b.Time, time);
-
-        position = Vector3.Lerp(a.Position, b.Position, k);
-        rotation = Quaternion.Slerp(a.Rotation, b.Rotation, k);
     }
 
     // ------------------------------------------------------------------
@@ -420,7 +439,73 @@ public class KartGhost : MonoBehaviour
             copy.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             copy.receiveShadows = false;
         }
+
+        own = new GhostView { Recording = best, Root = ghostRoot, Material = ghostMaterial, Color = ghostColor };
     }
+
+    /// <summary>
+    /// Los fantasmas de los rivales elegidos en la tabla: copias del kart
+    /// transparente, cada una con su color y el nombre arriba.
+    /// </summary>
+    private void BuildRivals()
+    {
+        if (ghostRoot == null || !IsTableRace)
+            return;
+
+        TMP_FontAsset font = hud != null ? RaceStandingsTower.FindHudFont(hud, bold: true) : null;
+
+        foreach (TimeTrialRecords.Opponent opponent in TimeTrialRecords.Opponents)
+        {
+            if (opponent.Ghost == null)
+                continue;
+
+            Transform copy = Instantiate(ghostRoot);
+            copy.name = "Fantasma " + opponent.Entry.Name;
+            copy.gameObject.SetActive(false);
+
+            var material = new Material(ghostMaterial) { color = opponent.Color };
+
+            foreach (MeshRenderer renderer in copy.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                var materials = renderer.sharedMaterials;
+
+                for (int i = 0; i < materials.Length; i++)
+                    materials[i] = material;
+
+                renderer.sharedMaterials = materials;
+            }
+
+            // El nombre arriba del kart; LateUpdate lo pone de frente a la cámara.
+            var labelObject = new GameObject("Nombre " + opponent.Entry.Name);
+            labelObject.transform.SetParent(copy, false);
+            var label = labelObject.AddComponent<TextMeshPro>();
+
+            if (font != null)
+                label.font = font;
+
+            Color nameColor = opponent.Color;
+            nameColor.a = 1f;
+            label.text = opponent.Entry.Name + "  <size=70%>" + TimeTrialRecords.FormatTime(opponent.Entry.Time) + "</size>";
+            label.fontSize = 2.2f;
+            label.color = nameColor;
+            label.alignment = TextAlignmentOptions.Center;
+            label.textWrappingMode = TextWrappingModes.NoWrap;
+            label.rectTransform.sizeDelta = new Vector2(6f, 1f);
+
+            rivals.Add(new GhostView
+            {
+                Recording = opponent.Ghost,
+                Root = copy,
+                Material = material,
+                Color = opponent.Color,
+                Label = label
+            });
+        }
+    }
+
+    /// <summary>True si esta carrera es la contrarreloj de la tabla (una vuelta, elegida en el menú).</summary>
+    private bool IsTableRace =>
+        RaceSession.TimeTrial && TimeTrialRecords.ActiveBoardId == TimeTrialRecords.BoardId(TrackDirection.IsReversed);
 
     // ------------------------------------------------------------------
     // HUD
@@ -517,6 +602,9 @@ public class KartGhost : MonoBehaviour
         if (best != null && !visible)
             text += GameLanguage.Text("  (oculto, G)", "  (hidden, G)");
 
+        if (rivals.Count > 0)
+            text += GameLanguage.Text("  +" + rivals.Count + (rivals.Count == 1 ? " rival" : " rivales"), "  +" + rivals.Count + (rivals.Count == 1 ? " opponent" : " opponents"));
+
         infoText.text = text;
         infoBox.gameObject.SetActive(active);
     }
@@ -560,6 +648,55 @@ public class KartGhost : MonoBehaviour
             infoBox.sizeDelta = new Vector2(infoBox.sizeDelta.x, show ? 64f : 34f);
     }
 
+    // ------------------------------------------------------------------
+    // Tabla online
+    // ------------------------------------------------------------------
+
+    /// <summary>Sube la vuelta a la tabla y muestra el puesto (o por qué no se pudo).</summary>
+    private async void Upload(GhostRecording lap)
+    {
+        if (uploading)
+            return;
+
+        uploading = true;
+        string board = TimeTrialRecords.ActiveBoardId;
+
+        SetDeltaExtra(GameLanguage.Text("Subiendo a la tabla...", "Uploading..."));
+
+        bool signedIn = TimeTrialRecords.IsSignedIn ||
+                        await TimeTrialRecords.SignInAsync(GameSession.Instance != null ? GameSession.Instance.LocalPlayerName : null);
+
+        TimeTrialRecords.Entry entry = signedIn ? await TimeTrialRecords.SubmitAsync(board, lap) : null;
+        uploading = false;
+
+        if (this == null)
+            return;
+
+        SetDeltaExtra(entry != null
+            ? GameLanguage.Text("TABLA: PUESTO " + entry.Rank, "LEADERBOARD: RANK " + entry.Rank)
+            : GameLanguage.Text("No se pudo subir a la tabla", "Couldn't upload"));
+    }
+
+    /// <summary>Agrega un renglón abajo de la diferencia (y la deja más tiempo en pantalla).</summary>
+    private void SetDeltaExtra(string line)
+    {
+        if (deltaText == null)
+            return;
+
+        string text = deltaText.text;
+        int cut = text.IndexOf('\n');
+
+        if (cut >= 0)
+            text = text.Substring(0, cut);
+
+        deltaText.text = text + "\n<size=70%><color=#FFFFFF>" + line + "</color></size>";
+        deltaUntil = Time.unscaledTime + deltaShowTime + 4f;
+        SetDeltaVisible(true);
+
+        if (infoBox != null)
+            infoBox.sizeDelta = new Vector2(infoBox.sizeDelta.x, 84f);
+    }
+
     private static string FormatTime(float seconds)
     {
         int minutes = Mathf.FloorToInt(seconds / 60f);
@@ -581,12 +718,15 @@ public class KartGhost : MonoBehaviour
     {
         // La pista: la escena y cuántos checkpoints tiene (si cambia el
         // trazado, el fantasma viejo no se usa). Al revés es otra pista: "_R".
+        // La contrarreloj de la tabla sale desde la grilla (no es una vuelta
+        // lanzada): va en otro archivo, "_1v".
         int checkpoints = checkpointManager != null ? checkpointManager.CheckpointCount : 0;
-        string name = SceneManager.GetActiveScene().name + "_" + checkpoints + (TrackDirection.IsReversed ? "_R" : "") + ".fantasma";
+        string name = SceneManager.GetActiveScene().name + "_" + checkpoints + (TrackDirection.IsReversed ? "_R" : "") +
+                      (RaceSession.TimeTrial ? "_1v" : "") + ".fantasma";
         return Path.Combine(Application.persistentDataPath, "Fantasmas", name);
     }
 
-    private void Save(GhostLap lap)
+    private void Save(GhostRecording lap)
     {
         try
         {
@@ -594,23 +734,7 @@ public class KartGhost : MonoBehaviour
             Directory.CreateDirectory(Path.GetDirectoryName(path));
 
             using (var writer = new BinaryWriter(File.Create(path)))
-            {
-                writer.Write(FileVersion);
-                writer.Write(lap.LapTime);
-                writer.Write(lap.Samples.Length);
-
-                foreach (Sample sample in lap.Samples)
-                {
-                    writer.Write(sample.Time);
-                    writer.Write(sample.Position.x);
-                    writer.Write(sample.Position.y);
-                    writer.Write(sample.Position.z);
-                    writer.Write(sample.Rotation.x);
-                    writer.Write(sample.Rotation.y);
-                    writer.Write(sample.Rotation.z);
-                    writer.Write(sample.Rotation.w);
-                }
-            }
+                lap.Write(writer);
         }
         catch (Exception exception)
         {
@@ -618,7 +742,7 @@ public class KartGhost : MonoBehaviour
         }
     }
 
-    private GhostLap Load()
+    private GhostRecording Load()
     {
         string path = FilePath();
 
@@ -628,30 +752,7 @@ public class KartGhost : MonoBehaviour
         try
         {
             using (var reader = new BinaryReader(File.OpenRead(path)))
-            {
-                if (reader.ReadInt32() != FileVersion)
-                    return null;
-
-                var lap = new GhostLap { LapTime = reader.ReadSingle() };
-                int count = reader.ReadInt32();
-
-                if (count < 2 || count > 100000)
-                    return null;
-
-                lap.Samples = new Sample[count];
-
-                for (int i = 0; i < count; i++)
-                {
-                    lap.Samples[i] = new Sample
-                    {
-                        Time = reader.ReadSingle(),
-                        Position = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle()),
-                        Rotation = new Quaternion(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle())
-                    };
-                }
-
-                return lap;
-            }
+                return GhostRecording.Read(reader);
         }
         catch (Exception exception)
         {

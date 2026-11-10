@@ -2,8 +2,12 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Límites de pista: con minimumInvalidWheelsForPenalty ruedas fuera (pasto,
-/// grava...) durante requiredStayDuration, penalización.
+/// Límites de pista: con minimumInvalidWheelsForPenalty (3) ruedas fuera
+/// (pasto, grava...) durante requiredStayDuration, penalización. Una rueda que
+/// toca el piano o el asfalto cuenta como adentro, aunque también roce el pasto
+/// (KartWheel.TouchesTrack). Una rueda en el aire cuenta según lo último que
+/// tocó (KartWheel.LastContactInvalid): rebotando en la grava sigue afuera, y
+/// si saltó desde el piano sigue adentro.
 /// - Rebotando (por ejemplo en la grava con relieve) las ruedas en el aire
 ///   cuentan como afuera si alguna toca fuera o si ya estaba afuera. Y un
 ///   instante sin tocar nada (hasta outsideGrace) no corta la cuenta.
@@ -168,24 +172,31 @@ public class RaceTrackLimitsController : MonoBehaviour
             return false;
 
         int invalid = 0;
-        int airborne = 0;
+        bool anyGrounded = false;
 
         foreach (KartWheel wheel in kart.Vehicle.Wheels)
         {
             if (wheel == null)
                 continue;
 
-            if (!wheel.IsGrounded)
-                airborne++;
-            else if (wheel.IsOnInvalidSurface)
+            if (wheel.IsGrounded)
+            {
+                anyGrounded = true;
+
+                if (wheel.IsOnInvalidSurface)
+                    invalid++;
+            }
+            else if (wheel.LastContactInvalid)
+            {
                 invalid++;
+            }
         }
 
-        if (invalid >= minimumInvalidWheelsForPenalty)
-            return true;
+        // Todo el kart en el aire (un salto): sigue como estaba.
+        if (!anyGrounded)
+            return wasOutside;
 
-        return (wasOutside || invalid > 0) &&
-               invalid + airborne >= minimumInvalidWheelsForPenalty;
+        return invalid >= minimumInvalidWheelsForPenalty;
     }
 
     private void EvaluateKart(

@@ -142,8 +142,37 @@ public class KartWheel
     public float ConditionGripMultiplier { get; set; } = 1f;
 
     /// <summary>True si la rueda está apoyada fuera de los límites de pista.</summary>
+    /// Si la goma toca algo de la pista (asfalto o piano), no cuenta como afuera
+    /// aunque el contacto principal sea el pasto (en el borde del piano están casi
+    /// a la misma altura).
     public bool IsOnInvalidSurface =>
-        IsGrounded && CurrentSurface != null && !CurrentSurface.IsValidForTrack;
+        IsGrounded && CurrentSurface != null && !CurrentSurface.IsValidForTrack && !TouchesTrack;
+
+    /// <summary>True si alguno de los contactos de este paso es una superficie válida (pista o piano).</summary>
+    public bool TouchesTrack { get; private set; }
+
+    /// <summary>
+    /// Lo último que tocó la rueda era fuera de pista (pasto, grava). Sirve para
+    /// las ruedas en el aire: rebotando en la grava siguen afuera, y una que
+    /// saltó desde el piano sigue adentro.
+    /// </summary>
+    public bool LastContactInvalid { get; private set; }
+
+    // Superficie de cada collider (para no buscarla en cada contacto).
+    private static readonly System.Collections.Generic.Dictionary<Collider, TrackSurfaceData> surfaceCache =
+        new System.Collections.Generic.Dictionary<Collider, TrackSurfaceData>();
+
+    private static TrackSurfaceData SurfaceOf(Collider collider)
+    {
+        if (!surfaceCache.TryGetValue(collider, out TrackSurfaceData data))
+        {
+            TrackSurface surface = collider.GetComponentInParent<TrackSurface>();
+            data = surface != null ? surface.SurfaceData : null;
+            surfaceCache[collider] = data;
+        }
+
+        return data;
+    }
 
     /// <summary>Carga que genera agarre: la vertical corregida por la superficie y el estado de la cubierta (N).</summary>
     private float GripLoad => VerticalLoad * SurfaceGripMultiplier * Mathf.Max(0f, ConditionGripMultiplier);
@@ -241,6 +270,7 @@ public class KartWheel
         ContactPoint = center - Vector3.up * tire.radius;
         GroundCollider = null;
         GroundVelocity = Vector3.zero;
+        TouchesTrack = false;
 
         int count = Physics.OverlapSphereNonAlloc(
             center,
@@ -288,6 +318,9 @@ public class KartWheel
         }
 
         UpdateSurface();
+
+        if (IsGrounded)
+            LastContactInvalid = IsOnInvalidSurface;
 
         Puddle = IsGrounded ? WetPuddles.At(ContactPoint, CurrentSurface) : 0f;
     }
@@ -365,6 +398,11 @@ public class KartWheel
 
         IsGrounded = true;
         NormalForce += force;
+
+        TrackSurfaceData touched = SurfaceOf(ground);
+
+        if (touched != null && touched.IsValidForTrack)
+            TouchesTrack = true;
 
         if (depth > Deflection)
         {

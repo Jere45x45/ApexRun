@@ -72,7 +72,11 @@ public class RaceSetupSync : NetworkBehaviour
 
     private static int LapsForSession()
     {
-        return RaceSession.IsQualifying ? QualifyingLaps : RaceSetupStore.Laps;
+        if (RaceSession.IsQualifying)
+            return QualifyingLaps;
+
+        // La contrarreloj de la tabla es de una sola vuelta.
+        return RaceSession.TimeTrial ? 1 : RaceSetupStore.Laps;
     }
 
     public override void OnNetworkSpawn()
