@@ -12663,7 +12663,7 @@ MonoBehaviour:
     darken: 0.35
     smoothness: 0.66
     puddles: 1
-    puddleScale: 0.14
+    puddleScale: 0.22
   gravel:
     darken: 0.3
     smoothness: 0.5

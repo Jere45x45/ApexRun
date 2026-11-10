@@ -8,7 +8,10 @@ using UnityEngine;
 /// - Tierra: una rueda que pisa fuera de pista (pasto, grava) a más de
 ///   dirtMinSpeedKmh. Terrones del color de la superficie y algo de polvo.
 /// - Agua: con la pista mojada (TrackConditions.Wetness), las ruedas levantan
-///   una cortina de agua que crece con la velocidad (más las traseras).
+///   una llovizna tenue que crece con la velocidad (más las traseras). Al cruzar
+///   un charco (WetPuddles, los mismos que dibuja el shader) salpican de verdad:
+///   gotas que vuelan a los costados y caen, una nube de agua más grande y
+///   anillos en el charco.
 /// - Chispas: en los choques contra paredes u otros karts, y al raspar.
 ///
 /// Qué superficie es asfalto y cuál tira tierra, y de qué color, lo dice cada
@@ -20,7 +23,7 @@ using UnityEngine;
 /// de cada rueda) y la superficie de un rayo hacia abajo. No se manda nada
 /// nuevo por red.
 ///
-/// Todos los karts emiten en las mismas cuatro partículas de la escena (se
+/// Todos los karts emiten en las mismas cinco partículas de la escena (se
 /// crean solas). Lejos de la cámara se emite menos, y nada más allá de
 /// maxDistance. KartBehaviour lo agrega solo.
 ///
@@ -57,6 +60,16 @@ public class KartEffects : MonoBehaviour
     [Tooltip("Partículas por segundo y por rueda trasera con la pista empapada y a fondo.")]
     [SerializeField, Min(0f)] private float sprayPerSecond = 45f;
 
+    [Tooltip("Fuera de los charcos, la llovizna es esta parte de sprayPerSecond (el agua de verdad sale en los charcos).")]
+    [SerializeField, Range(0f, 1f)] private float filmSpray = 0.4f;
+
+    [Header("Charcos")]
+    [Tooltip("Gotas por segundo y por rueda trasera al cruzar un charco lleno a 50 km/h o más.")]
+    [SerializeField, Min(0f)] private float splashPerSecond = 220f;
+
+    [Tooltip("Desde esta velocidad (km/h) un charco salpica.")]
+    [SerializeField, Min(0f)] private float splashMinSpeedKmh = 4f;
+
     [Header("Chispas (choques)")]
     [Tooltip("Cambio de velocidad del golpe (m/s) desde el que saltan chispas.")]
     [SerializeField, Min(0f)] private float sparkMinSpeedChange = 1.5f;
@@ -88,12 +101,18 @@ public class KartEffects : MonoBehaviour
         public float Dirt;
         public float Spray;
         public float Wetness;
+
+        /// <summary>Gotas por segundo (cruzando un charco).</summary>
+        public float Splash;
+
+        /// <summary>Qué tan dentro de un charco está la rueda (0 a 1).</summary>
+        public float Puddle;
         public Color32 DirtColor;
 
         /// <summary>Lo que levanta son piedritas (grava), no tierra.</summary>
         public bool Gravel;
 
-        public bool IsEmpty => Smoke <= 0f && Dirt <= 0f && Spray <= 0f;
+        public bool IsEmpty => Smoke <= 0f && Dirt <= 0f && Spray <= 0f && Splash <= 0f;
     }
 
     /// <summary>Saltaron chispas: punto, normal, velocidad que arrastran, cantidad (sin la distancia) y fuerza (0 a 1).</summary>
@@ -194,7 +213,29 @@ public class KartEffects : MonoBehaviour
         if (effect == TrackSurfaceData.SurfaceEffect.None)
             return fx;
 
-        if (effect == TrackSurfaceData.SurfaceEffect.Dirt || effect == TrackSurfaceData.SurfaceEffect.Gravel)
+        bool offTrack = effect == TrackSurfaceData.SurfaceEffect.Dirt || effect == TrackSurfaceData.SurfaceEffect.Gravel;
+
+        // Agua en un charco: gotas y una nube grande, desde poca velocidad.
+        float puddle = WetPuddles.At(wheel.Point, wheel.Surface);
+        fx.Puddle = puddle;
+
+        if (puddle > 0.02f && speedKmh >= splashMinSpeedKmh)
+        {
+            float speed = Mathf.Max(Mathf.InverseLerp(splashMinSpeedKmh, 50f, speedKmh), 0.12f);
+            float axle = wheel.Rear ? 1f : 0.6f;
+
+            fx.Splash = splashPerSecond * puddle * speed * axle;
+            fx.Spray = sprayPerSecond * 0.7f * puddle * speed * axle;
+        }
+
+        // Agua en el resto de la pista mojada: una llovizna tenue, a más velocidad.
+        if (!offTrack && wetness >= sprayMinWetness && speedKmh >= sprayMinSpeedKmh)
+        {
+            float spray = Mathf.InverseLerp(sprayMinWetness, 1f, wetness) * Mathf.InverseLerp(sprayMinSpeedKmh, sprayMinSpeedKmh + 50f, speedKmh);
+            fx.Spray += sprayPerSecond * filmSpray * Mathf.Max(spray, 0.1f) * (wheel.Rear ? 1f : 0.45f);
+        }
+
+        if (offTrack)
         {
             // Tierra o piedritas: con la velocidad, y más si además desliza.
             fx.Gravel = effect == TrackSurfaceData.SurfaceEffect.Gravel;
@@ -215,17 +256,10 @@ public class KartEffects : MonoBehaviour
         if (wheel.Slide >= smokeSlideMin)
         {
             float smoke = Mathf.InverseLerp(smokeSlideMin, Mathf.Max(smokeSlideMin + 0.1f, smokeSlideFull), wheel.Slide);
-            smoke *= 1f - 0.9f * wetness;
+            smoke *= (1f - 0.9f * wetness) * (1f - puddle);
 
             fx.SmokeStrength = smoke;
             fx.Smoke = smokePerSecond * Mathf.Max(smoke, 0.1f);
-        }
-
-        // Agua: según qué tan mojada esté y la velocidad.
-        if (wetness >= sprayMinWetness && speedKmh >= sprayMinSpeedKmh)
-        {
-            float spray = Mathf.InverseLerp(sprayMinWetness, 1f, wetness) * Mathf.InverseLerp(sprayMinSpeedKmh, sprayMinSpeedKmh + 50f, speedKmh);
-            fx.Spray = sprayPerSecond * Mathf.Max(spray, 0.1f) * (wheel.Rear ? 1f : 0.45f);
         }
 
         return fx;
@@ -256,10 +290,25 @@ public class KartEffects : MonoBehaviour
         for (int k = 0; k < dirt; k++)
             Pool.EmitDirt(point, normal, velocity, fx.DirtColor, fx.Gravel ? k % 3 == 0 : k % 2 == 0, fx.Gravel);
 
-        int spray = Accumulate(ref carry.z, fx.Spray * amount);
+        // Agua: nube y gotas comparten la cuenta (se reparte según cuánto es cada una).
+        int water = Accumulate(ref carry.z, (fx.Spray + fx.Splash) * amount);
 
-        for (int k = 0; k < spray; k++)
-            Pool.EmitSpray(point, velocity, fx.Wetness);
+        if (water <= 0)
+            return;
+
+        float dropShare = fx.Splash / Mathf.Max(0.0001f, fx.Spray + fx.Splash);
+
+        for (int k = 0; k < water; k++)
+        {
+            if (Random.value < dropShare)
+                Pool.EmitDrop(point, velocity, fx.Puddle);
+            else
+                Pool.EmitSpray(point, velocity, fx.Wetness, fx.Puddle);
+        }
+
+        // El charco se mueve donde pasó la rueda.
+        if (fx.Puddle > 0.05f)
+            WetPuddles.Disturb(point, fx.Puddle * Mathf.Clamp01(0.3f + velocity.magnitude / 8f));
     }
 
     /// <summary>Chispas (la usa la repetición): cantidad ya con la distancia.</summary>
@@ -574,6 +623,7 @@ public class KartEffects : MonoBehaviour
         private static ParticleSystem smoke;
         private static ParticleSystem dirt;
         private static ParticleSystem spray;
+        private static ParticleSystem drops;
         private static ParticleSystem sparks;
         private static Material material;
         private static int lightFrame = -1;
@@ -596,6 +646,7 @@ public class KartEffects : MonoBehaviour
             smoke = Create(root.transform, "Humo", 1500, gravity: -0.04f, drag: 2.5f, grow: 3.2f, stretch: false);
             dirt = Create(root.transform, "Tierra", 1500, gravity: 1f, drag: 0.4f, grow: 1f, stretch: false);
             spray = Create(root.transform, "Agua", 1500, gravity: 0.35f, drag: 1.8f, grow: 2.6f, stretch: false);
+            drops = Create(root.transform, "Gotas", 2500, gravity: 1f, drag: 0.3f, grow: 0.7f, stretch: true);
             sparks = Create(root.transform, "Chispas", 600, gravity: 1.4f, drag: 0.6f, grow: 0.6f, stretch: true);
             return true;
         }
@@ -662,22 +713,59 @@ public class KartEffects : MonoBehaviour
             smoke.Emit(puff, 1);
         }
 
-        public static void EmitSpray(Vector3 point, Vector3 wheelVelocity, float wetness)
+        // Nube de agua: tenue sobre la pista mojada, más grande, alta y espesa en un charco.
+        public static void EmitSpray(Vector3 point, Vector3 wheelVelocity, float wetness, float puddle)
         {
             Color color = new Color(0.88f, 0.9f, 0.93f) * LightLevel();
-            color.a = Mathf.Lerp(0.15f, 0.35f, wetness);
+            color.a = Mathf.Lerp(0.08f, 0.2f, wetness) + 0.1f * puddle;
+
+            float lift = puddle * Random.Range(0.3f, 1.2f) * Mathf.Clamp01(wheelVelocity.magnitude / 15f);
 
             var emit = new ParticleSystem.EmitParams
             {
                 position = point + Vector3.up * 0.1f + Random.insideUnitSphere * 0.08f,
-                velocity = wheelVelocity * 0.4f + Vector3.up * Random.Range(0.8f, 2f) + Random.insideUnitSphere * 0.7f,
-                startSize = Random.Range(0.4f, 0.8f),
+                velocity = wheelVelocity * 0.4f + Vector3.up * (Random.Range(0.8f, 2f) + lift) + Random.insideUnitSphere * (0.7f + puddle),
+                startSize = Random.Range(0.4f, 0.8f) * (1f + 0.35f * puddle),
                 startLifetime = Random.Range(0.5f, 0.85f),
                 startColor = color,
                 rotation = Random.Range(0f, 360f)
             };
 
             spray.Emit(emit, 1);
+        }
+
+        // Gota de un charco: sale para un costado y para arriba (más rápido cuanto
+        // más rápido va la rueda) y cae. Se dibuja estirada según su velocidad.
+        public static void EmitDrop(Vector3 point, Vector3 wheelVelocity, float puddle)
+        {
+            float speed = wheelVelocity.magnitude;
+            Vector3 forward = speed > 0.1f ? wheelVelocity / speed : Vector3.forward;
+            Vector3 side = Vector3.Cross(Vector3.up, forward);
+
+            if (side.sqrMagnitude < 0.01f)
+                side = Vector3.right;
+
+            side.Normalize();
+
+            if (Random.value < 0.5f)
+                side = -side;
+
+            float push = Mathf.Clamp(speed, 2f, 22f);
+            Color color = new Color(0.82f, 0.87f, 0.93f) * LightLevel();
+            color.a = Random.Range(0.45f, 0.8f);
+
+            var drop = new ParticleSystem.EmitParams
+            {
+                position = point + Vector3.up * 0.03f + side * 0.05f + Random.insideUnitSphere * 0.06f,
+                velocity = wheelVelocity * Random.Range(0.2f, 0.55f)
+                    + side * push * Random.Range(0.15f, 0.35f)
+                    + Vector3.up * Random.Range(1.4f, 3f) * (0.6f + push / 22f) * (0.7f + 0.3f * puddle),
+                startSize = Random.Range(0.035f, 0.08f),
+                startLifetime = Random.Range(0.35f, 0.75f),
+                startColor = color
+            };
+
+            drops.Emit(drop, 1);
         }
 
         public static void EmitSparks(Vector3 point, Vector3 normal, Vector3 carry, int count, float strength)

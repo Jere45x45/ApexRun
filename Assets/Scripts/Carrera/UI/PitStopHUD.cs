@@ -91,7 +91,11 @@ public class PitStopHUD : MonoBehaviour
         SetActive(workPanel, state == PitStops.StopState.Working);
 
         if (state == PitStops.StopState.Choosing)
+        {
+            // Los números eligen las ruedas: la cámara no tiene que cambiar.
+            KartCameraController.BlockNumberKeys();
             ReadChoiceKeys(pits, current);
+        }
         else if (state == PitStops.StopState.Working)
             UpdateWork(pits, current);
     }

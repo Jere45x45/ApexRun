@@ -52,6 +52,11 @@ Shader "ApexRun/WetGround"
         float _ApexPlanarOn;
         sampler2D _ApexPlanarReflection;
 
+        // Pisadas en los charcos (WetPuddles): xy = posición XZ, z = cuándo (_ApexTime), w = fuerza.
+        #define APEX_SPLASHES 32
+        float4 _ApexSplashes[APEX_SPLASHES];
+        float _ApexTime;
+
         struct Input
         {
             float2 uv_MainTex;
@@ -154,6 +159,36 @@ Shader "ApexRun/WetGround"
             return dist > 0.0001 ? d / dist * wave : float2(0, 0);
         }
 
+        // Anillos que se abren donde una rueda cruzó el charco. Devuelve la pendiente en XZ.
+        float2 SplashRings(float2 p)
+        {
+            float2 g = float2(0, 0);
+
+            [loop]
+            for (int i = 0; i < APEX_SPLASHES; i++)
+            {
+                float4 s = _ApexSplashes[i];
+                float age = _ApexTime - s.z;
+
+                if (s.w <= 0.0 || age < 0.0 || age > 1.6)
+                    continue;
+
+                float2 d = p - s.xy;
+                float dist = length(d);
+                float radius = 0.15 + age * 1.6;
+
+                if (dist > radius + 0.4 || dist < 0.0001)
+                    continue;
+
+                float x = (dist - radius) * 9.0;
+                float fade = 1.0 - age / 1.6;
+                float wave = sin(x * 3.14159) * saturate(1.0 - abs(x) / 2.5) * fade * fade * s.w;
+                g += d / dist * wave;
+            }
+
+            return g;
+        }
+
         void surf(Input IN, inout SurfaceOutputWet o)
         {
             half4 c = tex2D(_MainTex, IN.uv_MainTex) * _Color;
@@ -185,7 +220,7 @@ Shader "ApexRun/WetGround"
 
             // Charcos: empiezan a aparecer con 25 % de humedad y crecen hasta empapada.
             half grow = saturate((wet - 0.25) / 0.75) * _PuddleAmount;
-            half threshold = lerp(1.05, 0.5, grow);
+            half threshold = lerp(1.05, 0.61, grow);
             half noise = PuddleNoise(IN.worldPos.xz * _PuddleScale);
             half puddle = smoothstep(threshold, threshold + 0.07, noise) * up * step(0.001, grow);
 
@@ -198,11 +233,16 @@ Shader "ApexRun/WetGround"
             // El agua alisa el relieve; en los charcos, el piso queda plano.
             n = normalize(lerp(n, half3(0, 0, 1), saturate(film * 0.5 + puddle)));
 
-            // Ondas de la lluvia en los charcos.
-            if (_ApexRain > 0.01 && puddle > 0.01)
+            // Ondas en los charcos: las de la lluvia y las que dejan las ruedas al cruzarlos.
+            if (puddle > 0.01)
             {
-                float2 g = Ripple(IN.worldPos.xz * 2.3, _Time.y) + Ripple(IN.worldPos.xz * 3.1 + 17.0, _Time.y * 1.2 + 0.5);
-                g *= 0.35 * saturate(_ApexRain) * puddle;
+                float2 g = float2(0, 0);
+
+                if (_ApexRain > 0.01)
+                    g += (Ripple(IN.worldPos.xz * 2.3, _Time.y) + Ripple(IN.worldPos.xz * 3.1 + 17.0, _Time.y * 1.2 + 0.5)) * 0.35 * saturate(_ApexRain);
+
+                g += SplashRings(IN.worldPos.xz) * 0.6;
+                g *= puddle;
                 float3 tWorld = WorldNormalVector(IN, float3(1, 0, 0));
                 float3 bWorld = WorldNormalVector(IN, float3(0, 1, 0));
                 float3 gWorld = float3(g.x, 0, g.y);

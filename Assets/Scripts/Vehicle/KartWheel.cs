@@ -97,9 +97,25 @@ public class KartWheel
     public TrackSurfaceData CurrentSurface { get; private set; }
 
     /// <summary>
+    /// Qué tan dentro de un charco está la rueda (0 a 1). Son los mismos
+    /// charcos que se dibujan (WetPuddles); sin lluvia, 0.
+    /// </summary>
+    public float Puddle { get; private set; }
+
+    // Charcos: agarre que queda despacio y a fondo (aquaplaning: el agua no
+    // alcanza a salir de abajo de la goma), entre qué velocidades (m/s) pasa
+    // de uno a otro, y cuánto frena el agua (parte de la carga de la rueda).
+    private const float PuddleGripSlow = 0.75f;
+    private const float PuddleGripFast = 0.45f;
+    private const float AquaplaningFrom = 8f;   // ~30 km/h
+    private const float AquaplaningFull = 22f;  // ~80 km/h
+    private const float PuddleDrag = 0.08f;
+
+    /// <summary>
     /// Multiplica el agarre del neumático según la superficie (1 = asfalto
     /// seco). Con la pista mojada (TrackConditions.Wetness, lo pone el clima)
-    /// baja hasta el agarre en mojado de esa superficie.
+    /// baja hasta el agarre en mojado de esa superficie. En un charco baja
+    /// más, y más cuanto más rápido va la rueda.
     /// </summary>
     public float SurfaceGripMultiplier
     {
@@ -107,8 +123,15 @@ public class KartWheel
         {
             float grip = CurrentSurface != null ? Mathf.Max(0f, CurrentSurface.GripMultiplier) : 1f;
             float wetGrip = CurrentSurface != null ? CurrentSurface.WetGripMultiplier : TrackSurfaceData.DefaultWetGrip;
+            float multiplier = grip * Mathf.Lerp(1f, wetGrip, TrackConditions.Wetness);
 
-            return grip * Mathf.Lerp(1f, wetGrip, TrackConditions.Wetness);
+            if (Puddle > 0f)
+            {
+                float aquaplaning = Mathf.InverseLerp(AquaplaningFrom, AquaplaningFull, Mathf.Abs(LongitudinalVelocity));
+                multiplier *= Mathf.Lerp(1f, Mathf.Lerp(PuddleGripSlow, PuddleGripFast, aquaplaning), Puddle);
+            }
+
+            return multiplier;
         }
     }
 
@@ -265,6 +288,8 @@ public class KartWheel
         }
 
         UpdateSurface();
+
+        Puddle = IsGrounded ? WetPuddles.At(ContactPoint, CurrentSurface) : 0f;
     }
 
     /// <summary>Busca la TrackSurface del piso que pisa la rueda (solo si cambió de collider).</summary>
@@ -533,6 +558,16 @@ public class KartWheel
             return;
 
         Vector3 force = forwardAxis * LongitudinalForce + rightAxis * LateralForce;
+
+        // El agua del charco frena la rueda (si entra un solo lado, el kart tira para ese lado).
+        if (Puddle > 0f)
+        {
+            Vector3 sliding = forwardAxis * LongitudinalVelocity + rightAxis * LateralVelocity;
+            float speed = sliding.magnitude;
+
+            if (speed > 0.1f)
+                force -= sliding / speed * (PuddleDrag * VerticalLoad * Puddle * Mathf.Clamp01(speed / 10f));
+        }
 
         body.AddForceAtPosition(force, ContactPoint, ForceMode.Force);
     }

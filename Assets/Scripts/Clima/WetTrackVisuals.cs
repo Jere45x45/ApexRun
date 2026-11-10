@@ -45,7 +45,7 @@ public class WetTrackVisuals : MonoBehaviour
     [SerializeField] private Shader wetGroundShader;
 
     [Header("Cómo se moja cada superficie")]
-    [SerializeField] private WetLook road = new WetLook(0.35f, 0.66f, 1f, 0.14f);
+    [SerializeField] private WetLook road = new WetLook(0.35f, 0.66f, 1f, 0.22f);
     [SerializeField] private WetLook gravel = new WetLook(0.3f, 0.5f, 0.6f, 0.2f);
     [SerializeField] private WetLook grass = new WetLook(0.25f, 0.4f, 0.3f, 0.1f);
 
@@ -97,6 +97,25 @@ public class WetTrackVisuals : MonoBehaviour
     private float planeHeight;
     private bool hasPlaneHeight;
 
+    private void Awake()
+    {
+        ConfigurePuddles();
+        WetPuddles.Clear();
+    }
+
+    private void OnValidate()
+    {
+        ConfigurePuddles();
+    }
+
+    // Los efectos (KartEffects) calculan los charcos igual que el shader.
+    private void ConfigurePuddles()
+    {
+        WetPuddles.Configure(TrackSurfaceData.SurfaceEffect.Smoke, road.puddles, road.puddleScale);
+        WetPuddles.Configure(TrackSurfaceData.SurfaceEffect.Gravel, gravel.puddles, gravel.puddleScale);
+        WetPuddles.Configure(TrackSurfaceData.SurfaceEffect.Dirt, grass.puddles, grass.puddleScale);
+    }
+
     private void OnEnable()
     {
         Camera.onPreCull += OnCameraPreCull;
@@ -126,6 +145,7 @@ public class WetTrackVisuals : MonoBehaviour
         Shader.SetGlobalFloat(WetnessId, 0f);
         Shader.SetGlobalFloat(RainId, 0f);
         Shader.SetGlobalFloat(PlanarOnId, 0f);
+        WetPuddles.Clear();
     }
 
     private void LateUpdate()
@@ -140,6 +160,7 @@ public class WetTrackVisuals : MonoBehaviour
         if (!swapped)
             return;
 
+        WetPuddles.PushToShader();
         Shader.SetGlobalFloat(WetnessId, wet);
         Shader.SetGlobalFloat(RainId, rain);
 
