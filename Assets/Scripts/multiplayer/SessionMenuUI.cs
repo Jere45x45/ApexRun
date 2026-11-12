@@ -77,6 +77,9 @@ public class SessionMenuUI : MonoBehaviour
 
     private const string NameKey = "ApexRun.NombreJugador";
 
+    /// <summary>El nombre guardado del menú (aunque esta pantalla no se haya abierto todavía).</summary>
+    public static string SavedName => PlayerPrefs.GetString(NameKey, "");
+
     private GameSession Session => GameSession.Instance;
 
     private void Awake()

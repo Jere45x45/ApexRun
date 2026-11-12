@@ -25,9 +25,17 @@ using UnityEngine.UI;
 /// - Efectos: también se graba lo que larga cada rueda (humo, tierra, agua;
 ///   KartEffects.GetWheelFx) y cada golpe con chispas (KartEffects.SparksEmitted),
 ///   y en la repetición salen de las copias en el mismo momento.
-/// Mientras se ve, se ocultan el HUD, los resultados y los karts de verdad;
-/// al salir vuelve todo como estaba. Se arma solo en las escenas con
+/// - Sonido: cada copia tiene su motor (una copia del sonido del kart, manejada
+///   con las rpm que salen de la velocidad grabada: DriveExternally).
+/// Mientras se ve, se ocultan el HUD, los resultados y los karts de verdad (y su
+/// motor); al salir vuelve todo como estaba. Se arma solo en las escenas con
 /// RaceManager (no hace falta tocar la escena).
+///
+/// Repetición de la tabla (RaceSession.GhostViewer): la pista se carga solo para
+/// ver vueltas de la contrarreloj (TimeTrialRecords.ViewerGhosts), sin correr.
+/// Cada vuelta es un kart normal (no transparente), con las piezas de esa vuelta
+/// (KartLook) y el nombre arriba (N lo oculta). Las ruedas delanteras doblan
+/// según cómo gira el kart. Al salir se vuelve a la tabla del menú.
 /// </summary>
 public class RaceReplay : MonoBehaviour
 {
@@ -75,6 +83,17 @@ public class RaceReplay : MonoBehaviour
         // Lo que largaba cada rueda (FL, FR, RL, RR).
         public KartEffects.WheelFx Fx0, Fx1, Fx2, Fx3;
 
+        public void SetFx(int wheel, KartEffects.WheelFx fx)
+        {
+            switch (wheel)
+            {
+                case 0: Fx0 = fx; break;
+                case 1: Fx1 = fx; break;
+                case 2: Fx2 = fx; break;
+                default: Fx3 = fx; break;
+            }
+        }
+
         public KartEffects.WheelFx Fx(int wheel)
         {
             switch (wheel)
@@ -105,6 +124,11 @@ public class RaceReplay : MonoBehaviour
         public KartEffects Effects;
         public string Name;
         public readonly List<Sample> Samples = new List<Sample>();
+
+        // Repetición de la tabla: piezas para vestir el kart, color del nombre y tiempo de la vuelta.
+        public KartParts Parts;
+        public Color LabelColor = Color.white;
+        public float LapTime = -1f;
     }
 
     /// <summary>La copia de un kart que se ve en la repetición.</summary>
@@ -121,6 +145,15 @@ public class RaceReplay : MonoBehaviour
 
         // Partículas "a medias" de cada rueda (ver KartEffects.EmitWheelFx).
         public Vector3[] Carries = new Vector3[4];
+
+        // Motor: copias del sonido del kart y lo que se les manda.
+        public readonly List<KartEngineAudio> Synth = new List<KartEngineAudio>();
+        public readonly List<KartEngineGranularAudio> Recorded = new List<KartEngineGranularAudio>();
+        public readonly List<AudioSource> Sources = new List<AudioSource>();
+        public float Speed;
+        public float Load;
+
+        public TextMeshPro Label;
     }
 
     private RaceManager raceManager;
@@ -171,6 +204,13 @@ public class RaceReplay : MonoBehaviour
     private bool settingTimeline;
     private Button replayButton;
 
+    // Repetición de la tabla.
+    private bool viewer;
+    private bool viewerStarted;
+    private bool viewerLeaving;
+    private bool showNames = true;
+    private float viewerWaitUntil = -1f;
+
     public bool IsOpen => open;
 
     // ------------------------------------------------------------------
@@ -179,6 +219,8 @@ public class RaceReplay : MonoBehaviour
 
     private void Start()
     {
+        viewer = RaceSession.GhostViewer;
+
         resultsUI = FindFirstObjectByType<RaceResultsUI>(FindObjectsInactive.Include);
         pauseMenu = FindFirstObjectByType<RacePauseMenu>(FindObjectsInactive.Include);
         hud = FindFirstObjectByType<RaceHUD>(FindObjectsInactive.Include);
@@ -201,6 +243,9 @@ public class RaceReplay : MonoBehaviour
             raceManager.StateChanged -= HandleStateChanged;
 
         KartEffects.SparksEmitted -= HandleSparks;
+
+        // Se cierra la escena: limpiar sin volver al menú (ya se está yendo).
+        viewerLeaving = true;
 
         if (open)
             Close();
@@ -249,11 +294,281 @@ public class RaceReplay : MonoBehaviour
         if (replayButton != null && replayButton.gameObject.activeSelf == RaceSession.IsQualifying)
             replayButton.gameObject.SetActive(!RaceSession.IsQualifying);
 
+        if (viewer && !viewerStarted)
+            TryStartViewer();
+
         if (recording)
             Record();
 
         if (open)
             Play();
+    }
+
+    // ------------------------------------------------------------------
+    // Repetición de la tabla
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// Apenas está el kart del jugador (sirve de molde: mallas, ruedas, motor),
+    /// arma una pista por vuelta de la tabla y la abre.
+    /// </summary>
+    private void TryStartViewer()
+    {
+        if (viewerWaitUntil < 0f)
+            viewerWaitUntil = Time.unscaledTime + 15f;
+
+        KartBehaviour template = FindTemplateKart();
+
+        if (template == null || template.Vehicle == null || !template.Vehicle.IsConfigured)
+        {
+            // Sin kart: algo salió mal, volver al menú.
+            if (Time.unscaledTime > viewerWaitUntil)
+            {
+                viewerStarted = true;
+                LeaveViewer();
+            }
+
+            return;
+        }
+
+        viewerStarted = true;
+        tracks.Clear();
+
+        float wheelbase = Wheelbase(template);
+
+        foreach (TimeTrialRecords.Opponent ghost in TimeTrialRecords.ViewerGhosts)
+        {
+            if (ghost == null || ghost.Ghost == null || ghost.Ghost.Samples == null || ghost.Ghost.Samples.Length < 2)
+                continue;
+
+            var track = new Track
+            {
+                Kart = template,
+                Effects = null,
+                Name = ghost.Entry != null ? ghost.Entry.Name : "?",
+                Parts = ghost.Parts,
+                LabelColor = ghost.Color,
+                LapTime = ghost.Ghost.LapTime
+            };
+
+            FillFromGhost(track, ghost.Ghost, wheelbase);
+            FillEffects(track, template);
+            tracks.Add(track);
+        }
+
+        if (tracks.Count == 0)
+        {
+            LeaveViewer();
+            return;
+        }
+
+        raceStartTime = 0f;
+        Open();
+    }
+
+    private KartBehaviour FindTemplateKart()
+    {
+        if (raceManager != null)
+        {
+            foreach (KartBehaviour kart in raceManager.RaceKarts)
+            {
+                if (kart != null && kart.IsSimulated && kart.UsesPlayerAssists)
+                    return kart;
+            }
+        }
+
+        foreach (KartBehaviour kart in FindObjectsByType<KartBehaviour>(FindObjectsSortMode.None))
+        {
+            if (kart != null && kart.IsSimulated && kart.GetComponent<NetworkKart>() != null && kart.GetComponent<NetworkKart>().IsLocalPlayer)
+                return kart;
+        }
+
+        return null;
+    }
+
+    /// <summary>Distancia entre los ejes del kart (m), para sacar el ángulo de las ruedas.</summary>
+    private static float Wheelbase(KartBehaviour kart)
+    {
+        KartVehicle vehicle = kart.Vehicle;
+
+        if (vehicle == null || vehicle.Wheels == null || vehicle.Wheels.Length < 4)
+            return 1.05f;
+
+        float front = (vehicle.Wheels[0].LocalPosition.z + vehicle.Wheels[1].LocalPosition.z) * 0.5f;
+        float rear = (vehicle.Wheels[2].LocalPosition.z + vehicle.Wheels[3].LocalPosition.z) * 0.5f;
+        float wheelbase = Mathf.Abs(front - rear);
+        return wheelbase > 0.3f ? wheelbase : 1.05f;
+    }
+
+    /// <summary>
+    /// Pasa una vuelta de la tabla a muestras de la repetición. El fantasma no
+    /// guarda el volante: sale de cuánto gira el kart para lo que avanza
+    /// (ángulo = atan(entre ejes × giro / velocidad)), suavizado.
+    /// </summary>
+    private static void FillFromGhost(Track track, GhostRecording ghost, float wheelbase)
+    {
+        GhostRecording.Sample[] samples = ghost.Samples;
+        int count = samples.Length;
+        var steer = new float[count];
+
+        for (int i = 0; i < count; i++)
+        {
+            int a = Mathf.Max(0, i - 1);
+            int b = Mathf.Min(count - 1, i + 1);
+            float dt = samples[b].Time - samples[a].Time;
+
+            if (dt <= 0.0001f)
+                continue;
+
+            Vector3 forward = samples[i].Rotation * Vector3.forward;
+            float speed = Vector3.Dot(samples[b].Position - samples[a].Position, forward) / dt;
+
+            if (speed < 1.5f)
+                continue;
+
+            float yawA = Yaw(samples[a].Rotation);
+            float yawB = Yaw(samples[b].Rotation);
+            float yawRate = Mathf.DeltaAngle(yawA, yawB) * Mathf.Deg2Rad / dt;
+
+            steer[i] = Mathf.Clamp(Mathf.Atan(wheelbase * yawRate / speed) * Mathf.Rad2Deg, -28f, 28f);
+        }
+
+        for (int i = 0; i < count; i++)
+        {
+            // Promedio de las muestras de al lado (saca el temblequeo).
+            float sum = 0f;
+            int n = 0;
+
+            for (int k = Mathf.Max(0, i - 3); k <= Mathf.Min(count - 1, i + 3); k++)
+            {
+                sum += steer[k];
+                n++;
+            }
+
+            track.Samples.Add(new Sample
+            {
+                Time = samples[i].Time,
+                Position = samples[i].Position,
+                Rotation = samples[i].Rotation,
+                Steer = n > 0 ? sum / n : 0f
+            });
+        }
+    }
+
+    private static readonly RaycastHit[] groundHits = new RaycastHit[8];
+    private static readonly Dictionary<Collider, TrackSurfaceData> surfaceCache = new Dictionary<Collider, TrackSurfaceData>();
+
+    /// <summary>
+    /// Humo, tierra y agua de una vuelta de la tabla (el fantasma no los guarda):
+    /// para cada muestra y cada rueda, la superficie de abajo (un rayo), la
+    /// velocidad del contacto y cuánto desliza de costado, con las mismas
+    /// cuentas que los karts de verdad (KartEffects.ComputeFor) y la humedad de ahora.
+    /// </summary>
+    private static void FillEffects(Track track, KartBehaviour template)
+    {
+        KartEffects effects = template.GetComponent<KartEffects>();
+        KartVehicle vehicle = template.Vehicle;
+
+        if (effects == null || vehicle == null || vehicle.Wheels == null || vehicle.Wheels.Length < 4)
+            return;
+
+        float radius = vehicle.IsConfigured ? vehicle.Tire.radius : 0.14f;
+        float wetness = Mathf.Clamp01(TrackConditions.Wetness);
+        List<Sample> samples = track.Samples;
+        int count = samples.Count;
+        surfaceCache.Clear();
+
+        for (int i = 0; i < count; i++)
+        {
+            int a = Mathf.Max(0, i - 1);
+            int b = Mathf.Min(count - 1, i + 1);
+            float dt = samples[b].Time - samples[a].Time;
+
+            if (dt <= 0.0001f)
+                continue;
+
+            Sample sample = samples[i];
+            Vector3 velocity = (samples[b].Position - samples[a].Position) / dt;
+
+            // Una reaparición no es velocidad.
+            if (velocity.sqrMagnitude > 60f * 60f)
+                continue;
+
+            float yawRate = Mathf.DeltaAngle(Yaw(samples[a].Rotation), Yaw(samples[b].Rotation)) * Mathf.Deg2Rad / dt;
+            Vector3 angular = Vector3.up * yawRate;
+            Vector3 up = sample.Rotation * Vector3.up;
+
+            for (int w = 0; w < 4; w++)
+            {
+                KartWheel wheel = vehicle.Wheels[w];
+                bool rear = wheel.LocalPosition.z < 0f;
+                Vector3 center = sample.Position + sample.Rotation * wheel.LocalPosition;
+
+                if (!CastGround(center + up * 0.3f, -up, radius + 0.45f, out RaycastHit hit))
+                    continue;
+
+                if (!surfaceCache.TryGetValue(hit.collider, out TrackSurfaceData surface))
+                {
+                    TrackSurface found = hit.collider.GetComponentInParent<TrackSurface>();
+                    surface = found != null ? found.SurfaceData : null;
+                    surfaceCache[hit.collider] = surface;
+                }
+
+                Vector3 pointVelocity = velocity + Vector3.Cross(angular, hit.point - sample.Position);
+                float steer = rear ? 0f : sample.Steer;
+                Vector3 wheelForward = sample.Rotation * Quaternion.Euler(0f, steer, 0f) * Vector3.forward;
+                Vector3 wheelRight = Vector3.Cross(hit.normal, wheelForward).normalized;
+                float slide = Mathf.Abs(Vector3.Dot(pointVelocity, wheelRight));
+
+                sample.SetFx(w, effects.ComputeFor(surface, pointVelocity, slide, rear, wetness));
+            }
+
+            samples[i] = sample;
+        }
+    }
+
+    /// <summary>El piso más cercano abajo de un punto (sin karts).</summary>
+    private static bool CastGround(Vector3 origin, Vector3 direction, float length, out RaycastHit best)
+    {
+        best = default;
+        int hits = Physics.RaycastNonAlloc(origin, direction, groundHits, length, Physics.AllLayers, QueryTriggerInteraction.Ignore);
+        float bestDistance = float.MaxValue;
+
+        for (int i = 0; i < hits; i++)
+        {
+            RaycastHit hit = groundHits[i];
+
+            if (hit.collider.attachedRigidbody != null || hit.distance >= bestDistance)
+                continue;
+
+            best = hit;
+            bestDistance = hit.distance;
+        }
+
+        return bestDistance < float.MaxValue;
+    }
+
+    /// <summary>Hacia dónde apunta la trompa, en grados alrededor del eje vertical.</summary>
+    private static float Yaw(Quaternion rotation)
+    {
+        Vector3 forward = rotation * Vector3.forward;
+        return Mathf.Atan2(forward.x, forward.z) * Mathf.Rad2Deg;
+    }
+
+    /// <summary>Sale de la repetición de la tabla: vuelve al menú, a la tabla.</summary>
+    private void LeaveViewer()
+    {
+        if (viewerLeaving)
+            return;
+
+        viewerLeaving = true;
+        RaceSession.GhostViewer = false;
+        TimeTrialRecords.ReturnToBoard = true;
+
+        if (GameSession.Instance != null)
+            GameSession.Instance.LeaveToMenu();
+        else
+            SceneManager.LoadScene("Inicio");
     }
 
     private void Record()
@@ -338,10 +653,11 @@ public class RaceReplay : MonoBehaviour
         while (sparkCursor < sparks.Count && sparks[sparkCursor].Time <= time)
             sparkCursor++;
 
-        // El jugador primero; si no, el primero grabado.
+        // El jugador primero; si no, el primero grabado. En la de la tabla, la
+        // primera vuelta (la que se eligió).
         focus = 0;
 
-        for (int i = 0; i < tracks.Count; i++)
+        for (int i = 0; i < tracks.Count && !viewer; i++)
         {
             if (tracks[i].Kart != null && tracks[i].Kart.UsesPlayerAssists && tracks[i].Kart.IsSimulated)
                 focus = i;
@@ -361,6 +677,15 @@ public class RaceReplay : MonoBehaviour
     {
         open = false;
 
+        foreach (Actor actor in actors)
+        {
+            foreach (AudioSource source in actor.Sources)
+            {
+                if (source != null)
+                    source.Stop();
+            }
+        }
+
         if (actorsRoot != null)
             Destroy(actorsRoot.gameObject);
 
@@ -373,6 +698,13 @@ public class RaceReplay : MonoBehaviour
             Destroy(overlay.gameObject);
 
         RestoreScene();
+
+        // La de la tabla no tiene carrera atrás: vuelve al menú.
+        if (viewer)
+        {
+            LeaveViewer();
+            return;
+        }
 
         if (replayButton != null && EventSystem.current != null)
             EventSystem.current.SetSelectedGameObject(replayButton.gameObject);
@@ -400,7 +732,23 @@ public class RaceReplay : MonoBehaviour
 
             foreach (Renderer renderer in kart.GetComponentsInChildren<Renderer>())
                 HideRenderer(renderer);
+
+            // El motor de verdad no: suenan las copias.
+            foreach (KartEngineAudio engine in kart.GetComponentsInChildren<KartEngineAudio>())
+                HideBehaviour(engine);
+
+            foreach (KartEngineGranularAudio engine in kart.GetComponentsInChildren<KartEngineGranularAudio>())
+                HideBehaviour(engine);
+
+            // En la de la tabla nadie maneja el kart de verdad.
+            if (viewer)
+                HideBehaviour(kart.GetComponent<PlayerKartInput>());
         }
+
+        // El mouse queda libre (barra y SALIR).
+        HideBehaviour(FindFirstObjectByType<RaceCursorLock>());
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
 
         // El fantasma de la contrarreloj.
         KartGhost ghost = FindFirstObjectByType<KartGhost>();
@@ -480,7 +828,108 @@ public class RaceReplay : MonoBehaviour
             EmitEffects(previous, time);
 
         UpdateCamera();
+
+        foreach (Actor actor in actors)
+        {
+            UpdateEngine(actor);
+            UpdateLabel(actor);
+        }
+
         UpdateOverlay(duration);
+    }
+
+    /// <summary>
+    /// El motor de cada copia: rpm según la velocidad grabada (un Rotax: ralentí
+    /// ~2.600, ~14.000 a fondo) y acelerador según si estaba ganando velocidad.
+    /// En pausa se calla.
+    /// </summary>
+    private void UpdateEngine(Actor actor)
+    {
+        if (actor.Sources.Count == 0)
+            return;
+
+        bool audible = playing && actor.Root.gameObject.activeSelf;
+
+        foreach (AudioSource source in actor.Sources)
+        {
+            if (source == null)
+                continue;
+
+            if (audible && !source.isPlaying)
+                source.Play();
+            else if (!audible && source.isPlaying)
+                source.Pause();
+        }
+
+        if (!audible)
+            return;
+
+        List<Sample> samples = actor.Track.Samples;
+        int index = FindSample(samples, time);
+        Sample a = samples[Mathf.Max(0, index - 1)];
+        Sample b = samples[Mathf.Min(samples.Count - 1, index + 1)];
+        float span = b.Time - a.Time;
+
+        float speed = 0f;
+        float accel = 0f;
+
+        if (span > 0.001f)
+        {
+            Vector3 forward = actor.Root.forward;
+            speed = Mathf.Max(0f, Vector3.Dot(b.Position - a.Position, forward) / span);
+
+            // Una reaparición no es velocidad.
+            if (speed > 60f)
+                speed = actor.Speed;
+
+            accel = (speed - actor.Speed) / Mathf.Max(0.001f, Time.unscaledDeltaTime * Speeds[speedIndex]);
+        }
+
+        float smoothing = 1f - Mathf.Exp(-Time.unscaledDeltaTime * 8f);
+        actor.Speed = Mathf.Lerp(actor.Speed, speed, smoothing);
+
+        float targetLoad = accel > 0.4f ? 1f : accel < -1.5f ? 0f : 0.35f;
+        actor.Load = Mathf.Lerp(actor.Load, targetLoad, smoothing);
+
+        float rpm = Mathf.Lerp(2600f, 14200f, Mathf.Clamp01(actor.Speed / 34f));
+        float chain = actor.Speed / (2f * Mathf.PI * Mathf.Max(0.05f, actor.WheelRadius)) * 80f;
+
+        foreach (KartEngineAudio engine in actor.Synth)
+        {
+            if (engine != null)
+                engine.DriveExternally(rpm, actor.Load, chain);
+        }
+
+        foreach (KartEngineGranularAudio engine in actor.Recorded)
+        {
+            if (engine != null)
+                engine.DriveExternally(rpm, actor.Load);
+        }
+    }
+
+    /// <summary>El nombre arriba del kart (repetición de la tabla), de frente a la cámara.</summary>
+    private void UpdateLabel(Actor actor)
+    {
+        if (actor.Label == null)
+            return;
+
+        // El que sigue la cámara de persecución ya se sabe quién es (dice arriba).
+        bool followed = cameraMode == CameraMode.Chase && actor == FocusActor;
+        bool show = showNames && !followed && actor.Root.gameObject.activeSelf && replayCamera != null;
+
+        if (actor.Label.gameObject.activeSelf != show)
+            actor.Label.gameObject.SetActive(show);
+
+        if (!show)
+            return;
+
+        Transform label = actor.Label.transform;
+        label.position = actor.Root.position + Vector3.up * 1.05f;
+        label.rotation = Quaternion.LookRotation(label.position - replayCamera.transform.position);
+
+        // Que se lea igual de lejos (hasta un punto).
+        float distance = Vector3.Distance(label.position, replayCamera.transform.position);
+        label.localScale = Vector3.one * Mathf.Clamp(distance / 9f, 0.6f, 3f);
     }
 
     /// <summary>Teclado. Devuelve false si se salió de la repetición.</summary>
@@ -525,6 +974,9 @@ public class RaceReplay : MonoBehaviour
             tvCurrent = -1;
             SnapCamera();
         }
+
+        if (viewer && keyboard.nKey.wasPressedThisFrame)
+            showNames = !showNames;
 
         if (keyboard.cKey.wasPressedThisFrame)
         {
@@ -738,11 +1190,45 @@ public class RaceReplay : MonoBehaviour
         actorsRoot = new GameObject("Repeticion").transform;
         SceneManager.MoveGameObjectToScene(actorsRoot.gameObject, gameObject.scene);
 
+        TMP_FontAsset font = viewer && hud != null ? RaceStandingsTower.FindHudFont(hud, bold: true) : null;
+
         foreach (Track track in tracks)
-            actors.Add(BuildActor(track));
+        {
+            // Con las piezas de esa vuelta (repetición de la tabla); si no, como está el kart.
+            Actor actor = null;
+            KartLook.WithParts(track.Kart, track.Parts, skip => actor = BuildActor(track, skip));
+            actors.Add(actor);
+
+            if (viewer)
+                actor.Label = BuildLabel(actor, font);
+        }
     }
 
-    private Actor BuildActor(Track track)
+    private TextMeshPro BuildLabel(Actor actor, TMP_FontAsset font)
+    {
+        var go = new GameObject("Nombre");
+        go.transform.SetParent(actorsRoot, false);
+
+        var label = go.AddComponent<TextMeshPro>();
+
+        if (font != null)
+            label.font = font;
+
+        Color color = actor.Track.LabelColor;
+        color.a = 1f;
+
+        label.text = actor.Track.Name + (actor.Track.LapTime > 0f
+            ? "  <size=70%>" + TimeTrialRecords.FormatTime(actor.Track.LapTime) + "</size>"
+            : "");
+        label.fontSize = 2.2f;
+        label.color = color;
+        label.alignment = TextAlignmentOptions.Center;
+        label.textWrappingMode = TextWrappingModes.NoWrap;
+        label.rectTransform.sizeDelta = new Vector2(6f, 1f);
+        return label;
+    }
+
+    private Actor BuildActor(Track track, ICollection<Transform> skip)
     {
         var actor = new Actor { Track = track, WheelRadius = 0.14f };
         actor.Root = new GameObject(track.Name).transform;
@@ -792,7 +1278,7 @@ public class RaceReplay : MonoBehaviour
 
         foreach (Renderer renderer in kart.GetComponentsInChildren<Renderer>())
         {
-            if (!renderer.enabled || !renderer.gameObject.activeInHierarchy)
+            if (!renderer.enabled || !renderer.gameObject.activeInHierarchy || KartLook.IsSkipped(renderer, skip))
                 continue;
 
             // ¿Es parte de una rueda? Va colgado de su pivote.
@@ -810,8 +1296,62 @@ public class RaceReplay : MonoBehaviour
             CopyRenderer(renderer, parent, toParent);
         }
 
+        CopyEngineSound(kart, actor);
+
         actor.LastPosition = track.Samples.Count > 0 ? track.Samples[0].Position : Vector3.zero;
         return actor;
+    }
+
+    /// <summary>
+    /// Copia el sonido del motor que usa el kart (sintetizado o grabado, el que
+    /// esté prendido) a la copia, en el mismo lugar. Lo maneja UpdateEngine.
+    /// </summary>
+    private static void CopyEngineSound(KartBehaviour kart, Actor actor)
+    {
+        Transform kartTransform = kart.transform;
+        var sources = new List<GameObject>();
+
+        foreach (KartEngineAudio engine in kart.GetComponentsInChildren<KartEngineAudio>())
+        {
+            if (engine.enabled && !sources.Contains(engine.gameObject))
+                sources.Add(engine.gameObject);
+        }
+
+        foreach (KartEngineGranularAudio engine in kart.GetComponentsInChildren<KartEngineGranularAudio>())
+        {
+            if (engine.enabled && !sources.Contains(engine.gameObject))
+                sources.Add(engine.gameObject);
+        }
+
+        foreach (GameObject source in sources)
+        {
+            // Solo el objeto del sonido (no lo que cuelga de él).
+            if (source == kart.gameObject)
+                continue;
+
+            GameObject copy = Instantiate(source, actor.Root);
+            copy.name = source.name;
+            copy.transform.localPosition = kartTransform.InverseTransformPoint(source.transform.position);
+            copy.transform.localRotation = Quaternion.Inverse(kartTransform.rotation) * source.transform.rotation;
+
+            foreach (Transform child in copy.transform)
+                Destroy(child.gameObject);
+
+            foreach (KartEngineAudio engine in copy.GetComponents<KartEngineAudio>())
+            {
+                if (engine.enabled)
+                    actor.Synth.Add(engine);
+            }
+
+            foreach (KartEngineGranularAudio engine in copy.GetComponents<KartEngineGranularAudio>())
+            {
+                if (engine.enabled)
+                    actor.Recorded.Add(engine);
+            }
+
+            foreach (AudioSource audio in copy.GetComponents<AudioSource>())
+                actor.Sources.Add(audio);
+        }
     }
 
     private static void CopyRenderer(Renderer renderer, Transform parent, Matrix4x4 toParent)
@@ -1107,7 +1647,9 @@ public class RaceReplay : MonoBehaviour
 
         TMP_Text title = Label(top, "Titulo", bold, 30f, TextAlignmentOptions.Left);
         Stretch(title.rectTransform, new Vector2(28f, 0f), new Vector2(-28f, 0f));
-        title.text = "<color=#E03030>" + GameLanguage.Text("REPETICIÓN", "REPLAY") + "</color>";
+        title.text = "<color=#E03030>" + (viewer
+            ? GameLanguage.Text("REPETICIÓN · TABLA", "REPLAY · LEADERBOARD")
+            : GameLanguage.Text("REPETICIÓN", "REPLAY")) + "</color>";
 
         statusText = Label(top, "Estado", font, 24f, TextAlignmentOptions.Center);
         Stretch(statusText.rectTransform, new Vector2(28f, 0f), new Vector2(-28f, 0f));
@@ -1122,9 +1664,13 @@ public class RaceReplay : MonoBehaviour
 
         TMP_Text help = Label(bottom, "Ayuda", font, 19f, TextAlignmentOptions.Center);
         Stretch(help.rectTransform, new Vector2(28f, 8f), new Vector2(-28f, -52f));
-        help.text = GameLanguage.Text(
-            "ESPACIO pausa     IZQ / DER 5 s     ARRIBA / ABAJO velocidad     TAB kart     C cámara     ESC salir",
-            "SPACE pause     LEFT / RIGHT 5 s     UP / DOWN speed     TAB kart     C camera     ESC exit");
+        help.text = viewer
+            ? GameLanguage.Text(
+                "ESPACIO pausa     IZQ / DER 5 s     ARRIBA / ABAJO velocidad     TAB kart     C cámara     N nombres     ESC volver",
+                "SPACE pause     LEFT / RIGHT 5 s     UP / DOWN speed     TAB kart     C camera     N names     ESC back")
+            : GameLanguage.Text(
+                "ESPACIO pausa     IZQ / DER 5 s     ARRIBA / ABAJO velocidad     TAB kart     C cámara     ESC salir",
+                "SPACE pause     LEFT / RIGHT 5 s     UP / DOWN speed     TAB kart     C camera     ESC exit");
 
         // Botón Salir (para el mouse), abajo a la derecha encima de la barra.
         Button exit = BuildButton(go.transform, bold, GameLanguage.Text("SALIR", "EXIT"));

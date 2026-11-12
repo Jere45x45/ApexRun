@@ -162,6 +162,13 @@ public class RaceWeather : NetworkBehaviour
             ? (TimeOfDay)Pick(morningWeight, noonWeight, sunsetWeight, nightWeight)
             : (TimeOfDay)((int)timeChoice - 1);
 
+        // Repetición de la tabla: el clima y la hora de esa vuelta.
+        if (RaceSession.GhostViewer)
+        {
+            chosen = RaceSession.ViewerWeather;
+            chosenTime = RaceSession.ViewerTimeOfDay;
+        }
+
         FogChoice fogChoice = WeatherChoiceStore.Fog;
 
         FogLevel chosenFog = fogChoice == FogChoice.Random

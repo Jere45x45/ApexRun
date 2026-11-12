@@ -202,7 +202,8 @@ public class RaceManager : NetworkBehaviour
         if (!IsSpawned)
             return;
 
-        if (IsServer && currentState == RaceState.Waiting && startAutomatically && IsReadyToStart())
+        // En la repetición de la tabla no se larga: solo se miran vueltas.
+        if (IsServer && currentState == RaceState.Waiting && startAutomatically && !RaceSession.GhostViewer && IsReadyToStart())
             BeginCountdown();
 
         if (currentState == RaceState.Countdown)

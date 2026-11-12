@@ -101,6 +101,18 @@ public static class RaceSession
     /// </summary>
     public static bool TimeTrial { get; set; }
 
+    /// <summary>
+    /// Repetición de la tabla: se carga la pista solo para ver vueltas de la
+    /// tabla (TimeTrialRecords.ViewerGhosts) con karts normales. No larga la
+    /// carrera (RaceManager) y RaceReplay la muestra apenas está el kart.
+    /// La pone el menú; StartNew la saca.
+    /// </summary>
+    public static bool GhostViewer { get; set; }
+
+    /// <summary>Repetición de la tabla: clima y hora de la vuelta (los usa RaceWeather en vez de los del menú).</summary>
+    public static WeatherScenario ViewerWeather { get; set; }
+    public static TimeOfDay ViewerTimeOfDay { get; set; }
+
     public static bool IsLastRound => !IsChampionship || Round >= Rounds;
 
     /// <summary>Semilla de los bots (así se ven igual en la qualy y en todas las fechas).</summary>
@@ -130,6 +142,7 @@ public static class RaceSession
     /// </summary>
     public static void StartNew(int rounds, float qualifyingSeconds, bool reversed)
     {
+        GhostViewer = false;
         Rounds = Mathf.Max(0, rounds);
         Round = 1;
         QualifyingSeconds = Mathf.Max(0f, qualifyingSeconds);

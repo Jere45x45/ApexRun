@@ -86,7 +86,10 @@ public class GameSession : MonoBehaviour
     // ───────────── Un jugador ─────────────
 
     /// <summary>Arranca un host local (sin internet) y va al Catálogo.</summary>
-    public void StartSinglePlayer(string playerName = null)
+    public void StartSinglePlayer(string playerName = null) => StartSinglePlayerIn(playerName, null);
+
+    /// <summary>Arranca un host local y va a esa escena (null: al Catálogo).</summary>
+    public void StartSinglePlayerIn(string playerName, string firstScene)
     {
         // Ya arrancó (por ejemplo, un doble clic en el botón).
         if (IsBusy || (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening))
@@ -110,7 +113,7 @@ public class GameSession : MonoBehaviour
             return;
         }
 
-        LoadSceneForAll(catalogScene);
+        LoadSceneForAll(string.IsNullOrEmpty(firstScene) ? catalogScene : firstScene);
     }
 
     // ───────────── Multijugador ─────────────

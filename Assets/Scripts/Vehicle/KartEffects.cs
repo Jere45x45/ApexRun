@@ -203,6 +203,16 @@ public class KartEffects : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Para la repetición de la tabla (que no tiene física): lo que largaría
+    /// una rueda con esa superficie, velocidad del contacto y deslizamiento de costado.
+    /// </summary>
+    public WheelFx ComputeFor(TrackSurfaceData surface, Vector3 velocity, float slide, bool rear, float wetness)
+    {
+        var wheel = new WheelSample { Surface = surface, Velocity = velocity, Slide = slide, Rear = rear };
+        return Compute(wheel, wetness);
+    }
+
     /// <summary>Qué larga una rueda según su superficie, deslizamiento y velocidad (partículas por segundo).</summary>
     private WheelFx Compute(WheelSample wheel, float wetness)
     {

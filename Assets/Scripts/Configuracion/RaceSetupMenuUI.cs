@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
@@ -111,6 +113,9 @@ public class RaceSetupMenuUI : MonoBehaviour
 
     // Tabla de la contrarreloj (se arma la primera vez que hace falta).
     private TimeTrialLeaderboardUI leaderboard;
+
+    // Al volver de la repetición de la tabla: abrir la misma pestaña (seca o mojada).
+    private bool reopenLastTab;
 
     /// <summary>Un jugador sin bots: contrarreloj de una vuelta con tabla.</summary>
     private bool IsTimeTrial => !multiplayer && RaceSetupStore.GetBots(false) == 0;
@@ -655,6 +660,13 @@ public class RaceSetupMenuUI : MonoBehaviour
 
     private void Back()
     {
+        // Con el panel de la cuenta abierto, Volver lo cierra.
+        if (leaderboard != null && leaderboard.IsOpen && leaderboard.IsAccountOpen)
+        {
+            leaderboard.CloseAccount();
+            return;
+        }
+
         // Desde la tabla se vuelve a la configuración.
         if (leaderboard != null && leaderboard.IsOpen)
         {
@@ -670,14 +682,27 @@ public class RaceSetupMenuUI : MonoBehaviour
     private void ConfirmTimeTrial()
     {
         if (leaderboard == null)
+        {
             leaderboard = TimeTrialLeaderboardUI.Create((RectTransform)transform, confirmText != null ? confirmText.font : null);
+            leaderboard.ViewRequested += StartViewer;
+        }
+
+        // Con el panel de la cuenta abierto no se larga (se está entrando o creando la cuenta).
+        if (leaderboard.IsOpen && leaderboard.IsAccountOpen)
+            return;
 
         if (!leaderboard.IsOpen)
         {
             string track = GameLanguage.Text(trackSpanish, trackEnglish) +
                            (RaceSetupStore.Reversed ? GameLanguage.Text(" al revés", " reversed") : "");
 
-            leaderboard.Open(TimeTrialRecords.BoardId(RaceSetupStore.Reversed), track, sessionMenu.PlayerName);
+            // Seca o mojada: la del clima elegido; al azar o dinámico (o al volver
+            // de la repetición), la última que se miró.
+            bool? menuWet = TimeTrialRecords.WetForMenuWeather();
+            bool wet = !reopenLastTab && menuWet.HasValue ? menuWet.Value : TimeTrialRecords.LastTabWet;
+            reopenLastTab = false;
+
+            leaderboard.Open(RaceSetupStore.Reversed, wet, track, sessionMenu.PlayerName);
 
             if (titleText != null)
                 titleText.text = GameLanguage.Text("Contrarreloj", "Time trial");
@@ -707,6 +732,100 @@ public class RaceSetupMenuUI : MonoBehaviour
         RaceSession.TimeTrial = true;
 
         sessionMenu.StartSinglePlayerFromSetup();
+    }
+
+    /// <summary>
+    /// VER de la tabla: baja esas vueltas y carga la pista solo para verlas
+    /// (RaceSession.GhostViewer, la muestra RaceReplay). Sin Catálogo: el kart
+    /// propio solo sirve de molde y no se ve.
+    /// </summary>
+    private async void StartViewer(List<TimeTrialRecords.Entry> entries)
+    {
+        if (GameSession.Instance == null)
+            return;
+
+        confirmButton.interactable = false;
+        backButton.interactable = false;
+
+        int count = await leaderboard.PrepareViewerAsync(entries);
+
+        if (this == null)
+            return;
+
+        if (count == 0)
+        {
+            confirmButton.interactable = true;
+            backButton.interactable = true;
+            return;
+        }
+
+        RaceSetupStore.BotsForRace = 0;
+        RaceSession.MandatoryPitStop = false;
+        RaceSession.StartNew(0, 0f, RaceSetupStore.Reversed);
+        RaceSession.TimeTrial = true;
+        RaceSession.GhostViewer = true;
+
+        // Con el clima y la hora de la vuelta (la primera, la que sigue la cámara).
+        TimeTrialRecords.Entry first = entries[0];
+        bool lapWet = TimeTrialRecords.LastTabWet; // las vueltas son de la pestaña que se está mirando
+        RaceSession.ViewerWeather = lapWet
+            ? (first.Weather == WeatherScenario.Storm ? WeatherScenario.Storm : WeatherScenario.Rain)
+            : (first.Weather == WeatherScenario.Cloudy ? WeatherScenario.Cloudy : WeatherScenario.Clear);
+        RaceSession.ViewerTimeOfDay = first.TimeOfDay;
+
+        // Que no quede nada de la última contrarreloj.
+        TimeTrialRecords.Opponents.Clear();
+        TimeTrialRecords.ActiveBoardId = null;
+
+        GameSession.Instance.StartSinglePlayerIn(sessionMenu.PlayerName, GameSession.Instance.RaceScene);
+    }
+
+    /// <summary>Abre la tabla de la contrarreloj (al volver de su repetición).</summary>
+    public void OpenTimeTrialBoard()
+    {
+        Open(false);
+        reopenLastTab = true;
+
+        if (IsTimeTrial)
+            ConfirmTimeTrial();
+    }
+
+    // Al volver de la repetición de la tabla, el menú abre la tabla otra vez.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void HookReturnToBoard()
+    {
+        SceneManager.sceneLoaded -= HandleSceneLoaded;
+        SceneManager.sceneLoaded += HandleSceneLoaded;
+    }
+
+    private static void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (TimeTrialRecords.ReturnToBoard && mode == LoadSceneMode.Single)
+            ReturnToBoardSoon(scene);
+    }
+
+    private static async void ReturnToBoardSoon(Scene scene)
+    {
+        // Después de que el menú muestre su primera pantalla (MenuManager.Start).
+        int frame = Time.frameCount;
+
+        while (Time.frameCount < frame + 2)
+            await Task.Yield();
+
+        if (!scene.isLoaded || !TimeTrialRecords.ReturnToBoard)
+            return;
+
+        foreach (GameObject root in scene.GetRootGameObjects())
+        {
+            RaceSetupMenuUI setup = root.GetComponentInChildren<RaceSetupMenuUI>(true);
+
+            if (setup == null)
+                continue;
+
+            TimeTrialRecords.ReturnToBoard = false;
+            setup.OpenTimeTrialBoard();
+            return;
+        }
     }
 
     private void Refresh()

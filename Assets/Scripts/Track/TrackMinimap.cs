@@ -15,6 +15,9 @@ using UnityEngine.UI;
 /// - El fantasma de la contrarreloj (KartGhost) se agrega con AddGhost: un
 ///   punto celeste translúcido con un halo que late, abajo del jugador. Se
 ///   ve solo mientras el fantasma está en pista.
+/// - Los fantasmas de los rivales de la tabla se agregan con AddRivalGhost: un
+///   punto translúcido del color del rival (sin halo), arriba del fantasma propio
+///   (si no, su halo lo tapa cuando van cerca).
 /// </summary>
 public class TrackMinimap : MaskableGraphic
 {
@@ -177,6 +180,44 @@ public class TrackMinimap : MaskableGraphic
 
         // Arriba de los demás karts, pero el jugador sigue encima de todo.
         halo.SetAsLastSibling();
+
+        if (playerKart != null && icons.TryGetValue(playerKart, out RectTransform playerIcon) && playerIcon != null)
+            playerIcon.SetAsLastSibling();
+    }
+
+    /// <summary>
+    /// Agrega el fantasma de un rival de la tabla: punto translúcido de su color
+    /// con un contorno oscuro. Se ve mientras el objeto del fantasma está activo.
+    /// </summary>
+    public void AddRivalGhost(Transform rivalKart, Color color)
+    {
+        if (rivalKart == null || !Application.isPlaying)
+            return;
+
+        if (icons.TryGetValue(rivalKart, out RectTransform existing) && existing != null)
+            Destroy(existing.gameObject);
+
+        Color outlineColor = Color.Lerp(color, Color.black, 0.55f);
+        outlineColor.a = 0.85f;
+
+        Color fillColor = color;
+        fillColor.a = 0.8f;
+
+        RectTransform outline = CreateImage(rivalKart.name + " (minimapa)", transform, outlineColor);
+        outline.anchorMin = new Vector2(0.5f, 0.5f);
+        outline.anchorMax = new Vector2(0.5f, 0.5f);
+        outline.sizeDelta = new Vector2(ghostIconSize, ghostIconSize);
+
+        RectTransform fill = CreateImage("Color", outline, fillColor);
+        fill.anchorMin = Vector2.zero;
+        fill.anchorMax = Vector2.one;
+        fill.offsetMin = Vector2.one * iconOutlinePixels;
+        fill.offsetMax = -Vector2.one * iconOutlinePixels;
+
+        icons[rivalKart] = outline;
+
+        // Arriba de los karts y del fantasma propio (su halo lo taparía); el jugador, arriba de todo.
+        outline.SetAsLastSibling();
 
         if (playerKart != null && icons.TryGetValue(playerKart, out RectTransform playerIcon) && playerIcon != null)
             playerIcon.SetAsLastSibling();

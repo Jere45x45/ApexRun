@@ -24,6 +24,18 @@ public class MenuManager : MonoBehaviour
 #endif
     }
 
+    /// <summary>El objeto de una pantalla del menú (o null).</summary>
+    public GameObject GetPanel(MenuPanel panelType)
+    {
+        foreach (UIPanel panel in panels)
+        {
+            if (panel != null && panel.type == panelType)
+                return panel.panel;
+        }
+
+        return null;
+    }
+
     public void Show(MenuPanel panelType)
     {
         foreach (UIPanel panel in panels)
