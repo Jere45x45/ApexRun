@@ -16,12 +16,19 @@ MonoBehaviour:
   partName: Ruedas OverBoard
   description: 
   effects:
-  - "+ Velocidad m\xE1xima"
+  - + Agarre en curva
   - "- Aceleraci\xF3n"
-  icon: {fileID: 0}
+  - "- Velocidad m\xE1xima"
+  icon: {fileID: 21300000, guid: 33453e37995aa344796b10843d926219, type: 3}
   modelPrefab: {fileID: 919132149155446097, guid: 96b823c2450daed4989eda49c6f795e1,
     type: 3}
-  rarity: 0
+  rarity: 1
+  partNameEn: OverBoard Wheels
+  descriptionEn: 
+  effectsEn:
+  - + Cornering grip
+  - '- Acceleration'
+  - '- Top speed'
   maxSteeringAngle: 35
   minSteeringAngle: 20
   steeringReductionSpeed: 80
@@ -31,17 +38,18 @@ MonoBehaviour:
   damperRate: 4500
   suspensionTargetPosition: 0.5
   radius: 0.175
+  rimFacesRight: 0
   tireSettings:
     radius: 0.175
-    verticalStiffness: 70000
-    verticalDamping: 1200
+    verticalStiffness: 90000
+    verticalDamping: 1500
     maxDeflection: 0.05
     bottomOutStiffnessMultiplier: 10
-    lateralFriction: 1.7
+    lateralFriction: 1.9
     lateralB: 14
     lateralC: 1.5
     lateralE: 0
-    longitudinalFriction: 1.7
+    longitudinalFriction: 1.8
     longitudinalB: 11.5
     longitudinalC: 1.65
     longitudinalE: 0
@@ -49,5 +57,5 @@ MonoBehaviour:
     longitudinalRelaxationLength: 0.08
     carcassDampingRatio: 0.5
     lowSpeedDampingSpeed: 4
-    rollingResistance: 0.015
-  wheelInertia: 0.04
+    rollingResistance: 0.025
+  wheelInertia: 0.08

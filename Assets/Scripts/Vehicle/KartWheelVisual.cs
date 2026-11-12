@@ -11,20 +11,26 @@ using UnityEngine;
 /// </summary>
 public class KartWheelVisual
 {
-    // Misma convención que los modelos de rueda del catálogo (WheelVisualController):
-    // las ruedas izquierdas se giran 180° para que la llanta quede hacia afuera.
-    private static readonly Quaternion LeftModelRotation = Quaternion.Euler(0f, 180f, 0f);
+    // Media vuelta para dar vuelta el modelo, así la llanta queda hacia afuera.
+    private static readonly Quaternion FlipRotation = Quaternion.Euler(0f, 180f, 0f);
 
     private readonly KartWheel wheel;
-    private readonly Quaternion modelRotation;
+    private readonly bool isLeftSide;
 
     private float spinAngle;
 
     public KartWheelVisual(KartWheel wheel, bool isLeftSide)
     {
         this.wheel = wheel ?? throw new ArgumentNullException(nameof(wheel));
-        modelRotation = isLeftSide ? LeftModelRotation : Quaternion.identity;
+        this.isLeftSide = isLeftSide;
     }
+
+    /// <summary>
+    /// Hacia dónde mira la llanta en el modelo de la rueda instalada
+    /// (WheelData.rimFacesRight). Se da vuelta el modelo de las ruedas cuya
+    /// llanta quedaría hacia adentro.
+    /// </summary>
+    public bool ModelRimFacesRight { get; set; } = true;
 
     /// <summary>Acomoda el modelo. Si no hay modelo, solo sigue contando el giro.</summary>
     public void UpdatePose(Transform kart, Transform visual, float deltaTime)
@@ -48,6 +54,10 @@ public class KartWheelVisual
             return;
 
         Vector3 position = kart.position + kart.rotation * (wheel.LocalPosition + wheel.GeometryOffset);
+
+        // Izquierda con la llanta del modelo hacia la derecha, o derecha con la
+        // llanta hacia la izquierda: hay que darla vuelta.
+        Quaternion modelRotation = isLeftSide == ModelRimFacesRight ? FlipRotation : Quaternion.identity;
 
         Quaternion rotation =
             kart.rotation *

@@ -13,8 +13,9 @@ using UnityEngine.SceneManagement;
 /// La partida, de punta a punta. Vive mientras dura el juego (DontDestroyOnLoad):
 /// - Un jugador: host local en 127.0.0.1, sin servicios ni internet.
 /// - Multijugador: Unity Multiplayer Services. El anfitrión crea una sesión
-///   privada con Relay (se juega por internet sin abrir puertos) y los demás
-///   entran con el código. La sesión arranca Netcode sola (host o cliente).
+///   pública con Relay (se juega por internet sin abrir puertos). Los demás la
+///   ven en la lista de servidores mientras no empezó, o entran con el código.
+///   La sesión arranca Netcode sola (host o cliente).
 /// - Pasa de escena a todos juntos (NetworkSceneManager): Inicio → Catálogo → Race.
 /// - Salir o perder la conexión vuelve al Inicio, con un mensaje si hace falta.
 /// </summary>
@@ -33,6 +34,10 @@ public class GameSession : MonoBehaviour
     [Header("Partida")]
     [Tooltip("Jugadores por partida (lugares en la grilla).")]
     [SerializeField, Range(2, 6)] private int maxPlayers = 6;
+
+    /// <summary>Datos de la partida que se ven en la lista de servidores.</summary>
+    public const string LapsProperty = "vueltas";
+    public const string WeatherProperty = "clima";
 
     private const string LocalAddress = "127.0.0.1";
     private const ushort LocalPort = 7777;
@@ -81,7 +86,10 @@ public class GameSession : MonoBehaviour
     // ───────────── Un jugador ─────────────
 
     /// <summary>Arranca un host local (sin internet) y va al Catálogo.</summary>
-    public void StartSinglePlayer(string playerName = null)
+    public void StartSinglePlayer(string playerName = null) => StartSinglePlayerIn(playerName, null);
+
+    /// <summary>Arranca un host local y va a esa escena (null: al Catálogo).</summary>
+    public void StartSinglePlayerIn(string playerName, string firstScene)
     {
         // Ya arrancó (por ejemplo, un doble clic en el botón).
         if (IsBusy || (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening))
@@ -100,25 +108,37 @@ public class GameSession : MonoBehaviour
 
         if (!manager.StartHost())
         {
-            PendingMessage = "No se pudo arrancar el juego.";
+            PendingMessage = GameLanguage.Text("No se pudo arrancar el juego.", "The game couldn't start.");
             Changed?.Invoke();
             return;
         }
 
-        LoadSceneForAll(catalogScene);
+        LoadSceneForAll(string.IsNullOrEmpty(firstScene) ? catalogScene : firstScene);
     }
 
     // ───────────── Multijugador ─────────────
 
-    /// <summary>Crea una partida privada por Relay. Devuelve null si salió bien, o el error para mostrar.</summary>
+    /// <summary>
+    /// Crea una partida por Relay, con el nombre del anfitrión y la
+    /// configuración elegida (vueltas y clima) para mostrar en la lista de
+    /// servidores. Si el anfitrión la eligió privada (RaceSetupStore.PrivateServer),
+    /// no aparece en la lista y se entra solo con el código.
+    /// Devuelve null si salió bien, o el error para mostrar.
+    /// </summary>
     public async Task<string> CreateSessionAsync(string playerName)
     {
         return await RunSessionTask(playerName, async () =>
         {
             SessionOptions options = new SessionOptions
             {
+                Name = LocalPlayerName,
                 MaxPlayers = maxPlayers,
-                IsPrivate = true
+                IsPrivate = RaceSetupStore.PrivateServer,
+                SessionProperties = new Dictionary<string, SessionProperty>
+                {
+                    [LapsProperty] = new SessionProperty(RaceSetupStore.Laps.ToString(), VisibilityPropertyOptions.Public, PropertyIndex.None),
+                    [WeatherProperty] = new SessionProperty(WeatherChoiceStore.Summary(), VisibilityPropertyOptions.Public, PropertyIndex.None)
+                }
             }
             .WithRelayNetwork()
             .WithPlayerName(VisibilityPropertyOptions.Member);
@@ -133,7 +153,7 @@ public class GameSession : MonoBehaviour
         code = (code ?? "").Trim().ToUpperInvariant();
 
         if (code.Length == 0)
-            return "Escribí el código de la partida.";
+            return GameLanguage.Text("Escribí el código de la partida.", "Type the match code.");
 
         return await RunSessionTask(playerName, () =>
         {
@@ -141,6 +161,67 @@ public class GameSession : MonoBehaviour
 
             return MultiplayerService.Instance.JoinSessionByCodeAsync(code, options);
         });
+    }
+
+    /// <summary>Se une a una partida de la lista de servidores. Devuelve null si salió bien, o el error para mostrar.</summary>
+    public async Task<string> JoinSessionByIdAsync(string sessionId, string playerName)
+    {
+        if (string.IsNullOrEmpty(sessionId))
+            return GameLanguage.Text("Elegí una partida.", "Pick a match.");
+
+        return await RunSessionTask(playerName, () =>
+        {
+            JoinSessionOptions options = new JoinSessionOptions().WithPlayerName(VisibilityPropertyOptions.Member);
+
+            return MultiplayerService.Instance.JoinSessionByIdAsync(sessionId, options);
+        });
+    }
+
+    /// <summary>
+    /// Partidas públicas a las que todavía se puede entrar (no empezaron y
+    /// tienen lugar), las más nuevas primero. Si algo falla, devuelve null y el
+    /// error en <paramref name="error"/>.
+    /// </summary>
+    public async Task<List<ISessionInfo>> QuerySessionsAsync(string playerName, Action<string> error)
+    {
+        try
+        {
+            if (playerName != null)
+                LocalPlayerName = CleanName(playerName);
+
+            await SignInAsync();
+
+            QuerySessionsOptions options = new QuerySessionsOptions
+            {
+                Count = 20,
+                FilterOptions = new List<FilterOption>
+                {
+                    new FilterOption(FilterField.AvailableSlots, "0", FilterOperation.Greater)
+                },
+                SortOptions = new List<SortOption>
+                {
+                    new SortOption(SortOrder.Descending, SortField.CreationTime)
+                }
+            };
+
+            QuerySessionsResults results = await MultiplayerService.Instance.QuerySessionsAsync(options);
+
+            List<ISessionInfo> open = new List<ISessionInfo>();
+
+            foreach (ISessionInfo info in results.Sessions)
+            {
+                if (!info.IsLocked && info.AvailableSlots > 0)
+                    open.Add(info);
+            }
+
+            return open;
+        }
+        catch (Exception exception)
+        {
+            Debug.LogWarning($"GameSession: no se pudo buscar partidas ({exception.Message}).", this);
+            error?.Invoke(GameLanguage.Text("No se pudieron buscar partidas. Revisá la conexión a internet.", "Couldn't look for matches. Check your internet connection."));
+            return null;
+        }
     }
 
     /// <summary>
@@ -253,7 +334,7 @@ public class GameSession : MonoBehaviour
     private async Task<string> RunSessionTask(string playerName, Func<Task<ISession>> createSession)
     {
         if (IsBusy)
-            return "Esperá un momento...";
+            return GameLanguage.Text("Esperá un momento...", "Wait a moment...");
 
         IsBusy = true;
         leaving = false;
@@ -280,7 +361,7 @@ public class GameSession : MonoBehaviour
         catch (Exception exception)
         {
             Debug.LogWarning($"GameSession: {exception}", this);
-            return "No se pudo conectar. Revisá la conexión a internet.";
+            return GameLanguage.Text("No se pudo conectar. Revisá la conexión a internet.", "Couldn't connect. Check your internet connection.");
         }
         finally
         {
@@ -288,6 +369,42 @@ public class GameSession : MonoBehaviour
             Changed?.Invoke();
         }
     }
+
+    /// <summary>
+    /// Entra a los servicios con ese nombre (la tabla de contrarreloj, que no
+    /// pasa por una sesión). Devuelve false si no se pudo (por ejemplo, sin internet).
+    /// </summary>
+    public async Task<bool> EnsureSignedInAsync(string playerName)
+    {
+        if (!string.IsNullOrWhiteSpace(playerName))
+            LocalPlayerName = CleanName(playerName);
+
+        // Puede fallar si otra parte del juego está entrando al mismo tiempo, o si
+        // el nombre se cambió hace muy poco: se reintenta un par de veces.
+        for (int attempt = 0; attempt < 3; attempt++)
+        {
+            try
+            {
+                await SignInAsync();
+                return true;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"GameSession: no se pudo entrar a los servicios ({exception.Message}).", this);
+
+                // Entró pero falló algo menor (por ejemplo, cambiar el nombre): sirve igual.
+                if (IsSignedInToServices)
+                    return true;
+            }
+
+            await Task.Delay(700);
+        }
+
+        return IsSignedInToServices;
+    }
+
+    private static bool IsSignedInToServices =>
+        UnityServices.State == ServicesInitializationState.Initialized && AuthenticationService.Instance.IsSignedIn;
 
     private async Task SignInAsync()
     {
@@ -352,7 +469,7 @@ public class GameSession : MonoBehaviour
         NetworkManager manager = NetworkManager.Singleton;
         string reason = manager != null ? manager.DisconnectReason : null;
 
-        LeaveToMenu(string.IsNullOrEmpty(reason) ? "Se perdió la conexión con la partida." : reason);
+        LeaveToMenu(string.IsNullOrEmpty(reason) ? GameLanguage.Text("Se perdió la conexión con la partida.", "The connection to the match was lost.") : reason);
     }
 
     private void SubscribeSession(ISession session)
@@ -380,7 +497,7 @@ public class GameSession : MonoBehaviour
     private void HandleRemovedFromSession()
     {
         if (!leaving)
-            LeaveToMenu("Saliste de la partida.");
+            LeaveToMenu(GameLanguage.Text("Saliste de la partida.", "You left the match."));
     }
 
     private static string DescribeError(SessionException exception)
@@ -389,25 +506,25 @@ public class GameSession : MonoBehaviour
         string inner = exception.Message + " " + (exception.InnerException != null ? exception.InnerException.Message : "");
 
         if (inner.IndexOf("full", StringComparison.OrdinalIgnoreCase) >= 0)
-            return "La partida está llena.";
+            return GameLanguage.Text("La partida está llena.", "The match is full.");
 
         if (inner.IndexOf("locked", StringComparison.OrdinalIgnoreCase) >= 0)
-            return "La partida ya empezó.";
+            return GameLanguage.Text("La partida ya empezó.", "The match already started.");
 
         // Código con letras que no se usan, o que no existe.
         if (inner.IndexOf("invalid character", StringComparison.OrdinalIgnoreCase) >= 0 ||
             inner.IndexOf("not found", StringComparison.OrdinalIgnoreCase) >= 0)
-            return "No existe una partida con ese código.";
+            return GameLanguage.Text("No existe una partida con ese código.", "There's no match with that code.");
 
         switch (exception.Error)
         {
             case SessionError.SessionNotFound:
             case SessionError.InvalidSessionIdentifier:
-                return "No existe una partida con ese código.";
+                return GameLanguage.Text("No existe una partida con ese código.", "There's no match with that code.");
             case SessionError.InvalidPlayerName:
-                return "Ese nombre no se puede usar.";
+                return GameLanguage.Text("Ese nombre no se puede usar.", "That name can't be used.");
             default:
-                return "No se pudo conectar (" + exception.Error + ").";
+                return GameLanguage.Text("No se pudo conectar (", "Couldn't connect (") + exception.Error + ").";
         }
     }
 

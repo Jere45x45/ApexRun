@@ -180,8 +180,28 @@ public class KartEngineAudio : MonoBehaviour
             source.Stop();
     }
 
+    // Lo maneja otro script (DriveExternally) en lugar del kart.
+    private bool external;
+
+    /// <summary>
+    /// Para la repetición: el sonido deja de leer el kart y usa estas rpm y este
+    /// acelerador (0 a 1). Se llama cada cuadro.
+    /// </summary>
+    public void DriveExternally(float rpm, float load, float chainHz = 0f)
+    {
+        external = true;
+        targetRpm = Mathf.Max(0f, rpm);
+        targetLoad = Mathf.Clamp01(load);
+        targetChainHz = Mathf.Max(0f, chainHz);
+        limiterActive = false;
+        running = true;
+    }
+
     private void Update()
     {
+        if (external)
+            return;
+
         KartVehicle vehicle = kart != null ? kart.Vehicle : null;
         KartEngine engine = vehicle != null ? vehicle.Engine : null;
 

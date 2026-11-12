@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0a554bd94c6ad149a7eb94dabb937a3, type: 3}
+  m_Name: BotPiezasPorNivel
+  m_EditorClassIdentifier: Assembly-CSharp::BotPartsByLevel
+  easy:
+  - {fileID: 11400000, guid: 77dfbe3d75035a947acbb89be642411e, type: 2}
+  - {fileID: 11400000, guid: 0abe38d3d9d53c34c9c7f7b01e1b4e82, type: 2}
+  - {fileID: 11400000, guid: b9980f32de5d8974c890f5e421728a10, type: 2}
+  medium:
+  - {fileID: 11400000, guid: 5820614c1756bb1478e845fc061f3a1e, type: 2}
+  - {fileID: 11400000, guid: 34e55ab951fc70649a1d689fda8b40f0, type: 2}
+  - {fileID: 11400000, guid: 7e7d5045e58c7d14a80816a4d67eed08, type: 2}
+  hard:
+  - {fileID: 11400000, guid: e35b61d5189e1dc45bd19af7e0e410f4, type: 2}
+  - {fileID: 11400000, guid: 30019a89baf2c6145a399879e1eada21, type: 2}
+  - {fileID: 11400000, guid: c7478851a351c3e409cdc49ed143d8f0, type: 2}

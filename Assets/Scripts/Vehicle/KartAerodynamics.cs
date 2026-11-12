@@ -10,6 +10,8 @@ using UnityEngine;
 /// Las dos se aplican en el centro de presión. Como la resistencia actúa alto,
 /// además pasa peso de las ruedas delanteras a las traseras.
 /// No hay viento: la velocidad respecto del aire es la del kart en ese punto.
+/// La resistencia baja cuando el kart va en la estela de otro (rebufo, ver
+/// KartSlipstream): eso lo pone quien lo usa con DragMultiplier.
 /// </summary>
 public class KartAerodynamics
 {
@@ -22,6 +24,12 @@ public class KartAerodynamics
 
     /// <summary>Carga aerodinámica en el último paso (N). Positiva = hacia el piso.</summary>
     public float Downforce { get; private set; }
+
+    /// <summary>
+    /// Multiplica la resistencia del aire (1 = aire libre). En el rebufo de
+    /// otro kart baja, por ejemplo a 0,75. Lo pone KartBehaviour cada paso.
+    /// </summary>
+    public float DragMultiplier { get; set; } = 1f;
 
     public KartAerodynamics(AeroSettings settings)
     {
@@ -47,7 +55,7 @@ public class KartAerodynamics
 
         float dynamicPressure = settings.DynamicPressure(airSpeed);
 
-        DragForce = dynamicPressure * settings.dragArea;
+        DragForce = dynamicPressure * settings.dragArea * Mathf.Max(0f, DragMultiplier);
         Downforce = dynamicPressure * settings.downforceArea;
 
         Vector3 kartDown = body.rotation * Vector3.down;

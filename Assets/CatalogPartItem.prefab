@@ -67,8 +67,9 @@ MonoBehaviour:
       m_Calls: []
   m_text: "+ Aceleraci\xF3n    \u2013 Velocidad m\xE1xima"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 11868b6827247d24c898323839178a9b, type: 2}
+  m_sharedMaterial: {fileID: 5852569127028472861, guid: 11868b6827247d24c898323839178a9b,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -365,8 +366,9 @@ MonoBehaviour:
       m_Calls: []
   m_text: Basic Engine
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 3158a27e0c6fbc14ab8538cbe61724c4, type: 2}
+  m_sharedMaterial: {fileID: 8110862260727370267, guid: 3158a27e0c6fbc14ab8538cbe61724c4,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -396,7 +398,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 13
   m_fontSizeMax: 17
-  m_fontStyle: 1
+  m_fontStyle: 0
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 4096
   m_textAlignment: 65535
@@ -522,8 +524,9 @@ MonoBehaviour:
       m_Calls: []
   m_text: EQUIPAR
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 3158a27e0c6fbc14ab8538cbe61724c4, type: 2}
+  m_sharedMaterial: {fileID: 8110862260727370267, guid: 3158a27e0c6fbc14ab8538cbe61724c4,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -553,7 +556,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 1
+  m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -720,6 +723,12 @@ MonoBehaviour:
   buttonLabel: {fileID: 6972682029916036368}
   background: {fileID: 8450422704681027885}
   rarityAccent: {fileID: 7947663055775896457}
+  raritySprites: []
+  equippedSprite: {fileID: 0}
+  equippedMark: {fileID: 0}
+  cardNameColor: {r: 0.11, g: 0.11, b: 0.13, a: 1}
+  equippedNameColor: {r: 1, g: 1, b: 1, a: 1}
+  showNameWithIcon: 0
   normalBackground: {r: 0.14, g: 0.15, b: 0.19, a: 1}
   equippedBackground: {r: 0.17, g: 0.25, b: 0.21, a: 1}
   equipButton: {r: 0.26, g: 0.28, b: 0.35, a: 1}
@@ -1041,8 +1050,9 @@ MonoBehaviour:
       m_Calls: []
   m_text: Common
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 3158a27e0c6fbc14ab8538cbe61724c4, type: 2}
+  m_sharedMaterial: {fileID: 8110862260727370267, guid: 3158a27e0c6fbc14ab8538cbe61724c4,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1072,7 +1082,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 1
+  m_fontStyle: 0
   m_HorizontalAlignment: 4
   m_VerticalAlignment: 4096
   m_textAlignment: 65535
