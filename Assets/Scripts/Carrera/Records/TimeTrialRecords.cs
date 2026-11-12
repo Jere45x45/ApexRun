@@ -443,19 +443,30 @@ public static class TimeTrialRecords
 
         try
         {
+            // Las piezas y el clima van agrupados (Cloud Code acepta hasta 10 parámetros).
             // La humedad va sin redondear: el servidor decide seca o mojada con la misma regla.
             var args = new Dictionary<string, object>
             {
                 { "tabla", boardId },
                 { "fantasma", ghost.ToCompressedBase64() },
                 { "nombre", name ?? "" },
-                { "motor", parts.Engine ?? "" },
-                { "ruedas", parts.Wheels ?? "" },
-                { "aero", parts.AeroKit ?? "" },
-                { "volante", parts.SteeringWheel ?? "" },
-                { "clima", (int)conditions.Weather },
-                { "hora", (int)conditions.TimeOfDay },
-                { "humedad", conditions.Wetness }
+                {
+                    "piezas", new Dictionary<string, object>
+                    {
+                        { "motor", parts.Engine ?? "" },
+                        { "ruedas", parts.Wheels ?? "" },
+                        { "aero", parts.AeroKit ?? "" },
+                        { "volante", parts.SteeringWheel ?? "" }
+                    }
+                },
+                {
+                    "condiciones", new Dictionary<string, object>
+                    {
+                        { "clima", (int)conditions.Weather },
+                        { "hora", (int)conditions.TimeOfDay },
+                        { "humedad", conditions.Wetness }
+                    }
+                }
             };
 
             SubmitReply reply = await CloudCodeService.Instance.CallEndpointAsync<SubmitReply>("SubirMarca", args);

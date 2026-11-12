@@ -96,8 +96,7 @@ const BOARDS = {
   "tt-race": { reversed: false, wet: false },
   "tt-race-r": { reversed: true, wet: false },
   "tt-race-wet": { reversed: false, wet: true },
-  "tt-race-r-wet": { reversed: true, wet: true },
-  "tt-prueba": { reversed: false, wet: false } // TEMPORAL: solo para probar el guardado (11/11/2026)
+  "tt-race-r-wet": { reversed: true, wet: true }
 };
 
 const LIMITS = {
@@ -135,13 +134,10 @@ module.exports.params = {
   tabla: { type: "String", required: true },
   fantasma: { type: "String", required: true },
   nombre: { type: "String", required: false },
-  motor: { type: "String", required: true },
-  ruedas: { type: "String", required: true },
-  aero: { type: "String", required: false },
-  volante: { type: "String", required: false },
-  clima: { type: "Numeric", required: true },
-  hora: { type: "Numeric", required: true },
-  humedad: { type: "Numeric", required: true }
+  // { motor, ruedas, aero, volante }: el partID de cada pieza.
+  piezas: { type: "JSON", required: true },
+  // { clima, hora, humedad }: el clima, la hora y la humedad de la pista al terminar la vuelta.
+  condiciones: { type: "JSON", required: true }
 };
 
 // ---------------------------------------------------------------------------
@@ -215,6 +211,14 @@ function ghostKey(boardId) {
 
 const PART_ID = /^[a-z0-9_-]{1,40}$/;
 
+/** Un objeto JSON común (no lista); si llega como texto, se lee (con tope de tamaño). */
+function plainObject(value) {
+  if (typeof value === "string" && value.length <= 2000) {
+    try { value = JSON.parse(value); } catch (error) { return null; }
+  }
+  return value && typeof value === "object" && !Array.isArray(value) ? value : null;
+}
+
 function readInput(params) {
   const boardId = params.tabla;
   if (typeof boardId !== "string" || !Object.prototype.hasOwnProperty.call(BOARDS, boardId)) return { error: "tabla" };
@@ -223,10 +227,15 @@ function readInput(params) {
   const ghostText = params.fantasma;
   if (typeof ghostText !== "string" || ghostText.length === 0 || ghostText.length > LIMITS.maxBase64) return { error: "datos", detail: "tamaño" };
 
-  const engineId = String(params.motor || "");
-  const wheelsId = String(params.ruedas || "");
-  const aero = String(params.aero || "");
-  const steering = String(params.volante || "");
+  const parts = plainObject(params.piezas);
+  const conditions = plainObject(params.condiciones);
+  if (!parts) return { error: "piezas" };
+  if (!conditions) return { error: "clima" };
+
+  const engineId = String(parts.motor || "");
+  const wheelsId = String(parts.ruedas || "");
+  const aero = String(parts.aero || "");
+  const steering = String(parts.volante || "");
   if (!PART_ID.test(engineId) || !PART_ID.test(wheelsId)) return { error: "piezas" };
   if (aero && !PART_ID.test(aero)) return { error: "piezas" };
   if (steering && !PART_ID.test(steering)) return { error: "piezas" };
@@ -237,9 +246,9 @@ function readInput(params) {
   const grip = Object.prototype.hasOwnProperty.call(WHEEL_GRIP, wheelsId) ? WHEEL_GRIP[wheelsId] : Math.max(...Object.values(WHEEL_GRIP));
   const area = Object.prototype.hasOwnProperty.call(AERO_AREA, aero) ? AERO_AREA[aero] : Math.max(...Object.values(AERO_AREA));
 
-  const weather = Number(params.clima);
-  const time = Number(params.hora);
-  const wetness = Number(params.humedad);
+  const weather = Number(conditions.clima);
+  const time = Number(conditions.hora);
+  const wetness = Number(conditions.humedad);
   if (!Number.isInteger(weather) || weather < 0 || weather > 5) return { error: "clima" };
   if (!Number.isInteger(time) || time < 0 || time > 3) return { error: "clima" };
   if (!Number.isFinite(wetness) || wetness < 0 || wetness > 1) return { error: "clima" };

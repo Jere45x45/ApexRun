@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -18,10 +19,16 @@ using UnityEngine.SceneManagement;
 /// desplegar el script (Services > Deployment). Si no, el servidor podría
 /// rechazar vueltas buenas (o dejar pasar de más).
 /// Reemplaza solo lo que está entre "// &lt;datos&gt;" y "// &lt;/datos&gt;".
+///
+/// También copia los parámetros de cada script (module.exports.params) a su
+/// importador (el Inspector del .js): el proyecto no tiene el proyecto de Node
+/// de Cloud Code, así que Unity no los lee solo, y Cloud Code descarta los
+/// parámetros que el script no declaró al desplegarse.
 /// </summary>
 public static class ServerCheckDataExport
 {
     private const string ScriptPath = "Assets/Servicios/CloudCode/SubirMarca.js";
+    private const string ScriptsFolder = "Assets/Servicios/CloudCode";
     private const string RaceScenePath = "Assets/Scenes/Race.unity";
     private const string StartMark = "// <datos>";
     private const string EndMark = "// </datos>";
@@ -68,15 +75,159 @@ public static class ServerCheckDataExport
 
         if (updated == text)
         {
+            SyncParameters();
             Debug.Log("SubirMarca: los datos ya estaban al día.");
             return;
         }
 
         File.WriteAllText(ScriptPath, updated);
         AssetDatabase.ImportAsset(ScriptPath);
+        SyncParameters();
 
         Debug.Log("SubirMarca: datos actualizados. Falta desplegar el script (Services > Deployment).");
         EditorUtility.DisplayDialog("SubirMarca", "Datos actualizados. Ahora desplegá SubirMarca.js desde Services > Deployment.", "OK");
+    }
+
+    [MenuItem("ApexRun/Servicios/Actualizar parámetros de Cloud Code")]
+    public static void SyncParametersMenu()
+    {
+        int changed = SyncParameters();
+        Debug.Log(changed == 0
+            ? "Cloud Code: los parámetros ya estaban al día."
+            : "Cloud Code: parámetros actualizados en " + changed + " script(s). Falta desplegarlos (Services > Deployment).");
+    }
+
+    /// <summary>
+    /// Copia module.exports.params de cada .js de la carpeta al importador del
+    /// script (los que despliega Services > Deployment). Devuelve cuántos cambiaron.
+    /// </summary>
+    public static int SyncParameters()
+    {
+        int changed = 0;
+
+        if (!Directory.Exists(ScriptsFolder))
+            return 0;
+
+        foreach (string file in Directory.GetFiles(ScriptsFolder, "*.js"))
+        {
+            string path = file.Replace('\\', '/');
+            AssetImporter importer = AssetImporter.GetAtPath(path);
+
+            if (importer == null)
+                continue;
+
+            var serialized = new SerializedObject(importer);
+            SerializedProperty list = serialized.FindProperty("Parameters");
+
+            if (list == null || !list.isArray)
+                continue;
+
+            List<ScriptParameter> parameters = ReadParameters(File.ReadAllText(path));
+
+            if (parameters == null)
+            {
+                Debug.LogWarning("Cloud Code: no se pudieron leer los parámetros de " + path + ".");
+                continue;
+            }
+
+            if (SameParameters(list, parameters))
+                continue;
+
+            list.arraySize = parameters.Count;
+
+            for (int i = 0; i < parameters.Count; i++)
+            {
+                SerializedProperty element = list.GetArrayElementAtIndex(i);
+                element.FindPropertyRelative("Name").stringValue = parameters[i].Name;
+                element.FindPropertyRelative("ParameterType").enumValueIndex = parameters[i].Type;
+                element.FindPropertyRelative("Required").boolValue = parameters[i].Required;
+            }
+
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            importer.SaveAndReimport();
+            changed++;
+        }
+
+        return changed;
+    }
+
+    private struct ScriptParameter
+    {
+        public string Name;
+        public int Type;
+        public bool Required;
+    }
+
+    // En el orden del enum ParameterType de Cloud Code.
+    private static readonly string[] ParameterTypes = { "String", "Numeric", "Boolean", "JSON", "Any" };
+
+    /// <summary>
+    /// Los parámetros de "module.exports.params = { nombre: { type: "String", required: true }, ... }"
+    /// (o "nombre: "String""). Sin el bloque, ninguno; si algo no se entiende, null.
+    /// </summary>
+    private static List<ScriptParameter> ReadParameters(string text)
+    {
+        var parameters = new List<ScriptParameter>();
+        int at = text.IndexOf("module.exports.params", StringComparison.Ordinal);
+
+        if (at < 0)
+            return parameters;
+
+        int open = text.IndexOf('{', at);
+        int close = -1;
+        int depth = 0;
+
+        for (int i = open; open >= 0 && i < text.Length; i++)
+        {
+            if (text[i] == '{')
+                depth++;
+            else if (text[i] == '}' && --depth == 0)
+            {
+                close = i;
+                break;
+            }
+        }
+
+        if (close < 0)
+            return null;
+
+        string body = Regex.Replace(text.Substring(open + 1, close - open - 1), @"//[^\n]*", "");
+
+        foreach (Match match in Regex.Matches(body, @"(\w+)\s*:\s*(\{[^}]*\}|""\w+"")"))
+        {
+            string definition = match.Groups[2].Value;
+            int type = Array.IndexOf(ParameterTypes, Regex.Match(definition, @"""(\w+)""").Groups[1].Value);
+
+            if (type < 0)
+                return null;
+
+            parameters.Add(new ScriptParameter
+            {
+                Name = match.Groups[1].Value,
+                Type = type,
+                Required = Regex.IsMatch(definition, @"required\s*:\s*true")
+            });
+        }
+
+        return parameters;
+    }
+
+    private static bool SameParameters(SerializedProperty list, List<ScriptParameter> parameters)
+    {
+        if (list.arraySize != parameters.Count)
+            return false;
+
+        for (int i = 0; i < parameters.Count; i++)
+        {
+            SerializedProperty element = list.GetArrayElementAtIndex(i);
+
+            if (element.FindPropertyRelative("Name").stringValue != parameters[i].Name
+                || element.FindPropertyRelative("ParameterType").enumValueIndex != parameters[i].Type
+                || element.FindPropertyRelative("Required").boolValue != parameters[i].Required)
+                return false;
+        }
+
+        return true;
     }
 
     /// <summary>El bloque entre las marcas (sin la marca del final), con "\n".</summary>
