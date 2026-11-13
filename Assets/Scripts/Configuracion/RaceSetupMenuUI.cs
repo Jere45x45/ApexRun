@@ -424,6 +424,8 @@ public class RaceSetupMenuUI : MonoBehaviour
             trackEnglish = trackValue.text;
         }
 
+        LoadingScreen.SetTrack(trackSpanish, trackEnglish);
+
         trackValue.alpha = 1f;
 
         if (label != null)
@@ -719,6 +721,7 @@ public class RaceSetupMenuUI : MonoBehaviour
         backButton.interactable = false;
 
         // Baja los fantasmas de los rivales elegidos (sin internet, no hace nada).
+        LoadingScreen.Show(LoadingScreen.Style.Plain, GameLanguage.Text("Bajando los fantasmas de los rivales…", "Downloading the rivals' ghosts…"));
         await leaderboard.PrepareRaceAsync();
 
         if (this == null)
@@ -747,6 +750,7 @@ public class RaceSetupMenuUI : MonoBehaviour
         confirmButton.interactable = false;
         backButton.interactable = false;
 
+        LoadingScreen.Show(LoadingScreen.Style.Plain, GameLanguage.Text("Bajando las vueltas…", "Downloading the laps…"));
         int count = await leaderboard.PrepareViewerAsync(entries);
 
         if (this == null)
@@ -754,6 +758,7 @@ public class RaceSetupMenuUI : MonoBehaviour
 
         if (count == 0)
         {
+            LoadingScreen.Hide();
             confirmButton.interactable = true;
             backButton.interactable = true;
             return;

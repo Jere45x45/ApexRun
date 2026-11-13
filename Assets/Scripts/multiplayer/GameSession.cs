@@ -277,6 +277,10 @@ public class GameSession : MonoBehaviour
     {
         NetworkManager manager = NetworkManager.Singleton;
 
+        // Pantalla de carga (los invitados la muestran solos, con la carga de Netcode).
+        if (manager == null || !manager.IsListening || manager.IsServer)
+            LoadingScreen.BeginLoad(sceneName);
+
         if (manager != null && manager.IsListening)
         {
             if (manager.IsServer)
@@ -296,6 +300,9 @@ public class GameSession : MonoBehaviour
 
         leaving = true;
         PendingMessage = message;
+
+        // Pantalla de carga antes de salir: tapa el cierre de la red y la carga del menú.
+        await LoadingScreen.ShowBeforeLoadAsync(menuScene);
 
         ISession session = Session;
         Session = null;

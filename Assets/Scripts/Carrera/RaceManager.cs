@@ -202,6 +202,10 @@ public class RaceManager : NetworkBehaviour
         if (!IsSpawned)
             return;
 
+        // Se avisa "listo" cuando se va la pantalla de carga (ver TryReportReady).
+        if (!reportedReady)
+            TryReportReady();
+
         // En la repetición de la tabla no se larga: solo se miran vueltas.
         if (IsServer && currentState == RaceState.Waiting && startAutomatically && !RaceSession.GhostViewer && IsReadyToStart())
             BeginCountdown();
@@ -311,7 +315,9 @@ public class RaceManager : NetworkBehaviour
     /// </summary>
     private void TryReportReady()
     {
-        if (reportedReady || !IsSpawned)
+        // Con la pantalla de carga todavía puesta (la pista recién cargada, trabándose),
+        // se espera: si no, la cuenta regresiva arrancaría tapada.
+        if (reportedReady || !IsSpawned || !LoadingScreen.AllowsRaceStart)
             return;
 
         foreach (KartBehaviour kart in raceKarts)

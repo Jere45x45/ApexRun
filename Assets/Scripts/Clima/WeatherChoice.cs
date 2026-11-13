@@ -188,7 +188,12 @@ public static class WeatherChoiceStore
     /// <summary>Resumen para la lista de servidores, por ejemplo "Lluvia · Noche · Niebla leve".</summary>
     public static string Summary()
     {
-        string text = (Current == WeatherChoice.Dynamic ? GameLanguage.Text("Clima dinámico", "Dynamic weather") : Label(Current)) + "  ·  " + Label(Time);
+        // "Al azar" solo no se entiende al lado de otro valor: se dice de qué.
+        string weather = Current == WeatherChoice.Dynamic ? GameLanguage.Text("Clima dinámico", "Dynamic weather")
+                       : Current == WeatherChoice.Random ? GameLanguage.Text("Clima al azar", "Random weather")
+                       : Label(Current);
+        string time = Time == TimeOfDayChoice.Random ? GameLanguage.Text("Hora al azar", "Random time") : Label(Time);
+        string text = weather + "  ·  " + time;
 
         if (Fog != FogChoice.None)
             text += "  ·  " + (Fog == FogChoice.Random ? GameLanguage.Text("Niebla al azar", "Random fog") : Label(Fog));
