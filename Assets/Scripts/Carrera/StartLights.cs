@@ -37,12 +37,22 @@ public class StartLights : MonoBehaviour
     private MaterialPropertyBlock block;
     private int lastLit = -1;
 
+    // Mientras se ve una repetición, las luces las manda ella (−1: la carrera).
+    private static int replayLit = -1;
+
+    /// <summary>
+    /// La repetición dice cuántas luces van prendidas según su reloj
+    /// (−1 para volver a seguir a la carrera).
+    /// </summary>
+    public static void SetReplay(int lit) => replayLit = lit;
+
     /// <summary>Cuántas luces están prendidas ahora.</summary>
     public int LitCount => Mathf.Max(0, lastLit);
 
     private void Awake()
     {
         block = new MaterialPropertyBlock();
+        replayLit = -1;
 
         if (raceManager == null)
             raceManager = FindFirstObjectByType<RaceManager>();
@@ -52,6 +62,12 @@ public class StartLights : MonoBehaviour
 
     private void Update()
     {
+        if (replayLit >= 0)
+        {
+            Show(Mathf.Clamp(replayLit, 0, lamps.Length));
+            return;
+        }
+
         if (raceManager == null || !raceManager.IsCountdown())
         {
             Show(0);

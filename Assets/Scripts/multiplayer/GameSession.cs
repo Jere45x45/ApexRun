@@ -330,6 +330,13 @@ public class GameSession : MonoBehaviour
             Destroy(manager.gameObject);
         }
 
+        // Si mientras esperaba se salió de Play (o se cerró el juego), ya no hay escena que cargar.
+        if (!Application.isPlaying || this == null)
+        {
+            leaving = false;
+            return;
+        }
+
         SceneManager.LoadScene(menuScene);
 
         leaving = false;

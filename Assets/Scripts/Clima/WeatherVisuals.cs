@@ -421,6 +421,10 @@ public class WeatherVisuals : MonoBehaviour
     {
         Camera camera = Camera.main;
 
+        // En la repetición la cámara de la carrera está apagada y la que se ve no es MainCamera.
+        if (camera == null || !camera.isActiveAndEnabled)
+            camera = TopCamera();
+
         if (camera == null)
             return;
 
@@ -434,6 +438,30 @@ public class WeatherVisuals : MonoBehaviour
             camera.transform.position,
             Quaternion.LookRotation(forward.normalized, Vector3.up)
         );
+    }
+
+    private static Camera[] cameraBuffer = new Camera[8];
+
+    /// <summary>La cámara prendida que se dibuja arriba de todo (sin las que dibujan en una textura).</summary>
+    private static Camera TopCamera()
+    {
+        if (cameraBuffer.Length < Camera.allCamerasCount)
+            cameraBuffer = new Camera[Camera.allCamerasCount];
+
+        int count = Camera.GetAllCameras(cameraBuffer);
+        Camera best = null;
+
+        for (int i = 0; i < count; i++)
+        {
+            Camera candidate = cameraBuffer[i];
+
+            if (candidate.targetTexture == null && (best == null || candidate.depth > best.depth))
+                best = candidate;
+
+            cameraBuffer[i] = null;
+        }
+
+        return best;
     }
 
     // ---------- Escena ----------

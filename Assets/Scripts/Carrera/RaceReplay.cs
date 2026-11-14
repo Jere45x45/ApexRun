@@ -42,8 +42,14 @@ public class RaceReplay : MonoBehaviour
     [Tooltip("Muestras por segundo de cada kart.")]
     [SerializeField, Min(5f)] private float sampleRate = 20f;
 
-    [Tooltip("La repetición empieza este tiempo antes de la largada (s).")]
+    [Tooltip("Si no se grabó la cuenta regresiva: la repetición empieza este tiempo antes de la largada (s).")]
     [SerializeField, Min(0f)] private float preRoll = 2f;
+
+    [Tooltip("Con la cuenta regresiva grabada, la repetición empieza este tiempo antes de que se prenda la primera luz (s).")]
+    [SerializeField, Min(0f)] private float lightsLead = 0.5f;
+
+    [Tooltip("En la repetición de la tabla (que no tiene cuenta grabada): cuánto quedan las 5 luces prendidas antes de apagarse (s).")]
+    [SerializeField, Min(0f)] private float viewerLightsHold = 1f;
 
     [Tooltip("Después de que termina la carrera se graba un rato más (s).")]
     [SerializeField, Min(0f)] private float postRoll = 4f;
@@ -173,6 +179,10 @@ public class RaceReplay : MonoBehaviour
     private float raceStartTime = -1f;
     private float stopAt = -1f;
 
+    // Cuándo empezó la cuenta regresiva (en el reloj de la repetición), para el semáforo.
+    private bool hasCountdown;
+    private float countdownTime;
+
     // Reproducción.
     private bool open;
     private bool playing;
@@ -264,6 +274,13 @@ public class RaceReplay : MonoBehaviour
 
                     if (recordStart < 0.0)
                         recordStart = Time.timeAsDouble;
+                }
+
+                // El semáforo: la cuenta empieza con la grabación (en la qualy no hay luces).
+                if (state == RaceManager.RaceState.Countdown && recording && !hasCountdown && raceStartTime < 0f)
+                {
+                    hasCountdown = true;
+                    countdownTime = Now;
                 }
 
                 if (state == RaceManager.RaceState.Racing && raceStartTime < 0f)
@@ -363,6 +380,15 @@ public class RaceReplay : MonoBehaviour
         }
 
         raceStartTime = 0f;
+
+        // La vuelta de la tabla arranca parada en la línea: antes, el semáforo
+        // como en una largada (las luces de a una y, un momento después, se apagan).
+        if (raceManager != null)
+        {
+            hasCountdown = true;
+            countdownTime = -(raceManager.StartLightCount * raceManager.StartLightInterval + viewerLightsHold);
+        }
+
         Open();
     }
 
@@ -645,7 +671,12 @@ public class RaceReplay : MonoBehaviour
         playing = true;
         speedIndex = 2;
 
-        startTime = raceStartTime >= 0f ? Mathf.Max(0f, raceStartTime - preRoll) : 0f;
+        // Con la cuenta grabada, desde un poco antes de la primera luz (se ve el semáforo entero).
+        if (hasCountdown && raceStartTime >= 0f)
+            startTime = Mathf.Min(raceStartTime, countdownTime + Mathf.Max(0f, LightInterval - lightsLead));
+        else
+            startTime = raceStartTime >= 0f ? Mathf.Max(0f, raceStartTime - preRoll) : 0f;
+
         time = startTime;
 
         sparkCursor = 0;
@@ -676,6 +707,7 @@ public class RaceReplay : MonoBehaviour
     private void Close()
     {
         open = false;
+        StartLights.SetReplay(-1);
 
         foreach (Actor actor in actors)
         {
@@ -810,7 +842,8 @@ public class RaceReplay : MonoBehaviour
         float duration = Duration;
         float previous = time;
 
-        if (playing)
+        // Mientras la pantalla de carga tapa (VER), la repetición espera: si no, el semáforo arrancaba tapado.
+        if (playing && !LoadingScreen.IsShowing)
         {
             time += Time.unscaledDeltaTime * Speeds[speedIndex];
 
@@ -827,6 +860,7 @@ public class RaceReplay : MonoBehaviour
         if (time > previous)
             EmitEffects(previous, time);
 
+        UpdateStartLights();
         UpdateCamera();
 
         foreach (Actor actor in actors)
@@ -836,6 +870,22 @@ public class RaceReplay : MonoBehaviour
         }
 
         UpdateOverlay(duration);
+    }
+
+    private float LightInterval => raceManager != null ? Mathf.Max(0.01f, raceManager.StartLightInterval) : 1f;
+
+    /// <summary>
+    /// El semáforo según el reloj de la repetición: una luz por intervalo desde
+    /// que empezó la cuenta y todas apagadas desde la largada (o sin cuenta grabada).
+    /// </summary>
+    private void UpdateStartLights()
+    {
+        int lit = 0;
+
+        if (hasCountdown && raceManager != null && time >= countdownTime && (raceStartTime < 0f || time < raceStartTime))
+            lit = Mathf.Clamp(Mathf.FloorToInt((time - countdownTime) / LightInterval), 0, raceManager.StartLightCount);
+
+        StartLights.SetReplay(lit);
     }
 
     /// <summary>
