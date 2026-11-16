@@ -102,11 +102,23 @@ public struct KartParts
 /// poner las suyas, todo en el mismo cuadro.
 /// Ojo: ModelSlot borra los modelos viejos con Destroy, que espera al final del
 /// cuadro. Mientras tanto siguen ahí, así que quien copia tiene que saltearlos
-/// (la lista que recibe build).
+/// (la lista que recibe build). Si en el mismo cuadro se visten varios karts
+/// (varios fantasmas o varias vueltas de la tabla), los modelos viejos se van
+/// juntando (cada cambio de pieza rehace todos los modelos del kart). Por eso
+/// lo que cuelga siempre de los puntos de montaje se mira una sola vez por
+/// cuadro, antes del primer cambio: todo lo demás que no sea el modelo actual
+/// es viejo y no se copia.
 /// </summary>
 public static class KartLook
 {
     private static readonly FieldInfo[] SlotFields = FindSlotFields();
+
+    // Lo que cuelga siempre de los puntos de montaje de cada kart (no son modelos de piezas),
+    // visto en este cuadro antes del primer cambio de piezas.
+    private static readonly Dictionary<KartModelController, HashSet<Transform>> keepCache =
+        new Dictionary<KartModelController, HashSet<Transform>>();
+
+    private static int keepFrame = -1;
 
     private static FieldInfo[] FindSlotFields()
     {
@@ -135,27 +147,45 @@ public static class KartLook
         PartCatalog catalog = network != null ? network.Catalog : null;
         KartModelController models = kart != null ? kart.GetComponentInChildren<KartModelController>(true) : null;
 
-        if (controller == null || catalog == null || models == null || controller.Configuration == null ||
-            parts.IsEmpty || KartParts.FromKart(controller).Matches(parts))
+        if (controller == null || catalog == null || models == null || controller.Configuration == null)
         {
             build(skip);
             return;
         }
 
-        // Lo que ya colgaba de los puntos de montaje y no es un modelo de pieza (se copia siempre).
-        var keep = new HashSet<Transform>();
+        // Con las piezas que ya tiene no hay que cambiarle nada, pero igual hay que saltear
+        // los modelos viejos que haya dejado otro kart vestido en este mismo cuadro.
+        bool change = !parts.IsEmpty && !KartParts.FromKart(controller).Matches(parts);
 
-        foreach (ModelSlot slot in Slots(models))
+        if (Time.frameCount != keepFrame)
         {
-            foreach (Transform child in slot.MountPoint)
+            keepCache.Clear();
+            keepFrame = Time.frameCount;
+        }
+
+        // Lo que ya colgaba de los puntos de montaje y no es un modelo de pieza (se copia siempre).
+        // Solo vale lo que se ve antes del primer cambio del cuadro: después quedan modelos viejos
+        // sin borrar (los de los karts vestidos antes), que no hay que tomar por fijos.
+        if (!keepCache.TryGetValue(models, out HashSet<Transform> keep))
+        {
+            keep = new HashSet<Transform>();
+
+            foreach (ModelSlot slot in Slots(models))
             {
-                if (slot.CurrentInstance == null || child != slot.CurrentInstance.transform)
-                    keep.Add(child);
+                foreach (Transform child in slot.MountPoint)
+                {
+                    if (slot.CurrentInstance == null || child != slot.CurrentInstance.transform)
+                        keep.Add(child);
+                }
             }
+
+            keepCache[models] = keep;
         }
 
         KartParts original = KartParts.FromKart(controller);
-        Install(controller, catalog, parts);
+
+        if (change)
+            Install(controller, catalog, parts);
 
         try
         {
@@ -173,7 +203,8 @@ public static class KartLook
         }
         finally
         {
-            Install(controller, catalog, original);
+            if (change)
+                Install(controller, catalog, original);
         }
     }
 
