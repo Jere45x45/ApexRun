@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ugs-config-schemas.unity3d.com/v1/project-access-policy.schema.json",
+  "Statements": [
+    {
+      "Sid": "apexrun-deny-player-cloud-save-writes",
+      "Action": ["Write"],
+      "Effect": "Deny",
+      "Principal": "Player",
+      "Resource": "urn:ugs:cloud-save:/**",
+      "Version": "1.0.0"
+    },
+    {
+      "Sid": "apexrun-deny-player-leaderboards-writes",
+      "Action": ["Write"],
+      "Effect": "Deny",
+      "Principal": "Player",
+      "Resource": "urn:ugs:leaderboards:/**",
+      "Version": "1.0.0"
+    }
+  ]
+}

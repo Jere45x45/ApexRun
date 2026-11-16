@@ -1,0 +1,29 @@
+{
+    "ApexBot": {
+        "checkpoints": [
+            {
+                "steps": 2188,
+                "file_path": "results\\ApexKartV3\\ApexBot\\ApexBot-2188.onnx",
+                "reward": -2.8244997058063745,
+                "creation_time": 1790613111.00621,
+                "auxillary_file_paths": [
+                    "results\\ApexKartV3\\ApexBot\\ApexBot-2188.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 2188,
+            "file_path": "results\\ApexKartV3\\ApexBot.onnx",
+            "reward": -2.8244997058063745,
+            "creation_time": 1790613111.00621,
+            "auxillary_file_paths": [
+                "results\\ApexKartV3\\ApexBot\\ApexBot-2188.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.1.0",
+        "torch_version": "2.2.2+cpu"
+    }
+}

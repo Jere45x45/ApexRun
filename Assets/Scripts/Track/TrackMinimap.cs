@@ -12,6 +12,12 @@ using UnityEngine.UI;
 ///   y se ajusta al rectángulo sin deformarse.
 /// - Los karts que aparecen durante la carrera (multiplayer) se agregan con
 ///   AddKart y se sacan con RemoveKart.
+/// - El fantasma de la contrarreloj (KartGhost) se agrega con AddGhost: un
+///   punto celeste translúcido con un halo que late, abajo del jugador. Se
+///   ve solo mientras el fantasma está en pista.
+/// - Los fantasmas de los rivales de la tabla se agregan con AddRivalGhost: un
+///   punto translúcido del color del rival (sin halo), arriba del fantasma propio
+///   (si no, su halo lo tapa cuando van cerca).
 /// </summary>
 public class TrackMinimap : MaskableGraphic
 {
@@ -55,7 +61,25 @@ public class TrackMinimap : MaskableGraphic
 
     [SerializeField] private Color iconOutlineColor = new Color(0f, 0f, 0f, 0.9f);
 
+    [Header("Fantasma (contrarreloj)")]
+    [SerializeField, Min(1f)] private float ghostIconSize = 10f;
+
+    [SerializeField] private Color ghostColor = new Color(0.45f, 0.82f, 1f, 0.8f);
+
+    [SerializeField] private Color ghostOutlineColor = new Color(0.15f, 0.45f, 0.7f, 0.8f);
+
+    [Tooltip("Halo alrededor del punto del fantasma: cuánto más grande que el punto.")]
+    [SerializeField, Min(1f)] private float ghostHaloScale = 2f;
+
+    [SerializeField] private Color ghostHaloColor = new Color(0.45f, 0.82f, 1f, 0.45f);
+
+    [Tooltip("Latidos del halo por segundo.")]
+    [SerializeField, Min(0f)] private float ghostPulseRate = 1.2f;
+
     private readonly Dictionary<Transform, RectTransform> icons = new Dictionary<Transform, RectTransform>();
+
+    private Transform ghost;
+    private Image ghostHalo;
 
     // Conversión de mundo a mapa: centro de la pista (x, z) y píxeles por metro.
     private Vector2 worldCenter;
@@ -102,6 +126,12 @@ public class TrackMinimap : MaskableGraphic
         if (playerKart == kart)
             playerKart = null;
 
+        if (ghost == kart)
+        {
+            ghost = null;
+            ghostHalo = null;
+        }
+
         if (icons.TryGetValue(kart, out RectTransform icon))
         {
             icons.Remove(kart);
@@ -111,10 +141,109 @@ public class TrackMinimap : MaskableGraphic
         }
     }
 
+    /// <summary>
+    /// Agrega el fantasma de la contrarreloj: punto translúcido con un halo
+    /// que late. Se ve mientras el objeto del fantasma está activo.
+    /// </summary>
+    public void AddGhost(Transform ghostKart)
+    {
+        if (ghostKart == null || !Application.isPlaying)
+            return;
+
+        ghost = ghostKart;
+
+        if (icons.TryGetValue(ghostKart, out RectTransform existing) && existing != null)
+            Destroy(existing.gameObject);
+
+        // El halo es el contenedor (lo que se mueve); adentro, el punto con
+        // un contorno celeste oscuro (se lee sobre el asfalto blanco del mapa).
+        float haloSize = ghostIconSize * ghostHaloScale;
+
+        RectTransform halo = CreateImage(ghostKart.name + " (minimapa)", transform, ghostHaloColor);
+        halo.anchorMin = new Vector2(0.5f, 0.5f);
+        halo.anchorMax = new Vector2(0.5f, 0.5f);
+        halo.sizeDelta = new Vector2(haloSize, haloSize);
+        ghostHalo = halo.GetComponent<Image>();
+
+        RectTransform outline = CreateImage("Contorno", halo, ghostOutlineColor);
+        outline.anchorMin = new Vector2(0.5f, 0.5f);
+        outline.anchorMax = new Vector2(0.5f, 0.5f);
+        outline.sizeDelta = new Vector2(ghostIconSize, ghostIconSize);
+
+        RectTransform fill = CreateImage("Color", outline, ghostColor);
+        fill.anchorMin = Vector2.zero;
+        fill.anchorMax = Vector2.one;
+        fill.offsetMin = Vector2.one * iconOutlinePixels;
+        fill.offsetMax = -Vector2.one * iconOutlinePixels;
+
+        icons[ghostKart] = halo;
+
+        // Arriba de los demás karts, pero el jugador sigue encima de todo.
+        halo.SetAsLastSibling();
+
+        if (playerKart != null && icons.TryGetValue(playerKart, out RectTransform playerIcon) && playerIcon != null)
+            playerIcon.SetAsLastSibling();
+    }
+
+    /// <summary>
+    /// Agrega el fantasma de un rival de la tabla: punto translúcido de su color
+    /// con un contorno oscuro. Se ve mientras el objeto del fantasma está activo.
+    /// </summary>
+    public void AddRivalGhost(Transform rivalKart, Color color)
+    {
+        if (rivalKart == null || !Application.isPlaying)
+            return;
+
+        if (icons.TryGetValue(rivalKart, out RectTransform existing) && existing != null)
+            Destroy(existing.gameObject);
+
+        Color outlineColor = Color.Lerp(color, Color.black, 0.55f);
+        outlineColor.a = 0.85f;
+
+        Color fillColor = color;
+        fillColor.a = 0.8f;
+
+        RectTransform outline = CreateImage(rivalKart.name + " (minimapa)", transform, outlineColor);
+        outline.anchorMin = new Vector2(0.5f, 0.5f);
+        outline.anchorMax = new Vector2(0.5f, 0.5f);
+        outline.sizeDelta = new Vector2(ghostIconSize, ghostIconSize);
+
+        RectTransform fill = CreateImage("Color", outline, fillColor);
+        fill.anchorMin = Vector2.zero;
+        fill.anchorMax = Vector2.one;
+        fill.offsetMin = Vector2.one * iconOutlinePixels;
+        fill.offsetMax = -Vector2.one * iconOutlinePixels;
+
+        icons[rivalKart] = outline;
+
+        // Arriba de los karts y del fantasma propio (su halo lo taparía); el jugador, arriba de todo.
+        outline.SetAsLastSibling();
+
+        if (playerKart != null && icons.TryGetValue(playerKart, out RectTransform playerIcon) && playerIcon != null)
+            playerIcon.SetAsLastSibling();
+    }
+
     private void LateUpdate()
     {
         if (icons.Count == 0 || !UpdateMapping())
             return;
+
+        // El halo del fantasma late (se agranda y se desvanece). El punto de
+        // adentro no cambia: queda dentro del halo, que es su contenedor, así
+        // que se compensa la escala.
+        if (ghostHalo != null)
+        {
+            float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * ghostPulseRate * 2f * Mathf.PI);
+            float scale = Mathf.Lerp(0.8f, 1.1f, pulse);
+
+            Color halo = ghostHaloColor;
+            halo.a *= Mathf.Lerp(0.35f, 1f, pulse);
+            ghostHalo.color = halo;
+            ghostHalo.rectTransform.localScale = Vector3.one * scale;
+
+            if (ghostHalo.rectTransform.childCount > 0)
+                ghostHalo.rectTransform.GetChild(0).localScale = Vector3.one / scale;
+        }
 
         Vector2 rectCenter = rectTransform.rect.center;
 

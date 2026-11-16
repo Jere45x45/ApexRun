@@ -13,6 +13,12 @@ using UnityEngine;
 ///   giran juntos y el motor suma su inercia a la del eje.
 /// - Sin acelerar, la fricción interna frena al kart (freno motor) hasta que las
 ///   revoluciones caen y el embrague se suelta.
+/// - Salida desde parado: con el kart detenido queda armada la salida. Al
+///   acelerar, larga con una relación más corta (launchRatio) y un embrague que
+///   engancha arriba, con el motor cerca de su torque máximo: el empujón de la
+///   largada. La relación se va alargando y, al llegar a gearRatio (a
+///   launchEndRpm), la salida termina y el kart acelera normal. Si se suelta el
+///   acelerador antes, también termina.
 ///
 /// Se actualiza dentro de los subpasos de los neumáticos:
 /// BeginSubstep (antes del paso del eje) y EndSubstep (después).
@@ -42,10 +48,21 @@ public class KartEngine
     /// <summary>True si el limitador está cortando el encendido.</summary>
     public bool IsLimiterActive { get; private set; }
 
+    /// <summary>True durante la salida desde parado (relación corta y embrague de salida).</summary>
+    public bool IsLaunching { get; private set; }
+
+    /// <summary>Relación motor/eje de ahora: launchRatio a gearRatio en la salida, si no gearRatio.</summary>
+    public float CurrentRatio { get; private set; }
+
+    // Por debajo de esto (rpm que tendría el motor con gearRatio, ~1,5 km/h con
+    // ruedas de 0,18 m) el kart cuenta como detenido y la salida queda armada.
+    private const float LaunchArmRpm = 150f;
+
     public KartEngine(EngineSettings settings)
     {
         this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
         AngularVelocity = settings.IdleAngularVelocity;
+        CurrentRatio = settings.gearRatio;
     }
 
     /// <summary>
@@ -54,6 +71,9 @@ public class KartEngine
     /// </summary>
     public void ResetState(float axleAngularVelocity)
     {
+        IsLaunching = false;
+        CurrentRatio = settings.gearRatio;
+
         float drivelineSpeed = axleAngularVelocity * settings.gearRatio;
 
         if (EngineSettings.ToRpm(drivelineSpeed) >= settings.clutchFullRpm)
@@ -83,7 +103,8 @@ public class KartEngine
             throw new ArgumentNullException(nameof(axle));
 
         float rpm = Rpm;
-        float ratio = settings.gearRatio;
+        UpdateLaunch(axle.AngularVelocity);
+        float ratio = CurrentRatio;
 
         EngineTorque = ComputeEngineTorque(rpm);
 
@@ -104,7 +125,7 @@ public class KartEngine
 
         ClutchTorque = Mathf.Abs(slip) < 0.0001f
             ? 0f
-            : settings.EvaluateClutchCapacity(rpm) * Mathf.Sign(slip);
+            : ClutchCapacity(rpm) * Mathf.Sign(slip);
 
         axle.DriveTorque = ToAxleTorque(ClutchTorque);
     }
@@ -118,7 +139,7 @@ public class KartEngine
         if (axle == null)
             throw new ArgumentNullException(nameof(axle));
 
-        float drivelineSpeed = axle.AngularVelocity * settings.gearRatio;
+        float drivelineSpeed = axle.AngularVelocity * CurrentRatio;
 
         if (IsClutchLocked)
         {
@@ -129,7 +150,7 @@ public class KartEngine
             // acompañe al eje. Si supera su capacidad, empieza a patinar.
             ClutchTorque = EngineTorque - settings.inertia * (AngularVelocity - previous) / substepTime;
 
-            float capacity = settings.EvaluateClutchCapacity(Rpm);
+            float capacity = ClutchCapacity(Rpm);
 
             if (Mathf.Abs(ClutchTorque) > capacity)
             {
@@ -147,7 +168,7 @@ public class KartEngine
             float slip = AngularVelocity - drivelineSpeed;
             bool crossed = previousSlip != 0f && slip * previousSlip <= 0f;
 
-            if (crossed && settings.EvaluateClutchCapacity(Rpm) > 0f)
+            if (crossed && ClutchCapacity(Rpm) > 0f)
             {
                 AngularVelocity = drivelineSpeed;
                 IsClutchLocked = true;
@@ -170,12 +191,46 @@ public class KartEngine
     /// </summary>
     private float ToAxleTorque(float engineSideTorque)
     {
-        float ratio = settings.gearRatio;
+        float ratio = CurrentRatio;
         float efficiency = settings.drivetrainEfficiency;
 
         return engineSideTorque >= 0f
             ? engineSideTorque * ratio * efficiency
             : engineSideTorque * ratio / efficiency;
+    }
+
+    /// <summary>
+    /// Arma, sigue o termina la salida desde parado, y fija la relación de este subpaso.
+    /// </summary>
+    private void UpdateLaunch(float axleAngularVelocity)
+    {
+        if (!settings.HasLaunch)
+        {
+            IsLaunching = false;
+            CurrentRatio = settings.gearRatio;
+            return;
+        }
+
+        float rpmAtGear = settings.RpmAtGearRatio(axleAngularVelocity);
+
+        if (rpmAtGear < LaunchArmRpm)
+        {
+            // Detenido: la salida queda armada.
+            IsLaunching = true;
+        }
+        else if (IsLaunching && (rpmAtGear >= settings.launchEndRpm || Throttle < 0.1f))
+        {
+            // Ya salió (o soltó el acelerador): desde acá, aceleración normal.
+            IsLaunching = false;
+        }
+
+        CurrentRatio = IsLaunching ? settings.EvaluateLaunchRatio(axleAngularVelocity) : settings.gearRatio;
+    }
+
+    /// <summary>Torque que puede transmitir el embrague ahora: el de la salida o el normal.</summary>
+    private float ClutchCapacity(float rpm)
+    {
+        return IsLaunching ? settings.EvaluateLaunchClutchCapacity(rpm) : settings.EvaluateClutchCapacity(rpm);
     }
 
     private float ComputeEngineTorque(float rpm)

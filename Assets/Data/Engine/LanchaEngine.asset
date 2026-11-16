@@ -1,0 +1,127 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcb6c684bab5ce748aec75dd58f86a3e, type: 3}
+  m_Name: LanchaEngine
+  m_EditorClassIdentifier: Assembly-CSharp::EngineData
+  partID: engine_lancha
+  partName: Motor de Lancha
+  description: "Motor fuera de borda: torque parejo y relaci\xF3n larga."
+  effects:
+  - "+ Velocidad m\xE1xima"
+  - "- Aceleraci\xF3n"
+  - '- Frena al soltar el acelerador'
+  icon: {fileID: 21300000, guid: 484734d200b4c794898d25215bdfc2b0, type: 3}
+  modelPrefab: {fileID: 919132149155446097, guid: 0e50f238e990ac94c8a0de189fc7f612,
+    type: 3}
+  rarity: 3
+  partNameEn: Boat Engine
+  descriptionEn: 'Outboard motor: even torque and long gearing.'
+  effectsEn:
+  - + Top speed
+  - '- Acceleration'
+  - '- Slows down when you lift off'
+  motorTorque: 3400
+  maxSpeed: 88
+  engineSettings:
+    torqueCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 10
+        inSlope: 0.0035
+        outSlope: 0.0035
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 2000
+        value: 17
+        inSlope: 0.0034166668
+        outSlope: 0.0034166668
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 3500
+        value: 22
+        inSlope: 0.0023333333
+        outSlope: 0.0023333333
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 5000
+        value: 24
+        inSlope: 0.00066666666
+        outSlope: 0.00066666666
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 6500
+        value: 24
+        inSlope: -0.00066666666
+        outSlope: -0.00066666666
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 8000
+        value: 22
+        inSlope: -0.0021666666
+        outSlope: -0.0021666666
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 9000
+        value: 19
+        inSlope: -0.0045
+        outSlope: -0.0045
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 9500
+        value: 16
+        inSlope: -0.006
+        outSlope: -0.006
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    idleRpm: 1500
+    maxRpm: 9500
+    inertia: 0.007
+    frictionTorque: 3
+    frictionTorquePerRpm: 0.0012
+    clutchEngageRpm: 2000
+    clutchFullRpm: 3000
+    clutchFullTorque: 20
+    gearRatio: 4.5
+    drivetrainEfficiency: 0.95
+    launchRatio: 14
+    launchEndRpm: 3000
+    launchClutchEngageRpm: 3500
+    launchClutchFullRpm: 5500
+    launchClutchFullTorque: 26

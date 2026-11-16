@@ -286,14 +286,31 @@ public class KartCameraController : MonoBehaviour
         context.LocalAcceleration = smoothedAcceleration;
     }
 
+    // Hasta qué cuadro los números no cambian la cámara (ver BlockNumberKeys).
+    private static int numberKeysBlockedUntil = -1;
+
+    /// <summary>
+    /// Algo de la pantalla usa los números en este cuadro (por ejemplo, elegir
+    /// las ruedas en boxes): las teclas 1 a 9 no cambian la cámara en este
+    /// cuadro ni en el siguiente. Hay que llamarlo en cada cuadro que se usen.
+    /// C sigue cambiando la cámara.
+    /// </summary>
+    public static void BlockNumberKeys()
+    {
+        numberKeysBlockedUntil = Time.frameCount + 1;
+    }
+
     private void ReadModeInput()
     {
-        for (int i = 0; i < selectActions.Length; i++)
+        if (Time.frameCount > numberKeysBlockedUntil)
         {
-            if (selectActions[i].WasPressedThisFrame())
+            for (int i = 0; i < selectActions.Length; i++)
             {
-                SelectMode(i);
-                return;
+                if (selectActions[i].WasPressedThisFrame())
+                {
+                    SelectMode(i);
+                    return;
+                }
             }
         }
 

@@ -54,6 +54,13 @@ public class KartWheel
     /// <summary>Ángulo de dirección en grados (positivo = hacia la derecha).</summary>
     public float SteerAngle { get; set; }
 
+    /// <summary>
+    /// Cuánto más rápido gira esta rueda que su eje (rad/s). En un eje rígido
+    /// vale 0: las dos ruedas giran igual. KartVehicle lo usa para el
+    /// diferencial de baja velocidad (ver KartVehicle.RearDifferential).
+    /// </summary>
+    public float AxleSpeedOffset { get; set; }
+
     // ---------- Contacto ----------
 
     public bool IsGrounded { get; private set; }
@@ -89,16 +96,86 @@ public class KartWheel
     /// <summary>Superficie que pisa la rueda (pista, pasto...). Null si el piso no tiene TrackSurface.</summary>
     public TrackSurfaceData CurrentSurface { get; private set; }
 
-    /// <summary>Multiplica el agarre del neumático según la superficie (1 = asfalto normal).</summary>
-    public float SurfaceGripMultiplier =>
-        CurrentSurface != null ? Mathf.Max(0f, CurrentSurface.GripMultiplier) : 1f;
+    /// <summary>
+    /// Qué tan dentro de un charco está la rueda (0 a 1). Son los mismos
+    /// charcos que se dibujan (WetPuddles); sin lluvia, 0.
+    /// </summary>
+    public float Puddle { get; private set; }
+
+    // Charcos: agarre que queda despacio y a fondo (aquaplaning: el agua no
+    // alcanza a salir de abajo de la goma), entre qué velocidades (m/s) pasa
+    // de uno a otro, y cuánto frena el agua (parte de la carga de la rueda).
+    private const float PuddleGripSlow = 0.75f;
+    private const float PuddleGripFast = 0.45f;
+    private const float AquaplaningFrom = 8f;   // ~30 km/h
+    private const float AquaplaningFull = 22f;  // ~80 km/h
+    private const float PuddleDrag = 0.08f;
+
+    /// <summary>
+    /// Multiplica el agarre del neumático según la superficie (1 = asfalto
+    /// seco). Con la pista mojada (TrackConditions.Wetness, lo pone el clima)
+    /// baja hasta el agarre en mojado de esa superficie. En un charco baja
+    /// más, y más cuanto más rápido va la rueda.
+    /// </summary>
+    public float SurfaceGripMultiplier
+    {
+        get
+        {
+            float grip = CurrentSurface != null ? Mathf.Max(0f, CurrentSurface.GripMultiplier) : 1f;
+            float wetGrip = CurrentSurface != null ? CurrentSurface.WetGripMultiplier : TrackSurfaceData.DefaultWetGrip;
+            float multiplier = grip * Mathf.Lerp(1f, wetGrip, TrackConditions.Wetness);
+
+            if (Puddle > 0f)
+            {
+                float aquaplaning = Mathf.InverseLerp(AquaplaningFrom, AquaplaningFull, Mathf.Abs(LongitudinalVelocity));
+                multiplier *= Mathf.Lerp(1f, Mathf.Lerp(PuddleGripSlow, PuddleGripFast, aquaplaning), Puddle);
+            }
+
+            return multiplier;
+        }
+    }
+
+    /// <summary>
+    /// Multiplica el agarre según el estado de la cubierta: temperatura y
+    /// desgaste (1 = en su punto). Lo pone KartTireThermals; sin él queda en 1.
+    /// </summary>
+    public float ConditionGripMultiplier { get; set; } = 1f;
 
     /// <summary>True si la rueda está apoyada fuera de los límites de pista.</summary>
+    /// Si la goma toca algo de la pista (asfalto o piano), no cuenta como afuera
+    /// aunque el contacto principal sea el pasto (en el borde del piano están casi
+    /// a la misma altura).
     public bool IsOnInvalidSurface =>
-        IsGrounded && CurrentSurface != null && !CurrentSurface.IsValidForTrack;
+        IsGrounded && CurrentSurface != null && !CurrentSurface.IsValidForTrack && !TouchesTrack;
 
-    /// <summary>Carga que genera agarre: la vertical corregida por la superficie (N).</summary>
-    private float GripLoad => VerticalLoad * SurfaceGripMultiplier;
+    /// <summary>True si alguno de los contactos de este paso es una superficie válida (pista o piano).</summary>
+    public bool TouchesTrack { get; private set; }
+
+    /// <summary>
+    /// Lo último que tocó la rueda era fuera de pista (pasto, grava). Sirve para
+    /// las ruedas en el aire: rebotando en la grava siguen afuera, y una que
+    /// saltó desde el piano sigue adentro.
+    /// </summary>
+    public bool LastContactInvalid { get; private set; }
+
+    // Superficie de cada collider (para no buscarla en cada contacto).
+    private static readonly System.Collections.Generic.Dictionary<Collider, TrackSurfaceData> surfaceCache =
+        new System.Collections.Generic.Dictionary<Collider, TrackSurfaceData>();
+
+    private static TrackSurfaceData SurfaceOf(Collider collider)
+    {
+        if (!surfaceCache.TryGetValue(collider, out TrackSurfaceData data))
+        {
+            TrackSurface surface = collider.GetComponentInParent<TrackSurface>();
+            data = surface != null ? surface.SurfaceData : null;
+            surfaceCache[collider] = data;
+        }
+
+        return data;
+    }
+
+    /// <summary>Carga que genera agarre: la vertical corregida por la superficie y el estado de la cubierta (N).</summary>
+    private float GripLoad => VerticalLoad * SurfaceGripMultiplier * Mathf.Max(0f, ConditionGripMultiplier);
 
     // ---------- Neumático ----------
 
@@ -193,6 +270,7 @@ public class KartWheel
         ContactPoint = center - Vector3.up * tire.radius;
         GroundCollider = null;
         GroundVelocity = Vector3.zero;
+        TouchesTrack = false;
 
         int count = Physics.OverlapSphereNonAlloc(
             center,
@@ -207,6 +285,11 @@ public class KartWheel
             Collider ground = overlapBuffer[i];
 
             if (ground.attachedRigidbody == body)
+                continue;
+
+            // Capas que no chocan entre sí (Physics → Layer Collision Matrix), por
+            // ejemplo los bots de entrenamiento: tampoco se apoyan uno sobre otro.
+            if (Physics.GetIgnoreLayerCollision(body.gameObject.layer, ground.gameObject.layer))
                 continue;
 
             bool touching = Physics.ComputePenetration(
@@ -235,6 +318,11 @@ public class KartWheel
         }
 
         UpdateSurface();
+
+        if (IsGrounded)
+            LastContactInvalid = IsOnInvalidSurface;
+
+        Puddle = IsGrounded ? WetPuddles.At(ContactPoint, CurrentSurface) : 0f;
     }
 
     /// <summary>Busca la TrackSurface del piso que pisa la rueda (solo si cambió de collider).</summary>
@@ -251,6 +339,12 @@ public class KartWheel
 
         CurrentSurface = surface != null ? surface.SurfaceData : null;
     }
+
+    /// <summary>Velocidad desde la que el relieve empieza a hacer saltar la rueda (m/s).</summary>
+    private const float BumpFadeStart = 0.4f;
+
+    /// <summary>Velocidad desde la que el relieve empuja entero (m/s, unos 10 km/h).</summary>
+    private const float BumpFadeFull = 2.8f;
 
     private void ApplyContactForce(
         Rigidbody body,
@@ -272,6 +366,19 @@ public class KartWheel
 
         float approachSpeed = -Vector3.Dot(relativeVelocity, normal);
 
+        // Relieve del piso (grava): las piedras empujan la rueda para arriba.
+        // La superficie se conoce desde el paso anterior (UpdateSurface).
+        // Solo rodando: quieto, apoyado sobre una piedra, no hay nada que lo
+        // haga saltar. Entra de a poco entre BumpFadeStart y BumpFadeFull.
+        if (ground == surfaceCollider && CurrentSurface != null && CurrentSurface.HasBumps)
+        {
+            Vector3 rolling = Vector3.ProjectOnPlane(relativeVelocity, normal);
+            float bumpFade = Mathf.InverseLerp(BumpFadeStart, BumpFadeFull, rolling.magnitude);
+
+            if (bumpFade > 0f)
+                depth += CurrentSurface.BumpAt(point) * bumpFade;
+        }
+
         float springForce = tire.verticalStiffness * depth;
 
         if (depth > tire.maxDeflection)
@@ -291,6 +398,11 @@ public class KartWheel
 
         IsGrounded = true;
         NormalForce += force;
+
+        TrackSurfaceData touched = SurfaceOf(ground);
+
+        if (touched != null && touched.IsValidForTrack)
+            TouchesTrack = true;
 
         if (depth > Deflection)
         {
@@ -484,6 +596,16 @@ public class KartWheel
             return;
 
         Vector3 force = forwardAxis * LongitudinalForce + rightAxis * LateralForce;
+
+        // El agua del charco frena la rueda (si entra un solo lado, el kart tira para ese lado).
+        if (Puddle > 0f)
+        {
+            Vector3 sliding = forwardAxis * LongitudinalVelocity + rightAxis * LateralVelocity;
+            float speed = sliding.magnitude;
+
+            if (speed > 0.1f)
+                force -= sliding / speed * (PuddleDrag * VerticalLoad * Puddle * Mathf.Clamp01(speed / 10f));
+        }
 
         body.AddForceAtPosition(force, ContactPoint, ForceMode.Force);
     }

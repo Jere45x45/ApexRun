@@ -17,10 +17,14 @@ MonoBehaviour:
   description: 
   effects:
   - Equilibradas
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 3252302625df9e148bd5496bc9883369, type: 3}
   modelPrefab: {fileID: 919132149155446097, guid: b8d23c03c7972e24189020a187d7f80e,
     type: 3}
-  rarity: 0
+  rarity: 3
+  partNameEn: Slick Tires
+  descriptionEn: 
+  effectsEn:
+  - Balanced
   maxSteeringAngle: 35
   minSteeringAngle: 20
   steeringReductionSpeed: 80
@@ -30,6 +34,7 @@ MonoBehaviour:
   damperRate: 4500
   suspensionTargetPosition: 0.5
   radius: 0.165
+  rimFacesRight: 1
   tireSettings:
     radius: 0.165
     verticalStiffness: 70000

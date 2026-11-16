@@ -137,8 +137,26 @@ public class KartEngineGranularAudio : MonoBehaviour
             source.Stop();
     }
 
+    // Lo maneja otro script (DriveExternally) en lugar del kart.
+    private bool external;
+
+    /// <summary>
+    /// Para la repetición: el sonido deja de leer el kart y usa estas rpm y este
+    /// acelerador (0 a 1). Se llama cada cuadro.
+    /// </summary>
+    public void DriveExternally(float rpm, float load)
+    {
+        external = true;
+        targetRpm = Mathf.Max(0f, rpm);
+        targetLoad = Mathf.Clamp01(load);
+        running = true;
+    }
+
     private void Update()
     {
+        if (external)
+            return;
+
         // Kart propio: rpm de su motor. Kart de otro jugador: las que manda por red.
         if (kart == null || !kart.HasEngineState)
         {

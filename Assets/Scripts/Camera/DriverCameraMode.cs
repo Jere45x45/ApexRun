@@ -17,10 +17,10 @@ public class DriverCameraMode : KartCameraMode
 
     [Header("Ojos")]
     [Tooltip("Posición de los ojos del piloto en coordenadas del kart (m).")]
-    [SerializeField] private Vector3 eyePosition = new Vector3(0f, 0.507f, -0.232f);
+    [SerializeField] private Vector3 eyePosition = new Vector3(0f, 0.507f, -0.582f);
 
     [Tooltip("Inclinación hacia abajo de la mirada (grados).")]
-    [SerializeField, Range(-20f, 30f)] private float eyePitch = 4.23f;
+    [SerializeField, Range(-20f, 30f)] private float eyePitch = 4.2f;
 
     [Header("Cabeza y fuerzas G")]
     [Tooltip("Cuánto se mueve la cabeza por cada g de aceleración (m), en x (costado), y (vertical) y z (adelante/atrás).")]

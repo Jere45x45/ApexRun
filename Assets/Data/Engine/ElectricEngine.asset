@@ -14,115 +14,97 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EngineData
   partID: engine_electric
   partName: Engine Electric
-  description: "Motor el\xE9ctrico"
+  description: "Motor el\xE9ctrico: toda la fuerza desde cero vueltas y sin embrague.
+    Arriba pierde empuje."
   effects:
-  - "+ Aceleraci\xF3n"
-  - "+ Velocidad m\xE1xima"
-  icon: {fileID: 0}
+  - "+ Aceleraci\xF3n desde parado"
+  - + Sale fuerte de las curvas
+  - "- Velocidad m\xE1xima"
+  icon: {fileID: 21300000, guid: d1e5826408b064c47840e7a64897277e, type: 3}
   modelPrefab: {fileID: 919132149155446097, guid: 49ec2151ccebb224a969521e96483d42,
     type: 3}
   rarity: 1
-  motorTorque: 4500
-  maxSpeed: 120
+  partNameEn: Electric Engine
+  descriptionEn: 'Electric motor: full power from zero revs and no clutch. It runs
+    out of push up top.'
+  effectsEn:
+  - + Acceleration from a standstill
+  - + Strong out of corners
+  - '- Top speed'
+  motorTorque: 3600
+  maxSpeed: 80
   engineSettings:
     torqueCurve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 5
-        inSlope: 0.001
-        outSlope: 0.001
+        value: 36
+        inSlope: 0
+        outSlope: 0
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
         outWeight: 0.33333334
       - serializedVersion: 3
         time: 2000
-        value: 7
-        inSlope: 0.0015
-        outSlope: 0.0015
+        value: 36
+        inSlope: 0
+        outSlope: 0
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 3000
-        value: 9
-        inSlope: 0.002
-        outSlope: 0.002
+        time: 4500
+        value: 36
+        inSlope: -0.00325
+        outSlope: -0.00325
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 4000
-        value: 11
-        inSlope: 0.002
-        outSlope: 0.002
+        time: 5500
+        value: 29.5
+        inSlope: -0.0055500004
+        outSlope: -0.0055500004
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 6000
-        value: 15
-        inSlope: 0.002125
-        outSlope: 0.002125
+        time: 6500
+        value: 24.9
+        inSlope: -0.00395
+        outSlope: -0.00395
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 8000
-        value: 19.5
-        inSlope: 0.001875
-        outSlope: 0.001875
+        time: 7500
+        value: 21.6
+        inSlope: -0.0028999997
+        outSlope: -0.0028999997
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 9000
-        value: 21
-        inSlope: 0.00049999997
-        outSlope: 0.00049999997
+        time: 8500
+        value: 19.1
+        inSlope: -0.00225
+        outSlope: -0.00225
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 10000
-        value: 20.5
-        inSlope: -0.0009833336
-        outSlope: -0.0009833336
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 11500
-        value: 18.3
-        inSlope: -0.0021666666
-        outSlope: -0.0021666666
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 13000
-        value: 14
-        inSlope: -0.0034333332
-        outSlope: -0.0034333332
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 14000
-        value: 10
-        inSlope: -0.004
-        outSlope: -0.004
+        time: 9500
+        value: 17.1
+        inSlope: -0.002
+        outSlope: -0.002
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
@@ -130,13 +112,18 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    idleRpm: 2000
-    maxRpm: 14000
-    inertia: 0.0025
-    frictionTorque: 1
-    frictionTorquePerRpm: 0.0003
-    clutchEngageRpm: 2500
-    clutchFullRpm: 4000
-    clutchFullTorque: 12
-    gearRatio: 7
-    drivetrainEfficiency: 0.95
+    idleRpm: 300
+    maxRpm: 9500
+    inertia: 0.004
+    frictionTorque: 2
+    frictionTorquePerRpm: 0.0008
+    clutchEngageRpm: 400
+    clutchFullRpm: 900
+    clutchFullTorque: 50
+    gearRatio: 4.9
+    drivetrainEfficiency: 0.97
+    launchRatio: 4.9
+    launchEndRpm: 1
+    launchClutchEngageRpm: 400
+    launchClutchFullRpm: 900
+    launchClutchFullTorque: 50

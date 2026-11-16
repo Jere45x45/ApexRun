@@ -17,9 +17,13 @@ MonoBehaviour:
   description: Volante de auto de calle.
   effects:
   - "Solo est\xE9tico"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 8c8dd41e5dc6dfa47971444769d36c3b, type: 3}
   modelPrefab: {fileID: 919132149155446097, guid: 91246fd01309bc9448173493a3b2ceeb,
     type: 3}
   rarity: 0
+  partNameEn: Passat Steering Wheel
+  descriptionEn: Road car steering wheel.
+  effectsEn:
+  - Cosmetic only
   hubPosition: {x: 0, y: 0.312, z: -0.164}
   tilt: 27

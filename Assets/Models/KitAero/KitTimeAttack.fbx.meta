@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 60cafe77ccbeaeb4793fbd2665493010
+guid: 85513ca6a7ed47a4f8d2deee3f7f8fd4
 ModelImporter:
   serializedVersion: 24300
   internalIDToNameTable: []
@@ -8,22 +8,22 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: CarbonFiber
-    second: {fileID: 2100000, guid: b47892313e1b9c349ace0696cf215880, type: 2}
+    second: {fileID: 2100000, guid: 00273296abb5f2c4bbc3fec8da89fcf4, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MetalTimeAttack
-    second: {fileID: 2100000, guid: e70c93944937ee04e97383a8ec9fbc39, type: 2}
+    second: {fileID: 2100000, guid: 1927ef46560d8584eaa954a092cb3b95, type: 2}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: CarbonFiberNormalMap
-    second: {fileID: 2800000, guid: 866679a73e2774f428710857b72d9668, type: 3}
+    second: {fileID: 2800000, guid: edf104d7db4322140a1505b4b13385ce, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: CarbonFiberTexture
-    second: {fileID: 2800000, guid: 9ce9924239c25014ba3de25e68767168, type: 3}
+    second: {fileID: 2800000, guid: d7d8bea183595c949b989a5c0584cae1, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0

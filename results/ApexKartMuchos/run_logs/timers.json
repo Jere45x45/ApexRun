@@ -1,0 +1,42 @@
+{
+    "name": "root",
+    "metadata": {
+        "timer_format_version": "0.1.0",
+        "start_time_seconds": "1790786662",
+        "python_version": "3.10.11 (tags/v3.10.11:7d4cc5a, Apr  5 2023, 00:38:17) [MSC v.1929 64 bit (AMD64)]",
+        "command_line_arguments": "C:\\Users\\49764490\\Documents\\GitHub\\ApexRun\\.venv\\Scripts\\mlagents-learn Assets\\ML-Agents\\Config\\ApexKart.yaml --run-id=ApexKartMuchos --resume",
+        "mlagents_version": "1.1.0",
+        "mlagents_envs_version": "1.1.0",
+        "communication_protocol_version": "1.5.0",
+        "pytorch_version": "2.2.2+cpu",
+        "numpy_version": "1.23.5",
+        "end_time_seconds": "1790786680"
+    },
+    "total": 17.244417899999917,
+    "count": 1,
+    "self": 0.009193899999900168,
+    "children": {
+        "run_training.setup": {
+            "total": 0.16391990000010992,
+            "count": 1,
+            "self": 0.16391990000010992
+        },
+        "TrainerController.start_learning": {
+            "total": 17.071304099999907,
+            "count": 1,
+            "self": 0.0001395999997839681,
+            "children": {
+                "TrainerController._reset_env": {
+                    "total": 17.071142500000178,
+                    "count": 1,
+                    "self": 17.071142500000178
+                },
+                "TrainerController._save_models": {
+                    "total": 2.199999994445534e-05,
+                    "count": 1,
+                    "self": 2.199999994445534e-05
+                }
+            }
+        }
+    }
+}
