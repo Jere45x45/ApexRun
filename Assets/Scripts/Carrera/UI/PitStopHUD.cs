@@ -64,7 +64,9 @@ public class PitStopHUD : MonoBehaviour
         PitStops pits = PitStops.Instance;
         KartBehaviour current = FindKart();
 
-        if (pits == null || pits.Lane == null || current == null)
+        // Ya terminada su carrera no queda nada de boxes para mostrar (y el
+        // cartel de la parada obligatoria tapaba el título de los resultados).
+        if (pits == null || pits.Lane == null || current == null || PlayerFinished())
         {
             SetActive(banner, false);
             SetActive(choicePanel, false);
@@ -98,6 +100,16 @@ public class PitStopHUD : MonoBehaviour
         }
         else if (state == PitStops.StopState.Working)
             UpdateWork(pits, current);
+    }
+
+    private RaceLapManager lapManager;
+
+    private bool PlayerFinished()
+    {
+        if (lapManager == null)
+            lapManager = FindFirstObjectByType<RaceLapManager>();
+
+        return lapManager != null && lapManager.IsFinished(kartBody);
     }
 
     private KartBehaviour FindKart()

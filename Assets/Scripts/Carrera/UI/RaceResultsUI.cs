@@ -312,7 +312,7 @@ public class RaceResultsUI : MonoBehaviour
         tableText.text = builder.ToString();
 
         if (titleText != null)
-            titleText.text = ChampionTitle() ?? (playerPosition > 0 ? (GameLanguage.IsEnglish ? $"You finished {playerPosition}{RaceHUD.Ordinal(playerPosition)}!" : $"¡Terminaste en {playerPosition}.º lugar!") : GameLanguage.Text("Resultados", "Results"));
+            titleText.text = ChampionTitle() ?? (RaceSession.TimeTrial ? GameLanguage.Text("Contrarreloj", "Time trial") : playerPosition > 0 ? (GameLanguage.IsEnglish ? $"You finished {playerPosition}{RaceHUD.Ordinal(playerPosition)}!" : $"¡Terminaste en {playerPosition}.º lugar!") : GameLanguage.Text("Resultados", "Results"));
     }
 
     /// <summary>Después de la qualy: por mejor vuelta, con la diferencia con la pole.</summary>

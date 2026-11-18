@@ -290,9 +290,11 @@ public class KartGhost : MonoBehaviour
             }
         }
 
-        // Tabla (la seca o la mojada): si mejora mi marca online, se sube.
+        // Tabla (la seca o la mojada): si mejora mi marca online, se sube. Las
+        // piezas y el nombre se toman ahora: si se reinicia o se sale antes de que
+        // termine de subir, el kart ya no está.
         if (valid && IsTableRace)
-            Upload(lap, TimeTrialRecords.BoardId(TrackDirection.IsReversed, lapWet), conditions);
+            Upload(lap, TimeTrialRecords.BoardId(TrackDirection.IsReversed, lapWet), conditions, PlayerParts(), TableName());
 
         StartLap();
         RefreshInfo();
@@ -682,18 +684,42 @@ public class KartGhost : MonoBehaviour
     // Tabla online
     // ------------------------------------------------------------------
 
-    /// <summary>Sube la vuelta a la tabla y muestra el puesto (o por qué no se pudo).</summary>
-    private async void Upload(GhostRecording lap, string board, TimeTrialRecords.LapConditions conditions)
+    /// <summary>Las piezas del kart que corrió la vuelta (sin kart, las del taller).</summary>
+    private KartParts PlayerParts()
     {
-        if (uploading)
-            return;
+        NetworkKart network = player != null ? player.GetComponent<NetworkKart>() : null;
+        return network != null ? KartParts.FromKart(network.ConfigurationController) : KartParts.FromLoadout();
+    }
 
-        // Mi marca en esa tabla: la de la carrera ya se sabe; la otra (se largó
-        // a llover o paró en la vuelta) se pregunta.
+    /// <summary>Mi nombre en la tabla (o el de multijugador si todavía no elegí uno).</summary>
+    private static string TableName() =>
+        TimeTrialRecords.LocalNameOr(GameSession.Instance != null ? GameSession.Instance.LocalPlayerName : null);
+
+    /// <summary>
+    /// Sube la vuelta a la tabla y muestra el puesto (o por qué no se pudo). Todo lo
+    /// que necesita viene armado: sigue aunque se reinicie la carrera en el medio.
+    /// Cada vuelta que no se sube deja el motivo en el log (Player.log en el juego).
+    /// </summary>
+    private async void Upload(GhostRecording lap, string board, TimeTrialRecords.LapConditions conditions, KartParts parts, string name)
+    {
+        string lapLabel = TimeTrialRecords.FormatTime(lap.LapTime) + " (" + board + ")";
+
+        if (uploading)
+        {
+            Debug.LogWarning("KartGhost: la vuelta " + lapLabel + " no se subió: todavía se estaba subiendo la anterior.");
+            return;
+        }
+
+        // Mi marca en esa tabla: la de la carrera ya se sabe (si se largó sin
+        // conexión no: -1, y decide el servidor); la otra (se largó a llover o paró
+        // en la vuelta) se pregunta.
         bool activeBoard = board == TimeTrialRecords.ActiveBoardId;
 
         if (activeBoard && TimeTrialRecords.MyOnlineBest >= 0f && lap.LapTime >= TimeTrialRecords.MyOnlineBest)
+        {
+            Debug.Log("KartGhost: la vuelta " + lapLabel + " no mejora mi marca online (" + TimeTrialRecords.FormatTime(TimeTrialRecords.MyOnlineBest) + ").");
             return;
+        }
 
         uploading = true;
         bool wet = TimeTrialRecords.IsWetBoard(board);
@@ -704,13 +730,26 @@ public class KartGhost : MonoBehaviour
         bool signedIn = TimeTrialRecords.IsSignedIn ||
                         await TimeTrialRecords.SignInAsync(GameSession.Instance != null ? GameSession.Instance.LocalPlayerName : null);
 
-        if (signedIn && !activeBoard)
+        if (!signedIn)
+        {
+            uploading = false;
+            string reason = TimeTrialRecords.LastError ?? GameLanguage.Text("Sin conexión con el servidor.", "Can't reach the server.");
+            Debug.LogWarning("KartGhost: la vuelta " + lapLabel + " no se subió: " + reason);
+
+            if (this != null)
+                SetDeltaExtra(reason);
+
+            return;
+        }
+
+        if (!activeBoard)
         {
             TimeTrialRecords.Entry current = await TimeTrialRecords.GetMineAsync(board);
 
             if (current != null && lap.LapTime >= current.Time)
             {
                 uploading = false;
+                Debug.Log("KartGhost: la vuelta " + lapLabel + " no mejora mi marca online (" + TimeTrialRecords.FormatTime(current.Time) + ").");
 
                 if (this != null)
                     SetDeltaExtra(boardLabel + GameLanguage.Text(": tu marca es " + TimeTrialRecords.FormatTime(current.Time), ": your best is " + TimeTrialRecords.FormatTime(current.Time)));
@@ -719,12 +758,13 @@ public class KartGhost : MonoBehaviour
             }
         }
 
-        string name = TimeTrialRecords.LocalNameOr(GameSession.Instance != null ? GameSession.Instance.LocalPlayerName : null);
-        NetworkKart network = player != null ? player.GetComponent<NetworkKart>() : null;
-        KartParts parts = network != null ? KartParts.FromKart(network.ConfigurationController) : KartParts.FromLoadout();
-
-        TimeTrialRecords.Entry entry = signedIn ? await TimeTrialRecords.SubmitAsync(board, lap, name, parts, conditions) : null;
+        TimeTrialRecords.Entry entry = await TimeTrialRecords.SubmitAsync(board, lap, name, parts, conditions);
         uploading = false;
+
+        if (entry != null)
+            Debug.Log("KartGhost: vuelta " + lapLabel + " subida a la tabla, puesto " + entry.Rank + ".");
+        else
+            Debug.LogWarning("KartGhost: la vuelta " + lapLabel + " no se subió: " + (TimeTrialRecords.LastError ?? "sin motivo"));
 
         if (this == null)
             return;

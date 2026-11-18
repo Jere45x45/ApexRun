@@ -155,7 +155,7 @@ public static class TimeTrialRecords
 
     // ---------- Para la próxima carrera (lo pone la tabla, lo usa KartGhost) ----------
 
-    /// <summary>Tabla de la carrera que se va a correr (null: sin tabla, por ejemplo sin internet).</summary>
+    /// <summary>Tabla de la carrera que se va a correr (null: no es la contrarreloj de la tabla, por ejemplo la repetición).</summary>
     public static string ActiveBoardId { get; set; }
 
     public static readonly List<Opponent> Opponents = new List<Opponent>();

@@ -233,6 +233,11 @@ public class CustomIABots : MonoBehaviour
     // velocidad tiembla alrededor del límite de stuckTimer, que se reinicia todo el
     // tiempo. Si en StallTime segundos no se movió StallDistance metros, también está trabado.
     private const float StallTime = 4f;
+
+    // Largada: como una persona, tarda un poco en reaccionar cuando se apagan las
+    // luces (si no, aceleraba en el primer cuadro: 0.029 s en los resultados).
+    private bool launchPending = true;
+    private float launchWait;
     private const float StallDistance = 2.5f;
     private Vector3 stallAnchor;
     private float stallTimer;
@@ -246,6 +251,14 @@ public class CustomIABots : MonoBehaviour
     private float recoverPhaseTime;
     private float recoverStill;
     private bool mustRespawn;
+
+    // Si la maniobra no lo saca (encajado contra un poste o contra otro kart, o
+    // sin agarre en el pasto mojado), después de RecoverGiveUpTime segundos sin
+    // alejarse RecoverGiveUpDistance metros reaparece en la pista.
+    private const float RecoverGiveUpTime = 10f;
+    private const float RecoverGiveUpDistance = 3f;
+    private float recoverTime;
+    private Vector3 recoverStart;
 
     // Vueltas limpias (para las estadísticas del entrenamiento).
     private float lapProgress;
@@ -442,6 +455,21 @@ public class CustomIABots : MonoBehaviour
         if (!kart.InputEnabled)
         {
             hasPrevious = false;
+            launchPending = true;
+            return;
+        }
+
+        // Recién habilitado y quieto (la largada): espera su tiempo de reacción.
+        if (launchPending)
+        {
+            launchPending = false;
+            launchWait = Training || rb.linearVelocity.sqrMagnitude > 1f ? 0f : ReactionTime();
+        }
+
+        if (launchWait > 0f)
+        {
+            launchWait -= Time.fixedDeltaTime;
+            kart.SetInputs(0f, 0f, false);
             return;
         }
 
@@ -730,6 +758,20 @@ public class CustomIABots : MonoBehaviour
             speedBucket++;
 
         return (segment * SpeedBucketCount + speedBucket) * LaneCount + (laneIndex + 2);
+    }
+
+    /// <summary>Tiempo de reacción en la largada (s), al azar según el nivel.</summary>
+    private float ReactionTime()
+    {
+        switch (difficulty)
+        {
+            case RaceDifficulty.Easy:
+                return Random.Range(0.32f, 0.6f);
+            case RaceDifficulty.Hard:
+                return Random.Range(0.16f, 0.3f);
+            default:
+                return Random.Range(0.22f, 0.42f);
+        }
     }
 
     private void ResetDecision()
@@ -1220,6 +1262,8 @@ public class CustomIABots : MonoBehaviour
         recoverReverse = true;
         recoverPhaseTime = 0f;
         recoverStill = 0f;
+        recoverTime = 0f;
+        recoverStart = transform.position;
     }
 
     /// <summary>
@@ -1240,6 +1284,23 @@ public class CustomIABots : MonoBehaviour
             recovering = false;
             RespawnInRace();
             return;
+        }
+
+        // No hay forma de salir: reaparece (si no, quedaba ahí para siempre y la
+        // carrera nunca terminaba).
+        recoverTime += deltaTime;
+
+        if (recoverTime > RecoverGiveUpTime)
+        {
+            if ((position - recoverStart).sqrMagnitude < RecoverGiveUpDistance * RecoverGiveUpDistance)
+            {
+                Debug.Log("CustomIABots: " + name + " no pudo salir solo; reaparece en la pista.", this);
+                RespawnInRace();
+                return;
+            }
+
+            recoverTime = 0f;
+            recoverStart = position;
         }
 
         recoverPhaseTime += deltaTime;

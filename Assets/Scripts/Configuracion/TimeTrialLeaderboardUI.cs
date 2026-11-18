@@ -313,8 +313,11 @@ public class TimeTrialLeaderboardUI : MonoBehaviour
     {
         RememberSelection();
         TimeTrialRecords.Opponents.Clear();
-        TimeTrialRecords.ActiveBoardId = online ? boardId : null;
-        TimeTrialRecords.MyOnlineBest = mine != null ? mine.Time : -1f;
+        // La tabla va aunque ahora no se haya podido conectar (o todavía esté
+        // conectando): al terminar la vuelta se intenta subir igual. Mi marca solo
+        // se sabe si la tabla cargó (si no, -1: decide el servidor).
+        TimeTrialRecords.ActiveBoardId = boardId;
+        TimeTrialRecords.MyOnlineBest = online && mine != null ? mine.Time : -1f;
         TimeTrialRecords.MyOnlineGhost = null;
 
         if (!online)
