@@ -102,7 +102,7 @@ public class GameSession : MonoBehaviour
         UnityTransport transport = manager.GetComponent<UnityTransport>();
 
         if (transport != null)
-            transport.SetConnectionData(LocalAddress, LocalPort, LocalAddress);
+            transport.SetConnectionData(LocalAddress, FreeLocalPort(), LocalAddress);
 
         leaving = false;
 
@@ -114,6 +114,32 @@ public class GameSession : MonoBehaviour
         }
 
         LoadSceneForAll(string.IsNullOrEmpty(firstScene) ? catalogScene : firstScene);
+    }
+
+    /// <summary>
+    /// Un puerto libre para el host local. Si el 7777 está ocupado (por ejemplo, con
+    /// otra ventana del juego abierta, o el editor y el juego compilado a la vez), el
+    /// host no arrancaba y la carrera no empezaba. Prueba los siguientes.
+    /// </summary>
+    private static ushort FreeLocalPort()
+    {
+        for (int port = LocalPort; port < LocalPort + 50; port++)
+        {
+            try
+            {
+                using (var probe = new System.Net.Sockets.UdpClient(new System.Net.IPEndPoint(System.Net.IPAddress.Parse(LocalAddress), port)))
+                {
+                }
+
+                return (ushort)port;
+            }
+            catch (System.Net.Sockets.SocketException)
+            {
+                // Ocupado: el siguiente.
+            }
+        }
+
+        return LocalPort;
     }
 
     // ───────────── Multijugador ─────────────

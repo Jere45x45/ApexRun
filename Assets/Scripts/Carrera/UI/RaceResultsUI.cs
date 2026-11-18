@@ -471,6 +471,8 @@ public class RaceResultsUI : MonoBehaviour
                 break;
         }
 
+        KartCameraController.RememberForRestart();
+
         NetworkManager manager = NetworkManager.Singleton;
         string scene = SceneManager.GetActiveScene().name;
 

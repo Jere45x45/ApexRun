@@ -249,6 +249,7 @@ public class RacePauseMenu : MonoBehaviour
             return;
 
         ReleasePause();
+        KartCameraController.RememberForRestart();
 
         NetworkManager manager = NetworkManager.Singleton;
         string scene = SceneManager.GetActiveScene().name;

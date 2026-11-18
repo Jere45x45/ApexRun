@@ -52,6 +52,12 @@ public class OnboardCameraMode : KartCameraMode
         nearClipPlane = 0.03f;
     }
 
+    public override int Variant
+    {
+        get => currentView;
+        set => currentView = views != null && views.Length > 0 ? Mathf.Clamp(value, 0, views.Length - 1) : 0;
+    }
+
     public override void NextVariant(KartCameraContext context)
     {
         if (views != null && views.Length > 0)

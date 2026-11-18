@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Services.Authentication;
+using Unity.Services.CloudCode;
 using Unity.Services.Core;
 using UnityEngine;
 
@@ -66,6 +68,9 @@ public static class PlayerAccount
 
     private static int failedAttempts;
     private static float lockedUntil;
+
+    // El usuario que ya se anotó en la lista de cuentas en esta sesión del juego (ReportAsync).
+    private static string reportedUsername;
 
     public static bool IsReady =>
         UnityServices.State == ServicesInitializationState.Initialized && AuthenticationService.Instance.IsSignedIn;
@@ -170,6 +175,36 @@ public static class PlayerAccount
         catch (Exception)
         {
             Debug.LogWarning("PlayerAccount: no se pudieron leer los datos de la cuenta.");
+            return;
+        }
+
+        string username = Username;
+
+        if (username != null && username != reportedUsername)
+        {
+            reportedUsername = username;
+            _ = ReportAsync(username);
+        }
+    }
+
+    /// <summary>
+    /// Anota la cuenta en la lista "cuentas" del servidor (Cloud Code "MarcarCuenta"),
+    /// para verlas todas en el panel de Unity: Cloud Save > Custom Items > cuentas.
+    /// Se llama sola desde RefreshAsync: al crear la cuenta, al entrar y al abrir el
+    /// juego con la sesión guardada (una vez por sesión del juego). Si falla, no pasa
+    /// nada: se vuelve a intentar la próxima vez que se abra el juego.
+    /// </summary>
+    private static async Task ReportAsync(string username)
+    {
+        try
+        {
+            await CloudCodeService.Instance.CallEndpointAsync("MarcarCuenta",
+                new Dictionary<string, object> { { "usuario", username } });
+        }
+        catch (Exception)
+        {
+            reportedUsername = null;
+            Debug.LogWarning("PlayerAccount: no se pudo anotar la cuenta en la lista del servidor.");
         }
     }
 
@@ -319,6 +354,7 @@ public static class PlayerAccount
                 AuthenticationService.Instance.ClearSessionToken();
         }
 
+        reportedUsername = null;
         Changed?.Invoke();
     }
 

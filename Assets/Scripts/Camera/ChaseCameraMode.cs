@@ -92,6 +92,12 @@ public class ChaseCameraMode : KartCameraMode
         pivotY = context.Target.position.y;
     }
 
+    public override int Variant
+    {
+        get => currentPreset;
+        set => currentPreset = presets != null && presets.Length > 0 ? Mathf.Clamp(value, 0, presets.Length - 1) : 0;
+    }
+
     public override void NextVariant(KartCameraContext context)
     {
         if (presets != null && presets.Length > 0)

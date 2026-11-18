@@ -57,6 +57,12 @@ public class KartCameraController : MonoBehaviour
 
     private readonly KartCameraContext context = new KartCameraContext();
 
+    // La cámara (y su variante) que había al reiniciar la carrera: la escena se vuelve
+    // a cargar y el controlador nuevo arranca con esa en vez de la inicial (RememberForRestart).
+    private static KartCameraController active;
+    private static int restartMode = -1;
+    private static int restartVariant;
+
     private int currentIndex = -1;
     private Vector3 lastTargetPosition;
     private bool hasLastTargetPosition;
@@ -91,12 +97,28 @@ public class KartCameraController : MonoBehaviour
 
     private void OnEnable()
     {
+        active = this;
         SetInputActionsEnabled(true);
     }
 
     private void OnDisable()
     {
+        if (active == this)
+            active = null;
+
         SetInputActionsEnabled(false);
+    }
+
+    /// <summary>
+    /// Anota la cámara que está usando el jugador, para que siga la misma después de
+    /// reiniciar (la llaman Reiniciar de la pausa y Volver a correr de los resultados,
+    /// justo antes de cargar la escena otra vez).
+    /// </summary>
+    public static void RememberForRestart()
+    {
+        KartCameraMode mode = active != null ? active.CurrentMode : null;
+        restartMode = mode != null ? active.currentIndex : -1;
+        restartVariant = mode != null ? mode.Variant : 0;
     }
 
     private void OnDestroy()
@@ -126,7 +148,17 @@ public class KartCameraController : MonoBehaviour
         // Sin kart todavía es normal: en la carrera en red lo asigna
         // LocalPlayerKartBinder (SetTarget) cuando aparece el kart del jugador.
 
-        SelectMode(Mathf.Clamp(initialMode, 0, Mathf.Max(0, modes.Length - 1)));
+        int start = Mathf.Clamp(initialMode, 0, Mathf.Max(0, modes.Length - 1));
+
+        // Después de reiniciar: la cámara que tenía el jugador (y su variante).
+        if (restartMode >= 0 && restartMode < modes.Length && modes[restartMode] != null)
+        {
+            start = restartMode;
+            modes[start].Variant = restartVariant;
+        }
+
+        restartMode = -1;
+        SelectMode(start);
     }
 
     /// <summary>Cambia el kart que sigue la cámara (por ejemplo, al spawnear el del jugador).</summary>

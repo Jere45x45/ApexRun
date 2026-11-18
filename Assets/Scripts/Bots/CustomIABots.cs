@@ -228,6 +228,14 @@ public class CustomIABots : MonoBehaviour
     private float offTrackTimer;
     private float wheelsOutTimer;
     private float stuckTimer;
+
+    // Trabado empujando contra algo (un poste, una pared): las ruedas patinan y la
+    // velocidad tiembla alrededor del límite de stuckTimer, que se reinicia todo el
+    // tiempo. Si en StallTime segundos no se movió StallDistance metros, también está trabado.
+    private const float StallTime = 4f;
+    private const float StallDistance = 2.5f;
+    private Vector3 stallAnchor;
+    private float stallTimer;
     private float spinTimer;
     private float backwardsProgress;
     private float lastIncidentDistance = -1f;
@@ -735,6 +743,8 @@ public class CustomIABots : MonoBehaviour
         offTrackTimer = 0f;
         wheelsOutTimer = 0f;
         stuckTimer = 0f;
+        stallTimer = 0f;
+        stallAnchor = transform.position;
         spinTimer = 0f;
         backwardsProgress = 0f;
         hasTrafficTarget = false;
@@ -1179,6 +1189,27 @@ public class CustomIABots : MonoBehaviour
             return true;
 
         stuckTimer = Mathf.Abs(speed) < 1.5f ? stuckTimer + deltaTime : 0f;
+
+        Vector3 moved = position - stallAnchor;
+        moved.y = 0f;
+
+        if (moved.sqrMagnitude > StallDistance * StallDistance)
+        {
+            stallAnchor = position;
+            stallTimer = 0f;
+        }
+        else
+        {
+            stallTimer += deltaTime;
+        }
+
+        if (stallTimer > StallTime)
+        {
+            stallTimer = 0f;
+            stallAnchor = position;
+            return true;
+        }
+
         return stuckTimer > stuckTime[1];
     }
 

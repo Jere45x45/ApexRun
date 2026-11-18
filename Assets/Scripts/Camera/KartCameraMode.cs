@@ -36,6 +36,12 @@ public abstract class KartCameraMode : MonoBehaviour
     /// </summary>
     public virtual void NextVariant(KartCameraContext context) { }
 
+    /// <summary>
+    /// La variante elegida (0 = la primera), para recordarla al reiniciar la carrera
+    /// (KartCameraController.RememberForRestart). Las cámaras sin variantes la ignoran.
+    /// </summary>
+    public virtual int Variant { get => 0; set { } }
+
     /// <summary>Calcula la pose de la cámara para este frame.</summary>
     public abstract void UpdateCamera(
         KartCameraContext context,
