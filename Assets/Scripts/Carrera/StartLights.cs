@@ -8,6 +8,7 @@ using UnityEngine;
 /// - Luces apagadas = largada.
 /// Usa el reloj de RaceManager, así que en red se ve igual en todas las
 /// computadoras.
+/// Con cada luz que se prende suena un pitido (en la repetición no).
 /// </summary>
 public class StartLights : MonoBehaviour
 {
@@ -30,6 +31,15 @@ public class StartLights : MonoBehaviour
 
     [Tooltip("Intensidad del brillo de las luces prendidas.")]
     [SerializeField, Min(0f)] private float emission = 4f;
+
+    [Header("Sonido")]
+    [Tooltip("Pitido de cada luz que se prende. Vacío: el de Resources/Audio/SemaforoLuz.")]
+    [SerializeField] private AudioClip lightSound;
+
+    [SerializeField, Range(0f, 1f)] private float lightVolume = 0.8f;
+
+    private const string LightSoundResource = "Audio/SemaforoLuz";
+    private AudioSource beepSource;
 
     private static readonly int ColorId = Shader.PropertyToID("_Color");
     private static readonly int EmissionId = Shader.PropertyToID("_EmissionColor");
@@ -58,6 +68,16 @@ public class StartLights : MonoBehaviour
             raceManager = FindFirstObjectByType<RaceManager>();
 
         Show(0);
+
+        if (lightSound == null)
+            lightSound = Resources.Load<AudioClip>(LightSoundResource);
+
+        // Sin posición en el espacio: se escucha igual desde toda la grilla
+        // (desde el fondo, el arco queda lejos). Va al volumen de Efectos.
+        beepSource = gameObject.AddComponent<AudioSource>();
+        beepSource.playOnAwake = false;
+        beepSource.spatialBlend = 0f;
+        AudioChannel.Assign(beepSource, AudioChannel.Channel.Effects);
     }
 
     private void Update()
@@ -76,7 +96,18 @@ public class StartLights : MonoBehaviour
 
         // La primera se prende al segundo, la segunda a los dos, etc.
         int lit = Mathf.FloorToInt(raceManager.CountdownElapsed / raceManager.StartLightInterval);
-        Show(Mathf.Clamp(lit, 0, lamps.Length));
+        lit = Mathf.Clamp(lit, 0, lamps.Length);
+
+        if (lit > lastLit && lit > 0)
+            Beep();
+
+        Show(lit);
+    }
+
+    private void Beep()
+    {
+        if (beepSource != null && lightSound != null)
+            beepSource.PlayOneShot(lightSound, lightVolume);
     }
 
     private void Show(int lit)

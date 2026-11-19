@@ -6,7 +6,9 @@ using UnityEngine.UI;
 /// <summary>
 /// Pantalla de Configuración (Panel_Settings de Inicio).
 /// - Efectos de sonido y Música: barras de 0 a 100 %. Se aplican en el momento
-///   y se guardan (GameSettings).
+///   y se guardan (GameSettings). Al mover la de Efectos suena una acelerada
+///   del motor (Resources/Audio/BotonEmpezar) con ese volumen. La de Música no
+///   tiene muestra: cuando haya música en el menú, se va a oír el cambio.
 /// - Idioma: español o inglés, con &lt; y &gt; (GameLanguage). Se aplica en el
 ///   momento: los textos con LocalizedText cambian solos.
 /// - Ayudas de manejo (DrivingAssists): ABS, Tracción y Volante, cada una
@@ -42,6 +44,11 @@ public class SettingsMenuUI : MonoBehaviour
     private TMP_Text[] assistValues = new TMP_Text[0];
     private LocalizedText[] assistLabels = new LocalizedText[0];
 
+    // Muestra al mover la barra de Efectos.
+    private const float EffectsPreviewInterval = 0.25f;
+    private AudioSource effectsPreview;
+    private float nextEffectsPreview;
+
     private void Awake()
     {
         if (effectsSlider != null)
@@ -53,6 +60,8 @@ public class SettingsMenuUI : MonoBehaviour
         // Al soltar la barra, que no quede marcada (en rojo oscuro).
         DeselectOnRelease(effectsSlider);
         DeselectOnRelease(musicSlider);
+
+        effectsPreview = NewPreviewSource("Audio/BotonEmpezar", AudioChannel.Channel.Effects);
 
         // Hay dos idiomas: < y > hacen lo mismo.
         if (languagePrevious != null)
@@ -86,12 +95,36 @@ public class SettingsMenuUI : MonoBehaviour
     {
         GameSettings.EffectsVolume = value / 100f;
         ShowValue(effectsValue, value);
+
+        // Mientras se arrastra, una acelerada cada tanto (no una por cada paso).
+        if (effectsPreview != null && Time.unscaledTime >= nextEffectsPreview)
+        {
+            nextEffectsPreview = Time.unscaledTime + EffectsPreviewInterval;
+            effectsPreview.Play();
+        }
     }
 
     private void HandleMusicChanged(float value)
     {
         GameSettings.MusicVolume = value / 100f;
         ShowValue(musicValue, value);
+    }
+
+    /// <summary>Fuente de audio para la muestra de un volumen, en su canal del mezclador.</summary>
+    private AudioSource NewPreviewSource(string resource, AudioChannel.Channel channel)
+    {
+        AudioClip clip = Resources.Load<AudioClip>(resource);
+
+        if (clip == null)
+            return null;
+
+        AudioSource source = gameObject.AddComponent<AudioSource>();
+        source.clip = clip;
+        source.playOnAwake = false;
+        source.spatialBlend = 0f;
+        source.ignoreListenerPause = true;
+        AudioChannel.Assign(source, channel);
+        return source;
     }
 
     private void ChangeLanguage()
